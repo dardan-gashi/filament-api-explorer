@@ -1,0 +1,187 @@
+<?php
+
+declare(strict_types=1);
+
+use DardanGashi\FilamentApiExplorer\Support\Documents;
+use DardanGashi\FilamentApiExplorer\Support\HttpStatus;
+use DardanGashi\FilamentApiExplorer\Support\InputKey;
+use DardanGashi\FilamentApiExplorer\Support\JsonHighlighter;
+use DardanGashi\FilamentApiExplorer\Support\SecretHeaders;
+
+// ----------------------------------------------------------------------------------
+// Support Helpers Test Suite
+// Sections: Documents::entries, Documents::string, HttpStatus::color, InputKey::for,
+//           JsonHighlighter::highlight, SecretHeaders::isSecret, SecretHeaders::redact
+// ----------------------------------------------------------------------------------
+
+// ------------------------------------------------------------
+// Documents - entries
+// ------------------------------------------------------------
+
+describe('Documents - entries', function () {
+
+    test('hands back a numeric key as the string the document wrote', function () {
+        // PHP turns the "200" of a specification into the integer 200.
+        expect(Documents::entries(['200' => 'ok', '422' => 'invalid']))
+            ->toBe([['200', 'ok'], ['422', 'invalid']]);
+    });
+
+    test('hands back an empty map as an empty list', function () {
+        expect(Documents::entries([]))->toBe([]);
+    });
+});
+
+// ------------------------------------------------------------
+// Documents - string
+// ------------------------------------------------------------
+
+describe('Documents - string', function () {
+
+    test('reads a string value', function () {
+        expect(Documents::string(['title' => 'Bookshop API'], 'title'))->toBe('Bookshop API');
+    });
+
+    test('reads a number as a string, which is how yaml renders a version', function () {
+        expect(Documents::string(['version' => 2.4], 'version'))->toBe('2.4');
+    });
+
+    test('reads a blank, missing or non-scalar value as null', function () {
+        expect(Documents::string(['title' => ''], 'title'))->toBeNull()
+            ->and(Documents::string([], 'title'))->toBeNull()
+            ->and(Documents::string(['title' => ['nested']], 'title'))->toBeNull();
+    });
+});
+
+// ------------------------------------------------------------
+// HttpStatus - color
+// ------------------------------------------------------------
+
+describe('HttpStatus - color', function () {
+
+    test('gives each class of status its own colour', function (int|string $status, string $color) {
+        expect(HttpStatus::color($status))->toBe($color);
+    })->with([
+        [200, 'success'],
+        ['201', 'success'],
+        [304, 'info'],
+        [401, 'warning'],
+        [422, 'warning'],
+        [500, 'danger'],
+        ['default', 'gray'],
+    ]);
+
+    test('recognises a successful status', function () {
+        expect(HttpStatus::isSuccessful('204'))->toBeTrue()
+            ->and(HttpStatus::isSuccessful(404))->toBeFalse()
+            ->and(HttpStatus::isSuccessful('default'))->toBeFalse();
+    });
+});
+
+// ------------------------------------------------------------
+// InputKey - for
+// ------------------------------------------------------------
+
+describe('InputKey - for', function () {
+
+    test('flattens the brackets livewire would read as property access', function () {
+        expect(InputKey::for('filter[code]'))->not->toContain('[')
+            ->and(InputKey::for('filter[code]'))->toStartWith('filter_code_');
+    });
+
+    test('is stable for the same name', function () {
+        expect(InputKey::for('sort'))->toBe(InputKey::for('sort'));
+    });
+
+    test('keeps names apart that flatten to the same characters', function () {
+        expect(InputKey::for('filter[code]'))->not->toBe(InputKey::for('filter.code'));
+    });
+
+    test('still produces a key for a name made only of punctuation', function () {
+        expect(InputKey::for('[]'))->toStartWith('value_');
+    });
+});
+
+// ------------------------------------------------------------
+// JsonHighlighter - highlight
+// ------------------------------------------------------------
+
+describe('JsonHighlighter - highlight', function () {
+
+    test('marks up keys, strings, numbers and literals', function () {
+        $html = JsonHighlighter::highlight('{"code": "SUMMER10", "total": 42, "is_active": true}');
+
+        expect($html)->toContain('<span class="fae-json-key">&quot;code&quot;</span>')
+            ->and($html)->toContain('<span class="fae-json-string">&quot;SUMMER10&quot;</span>')
+            ->and($html)->toContain('<span class="fae-json-number">42</span>')
+            ->and($html)->toContain('<span class="fae-json-literal">true</span>');
+    });
+
+    test('escapes the payload it marks up', function () {
+        $html = JsonHighlighter::highlight('{"note": "<script>alert(1)</script>"}');
+
+        expect($html)->not->toContain('<script>')
+            ->and($html)->toContain('&lt;script&gt;');
+    });
+
+    test('escapes a payload it recognises nothing in', function () {
+        expect(JsonHighlighter::highlight('<b>plain</b>'))->toBe('&lt;b&gt;plain&lt;/b&gt;');
+    });
+
+    test('leaves an empty payload empty', function () {
+        expect(JsonHighlighter::highlight(''))->toBe('');
+    });
+});
+
+// ------------------------------------------------------------
+// SecretHeaders - isSecret
+// ------------------------------------------------------------
+
+describe('SecretHeaders - isSecret', function () {
+
+    test('recognises a header that carries a credential', function (string $name) {
+        expect(SecretHeaders::isSecret($name))->toBeTrue();
+    })->with([
+        ['Authorization'],
+        ['authorization'],
+        ['X-Api-Key'],
+        ['Cookie'],
+        ['X-Signature'],
+        ['X-Auth-Token'],
+    ]);
+
+    test('leaves an ordinary header alone', function (string $name) {
+        expect(SecretHeaders::isSecret($name))->toBeFalse();
+    })->with([
+        ['Accept-Language'],
+        ['If-None-Match'],
+        ['Content-Type'],
+    ]);
+});
+
+// ------------------------------------------------------------
+// SecretHeaders - redact
+// ------------------------------------------------------------
+
+describe('SecretHeaders - redact', function () {
+
+    test('keeps the auth scheme and replaces the credential', function () {
+        expect(SecretHeaders::redact('Bearer abc123', '$TOKEN'))->toBe('Bearer $TOKEN')
+            ->and(SecretHeaders::redact('Basic dXNlcjpwYXNz', '$TOKEN'))->toBe('Basic $TOKEN');
+    });
+
+    test('replaces a bare credential entirely', function () {
+        expect(SecretHeaders::redact('abc123', '$TOKEN'))->toBe('$TOKEN');
+    });
+
+    test('redacts only the credential-bearing headers of a set', function () {
+        $redacted = SecretHeaders::redactAll([
+            'Authorization' => 'Bearer abc123',
+            'Accept-Language' => 'de',
+        ], '$TOKEN');
+
+        expect($redacted)->toBe([
+            'Authorization' => 'Bearer $TOKEN',
+            'Accept-Language' => 'de',
+        ]);
+    });
+});

@@ -1,0 +1,264 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Support\Facades\Http;
+use DardanGashi\FilamentApiExplorer\Data\Endpoint;
+use DardanGashi\FilamentApiExplorer\Enums\HttpMethod;
+use DardanGashi\FilamentApiExplorer\Pages\ApiExplorerPage;
+use DardanGashi\FilamentApiExplorer\Support\InputKey;
+
+use function Pest\Livewire\livewire;
+
+// ----------------------------------------------------------------------------------
+// ApiExplorerPage Test Suite
+// Sections: Render, Endpoint Selection, Search, Gap Filter, Snippets, Sending
+// ----------------------------------------------------------------------------------
+
+// ------------------------------------------------------------
+// ApiExplorerPage - Render
+// ------------------------------------------------------------
+
+describe('ApiExplorerPage - Render', function () {
+
+    test('opens on the first endpoint of the specification', function () {
+        livewire(ApiExplorerPage::class)
+            ->assertOk()
+            ->assertSet('endpointKey', Endpoint::keyFor(HttpMethod::Get, '/vouchers'));
+    });
+
+    test('lists every endpoint grouped by its tag', function () {
+        livewire(ApiExplorerPage::class)
+            ->assertSee('Vouchers')
+            ->assertSee('Participants')
+            ->assertSee('Courses')
+            ->assertSee('DEL', escape: false)
+            ->assertDontSee('DELETE');
+    });
+
+    test('shows the documented share of the api', function () {
+        // Five of the seven fixture endpoints are fully documented.
+        livewire(ApiExplorerPage::class)->assertSee('71 %');
+    });
+
+    test('renders the response schema of the selected endpoint', function () {
+        livewire(ApiExplorerPage::class)
+            ->assertSee('VoucherListResource')
+            ->assertSee('next_cursor')
+            ->assertSee('array&lt;object&gt;', escape: false);
+    });
+
+    test('renders the documented request headers and query parameters', function () {
+        livewire(ApiExplorerPage::class)
+            ->assertSee('If-None-Match')
+            ->assertSee('filter[code]')
+            ->assertSee('per_page');
+    });
+
+    test('reports a specification that cannot be loaded instead of failing', function () {
+        config()->set('filament-api-explorer.sources', [
+            'v2' => ['driver' => 'file', 'path' => '/does/not/exist.json'],
+        ]);
+
+        livewire(ApiExplorerPage::class)
+            ->assertOk()
+            ->assertSee('No OpenAPI document');
+    });
+});
+
+// ------------------------------------------------------------
+// ApiExplorerPage - Endpoint Selection
+// ------------------------------------------------------------
+
+describe('ApiExplorerPage - Endpoint Selection', function () {
+
+    test('switches to the endpoint that was clicked', function () {
+        livewire(ApiExplorerPage::class)
+            ->call('selectEndpoint', Endpoint::keyFor(HttpMethod::Get, '/vouchers/{code}'))
+            ->assertSet('endpointKey', Endpoint::keyFor(HttpMethod::Get, '/vouchers/{code}'))
+            ->assertSee('The voucher code.');
+    });
+
+    test('ignores an endpoint that is not in the specification', function () {
+        livewire(ApiExplorerPage::class)
+            ->call('selectEndpoint', 'get-nope')
+            ->assertSet('endpointKey', Endpoint::keyFor(HttpMethod::Get, '/vouchers'));
+    });
+
+    test('prefills the query inputs with the documented defaults', function () {
+        livewire(ApiExplorerPage::class)
+            ->assertSet('queryValues.'.InputKey::for('sort'), '-created_at')
+            ->assertSet('queryValues.'.InputKey::for('per_page'), '25');
+    });
+
+    test('leaves header inputs empty so no placeholder credential is sent', function () {
+        livewire(ApiExplorerPage::class)
+            ->assertSet('headerValues.'.InputKey::for('Authorization'), '');
+    });
+});
+
+// ------------------------------------------------------------
+// ApiExplorerPage - Search
+// ------------------------------------------------------------
+
+describe('ApiExplorerPage - Search', function () {
+
+    test('narrows the sidebar to the matching endpoints', function () {
+        livewire(ApiExplorerPage::class)
+            ->set('search', 'courses')
+            ->assertSee('Courses')
+            ->assertDontSee('Participants');
+    });
+
+    test('moves the selection to the first match', function () {
+        livewire(ApiExplorerPage::class)
+            ->set('search', 'courses')
+            ->assertSet('endpointKey', Endpoint::keyFor(HttpMethod::Get, '/courses'));
+    });
+
+    test('keeps the current selection while it still matches', function () {
+        $key = Endpoint::keyFor(HttpMethod::Get, '/vouchers/{code}');
+
+        livewire(ApiExplorerPage::class)
+            ->call('selectEndpoint', $key)
+            ->set('search', 'vouchers')
+            ->assertSet('endpointKey', $key);
+    });
+
+    test('reports when nothing matches', function () {
+        livewire(ApiExplorerPage::class)
+            ->set('search', 'zzzz')
+            ->assertSee('No endpoint matches.');
+    });
+});
+
+// ------------------------------------------------------------
+// ApiExplorerPage - Gap Filter
+// ------------------------------------------------------------
+
+describe('ApiExplorerPage - Gap Filter', function () {
+
+    test('keeps only the endpoints with an incomplete documentation', function () {
+        livewire(ApiExplorerPage::class)
+            ->call('filterGaps', true)
+            ->assertSet('onlyGaps', true)
+            ->assertSee('Participants')
+            ->assertDontSee('Lists vouchers with cursor pagination.');
+    });
+
+    test('selects a gap endpoint when the current one is complete', function () {
+        livewire(ApiExplorerPage::class)
+            ->call('filterGaps', true)
+            ->assertSet('endpointKey', Endpoint::keyFor(HttpMethod::Get, '/participants'));
+    });
+
+    test('names the gaps of the selected endpoint', function () {
+        livewire(ApiExplorerPage::class)
+            ->call('selectEndpoint', Endpoint::keyFor(HttpMethod::Get, '/participants'))
+            ->assertSee('No summary or description')
+            ->assertSee('No response documented');
+    });
+
+    test('restores every endpoint when the filter is cleared', function () {
+        livewire(ApiExplorerPage::class)
+            ->call('filterGaps', true)
+            ->assertDontSee('Vouchers')
+            ->call('filterGaps', false)
+            ->assertSet('onlyGaps', false)
+            ->assertSee('Vouchers');
+    });
+});
+
+// ------------------------------------------------------------
+// ApiExplorerPage - Snippets
+// ------------------------------------------------------------
+
+describe('ApiExplorerPage - Snippets', function () {
+
+    test('renders a curl sample for the selected endpoint', function () {
+        livewire(ApiExplorerPage::class)
+            ->assertSee('curl -G')
+            ->assertSee('https://api.bookshop.test/api/v2/vouchers')
+            ->assertSee('sort=-created_at');
+    });
+
+    test('renders the credential as a shell variable rather than a value', function () {
+        livewire(ApiExplorerPage::class)
+            ->set('headerValues.'.InputKey::for('Authorization'), 'Bearer super-secret')
+            ->assertSee('Bearer $TOKEN')
+            ->assertDontSee('super-secret');
+    });
+
+    test('switches to another language', function () {
+        livewire(ApiExplorerPage::class)
+            ->call('setSnippetLanguage', 'php')
+            ->assertSet('snippetLanguage', 'php')
+            ->assertSee('Http::withHeaders');
+    });
+
+    test('ignores an unknown language', function () {
+        livewire(ApiExplorerPage::class)
+            ->call('setSnippetLanguage', 'cobol')
+            ->assertSet('snippetLanguage', 'curl');
+    });
+});
+
+// ------------------------------------------------------------
+// ApiExplorerPage - Sending
+// ------------------------------------------------------------
+
+describe('ApiExplorerPage - Sending', function () {
+
+    test('sends the request that was built and keeps the response', function () {
+        Http::fake([
+            'api.bookshop.test/*' => Http::response(['data' => []], 200, ['ETag' => '"abc"']),
+        ]);
+
+        livewire(ApiExplorerPage::class)
+            ->call('send')
+            ->assertSet('result.status', 200)
+            ->assertSee('ETag');
+
+        Http::assertSent(fn ($request): bool => str_contains($request->url(), 'sort=-created_at'));
+    });
+
+    test('sends only the header values the user typed', function () {
+        Http::fake(['api.bookshop.test/*' => Http::response([], 200)]);
+
+        livewire(ApiExplorerPage::class)
+            ->set('headerValues.'.InputKey::for('Authorization'), 'Bearer live-token')
+            ->call('send');
+
+        Http::assertSent(fn ($request): bool => $request->hasHeader('Authorization', 'Bearer live-token'));
+    });
+
+    test('refuses a host that is not allowed', function () {
+        Http::fake();
+        config()->set('filament-api-explorer.execution.allowed_hosts', ['api.example.com']);
+
+        livewire(ApiExplorerPage::class)
+            ->call('send')
+            ->assertSet('result', null)
+            ->assertNotified('Request refused');
+
+        Http::assertNothingSent();
+    });
+
+    test('offers no sender for a method it will not send', function () {
+        livewire(ApiExplorerPage::class)
+            ->call('selectEndpoint', Endpoint::keyFor(HttpMethod::Post, '/vouchers'))
+            ->assertSee('only sends GET requests');
+    });
+
+    test('does nothing when sending is disabled', function () {
+        Http::fake();
+        config()->set('filament-api-explorer.execution.enabled', false);
+
+        livewire(ApiExplorerPage::class)
+            ->call('send')
+            ->assertSet('result', null)
+            ->assertSee('Sending requests is disabled');
+
+        Http::assertNothingSent();
+    });
+});

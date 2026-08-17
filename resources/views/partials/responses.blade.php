@@ -1,0 +1,55 @@
+@forelse ($endpoint->responses as $response)
+    @php
+        $visibleFields = $response->filteredFields($this->fieldSearch);
+    @endphp
+
+    <div class="fae-response">
+        <div class="fae-response-head">
+            <div class="fae-response-title">
+                <span class="fae-badge fae-badge-{{ $response->color() }}">{{ $response->status }}</span>
+
+                @if ($response->schemaName)
+                    <span class="fae-response-name">{{ $response->schemaName }}</span>
+                @endif
+
+                @if ($response->description)
+                    <span>{{ $response->description }}</span>
+                @endif
+            </div>
+
+            @if ($response->mediaType)
+                <span class="fae-media-type">{{ $response->mediaType }}</span>
+            @endif
+        </div>
+
+        @if ($response->hasFields())
+            @if ($visibleFields === [])
+                <p class="fae-empty">{{ __('filament-api-explorer::explorer.empty.field_match') }}</p>
+            @else
+                @include('filament-api-explorer::partials.schema-tree', ['fields' => $visibleFields])
+            @endif
+        @elseif ($response->mediaType)
+            <p class="fae-empty">{{ __('filament-api-explorer::explorer.empty.fields') }}</p>
+        @endif
+
+        @if ($response->hasHeaders())
+            <h4 class="fae-group-label">{{ __('filament-api-explorer::explorer.sections.response_headers') }}</h4>
+
+            @foreach ($response->headers as $header)
+                <div class="fae-kv">
+                    <span class="fae-kv-name">{{ $header->name }}</span>
+
+                    @if ($header->example !== null)
+                        <span class="fae-kv-value">{{ $header->example }}</span>
+                    @endif
+
+                    @if ($header->description)
+                        <span class="fae-kv-value">{{ $header->description }}</span>
+                    @endif
+                </div>
+            @endforeach
+        @endif
+    </div>
+@empty
+    <p class="fae-empty">{{ __('filament-api-explorer::explorer.gaps.responses') }}</p>
+@endforelse
