@@ -16,7 +16,6 @@ use DardanGashi\FilamentApiExplorer\Data\Endpoint;
 use DardanGashi\FilamentApiExplorer\Data\ExecutedRequest;
 use DardanGashi\FilamentApiExplorer\Data\Parameter;
 use DardanGashi\FilamentApiExplorer\Data\RequestBlueprint;
-use DardanGashi\FilamentApiExplorer\Data\SchemaField;
 use DardanGashi\FilamentApiExplorer\Enums\ParameterLocation;
 use DardanGashi\FilamentApiExplorer\Enums\SnippetLanguage;
 use DardanGashi\FilamentApiExplorer\Exceptions\RequestNotAllowed;
@@ -301,7 +300,6 @@ class ApiExplorerPage extends Page
             'snippet' => $endpoint === null ? '' : $this->snippet($endpoint),
             'snippetLanguages' => app(SnippetRenderer::class)->languages(),
             'exampleSections' => $endpoint === null ? [] : $this->exampleSections($endpoint),
-            'schemaLegend' => $endpoint === null ? [] : $this->schemaLegend($endpoint),
             'emptyRequiredHeaders' => $endpoint === null ? [] : $this->emptyRequiredHeaders($endpoint),
             'captureEnabled' => $this->samples()->isEnabled(),
             'canSend' => $this->canSend(),
@@ -478,47 +476,6 @@ class ApiExplorerPage extends Page
         }
 
         return $sections;
-    }
-
-    /**
-     * The schema badges this endpoint actually uses, with what each one means.
-     *
-     * `optional`, `nullable` and `deprecated` are the words the document uses, so
-     * they are the words the badge shows; the reader's language belongs in one
-     * legend rather than in a badge on every row. A legend for a badge that is not
-     * on screen would explain nothing, so each entry has to be earned — which is
-     * why the response trees are what it is read from, the only trees that carry
-     * these three.
-     *
-     * @return list<array{label: string, color: string, meaning: string}>
-     */
-    private function schemaLegend(Endpoint $endpoint): array
-    {
-        $fields = [];
-
-        foreach ($endpoint->responses as $response) {
-            $fields = [...$fields, ...$response->fields];
-        }
-
-        $legend = [];
-
-        foreach ([
-            ['optional', 'gray', fn (SchemaField $field): bool => $field->optional],
-            ['nullable', 'info', fn (SchemaField $field): bool => $field->nullable],
-            ['deprecated', 'warning', fn (SchemaField $field): bool => $field->deprecated],
-        ] as [$badge, $color, $predicate]) {
-            if (! SchemaField::anyIn($fields, $predicate)) {
-                continue;
-            }
-
-            $legend[] = [
-                'label' => (string) __("filament-api-explorer::explorer.labels.{$badge}"),
-                'color' => $color,
-                'meaning' => (string) __("filament-api-explorer::explorer.legend.{$badge}"),
-            ];
-        }
-
-        return $legend;
     }
 
     /**

@@ -13,7 +13,7 @@
                 @endif
 
                 @if ($response->description)
-                    <span>{{ $response->description }}</span>
+                    <span>{!! \DardanGashi\FilamentApiExplorer\Support\InlineMarkdown::toHtml($response->description) !!}</span>
                 @endif
             </div>
 

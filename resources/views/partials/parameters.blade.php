@@ -30,7 +30,7 @@
         </div>
 
         @if ($parameter->description)
-            <p class="fae-param-note">{{ $parameter->description }}</p>
+            <p class="fae-param-note">{!! \DardanGashi\FilamentApiExplorer\Support\InlineMarkdown::toHtml($parameter->description) !!}</p>
         @endif
 
         @if ($parameter->enum !== [])

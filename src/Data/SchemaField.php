@@ -114,24 +114,6 @@ final readonly class SchemaField
     }
 
     /**
-     * Whether any field in the tree, at any depth, satisfies the predicate. What a
-     * badge means is worth explaining where the badge occurs, and nowhere else.
-     *
-     * @param  list<self>  $fields
-     * @param  callable(self): bool  $predicate
-     */
-    public static function anyIn(array $fields, callable $predicate): bool
-    {
-        foreach ($fields as $field) {
-            if ($predicate($field) || self::anyIn($field->children, $predicate)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * How many rows the tree renders in total, used for the "n fields" caption.
      */
     public function countRows(): int

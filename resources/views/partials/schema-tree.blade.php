@@ -85,7 +85,7 @@
             </div>
 
             @if ($field->description)
-                <p class="fae-field-description">{{ $field->description }}</p>
+                <p class="fae-field-description">{!! \DardanGashi\FilamentApiExplorer\Support\InlineMarkdown::toHtml($field->description) !!}</p>
             @endif
 
             @if ($field->enum !== [])

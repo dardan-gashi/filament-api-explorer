@@ -114,7 +114,7 @@ describe('ApiExplorerPage - Render', function () {
 
     test('marks a field required only where required changes the outcome', function () {
         // In a response, `required` would sit on nearly every row and say nothing.
-        // What is worth saying there is its mirror image: five fields of the fixture
+        // What is worth saying there is its mirror image: four fields of the fixture
         // are left out of a required list and can therefore be missing from the
         // payload. In a body the word earns its row — it separates an accepted call
         // from a 422 — and in the reading endpoint the one badge left is the
@@ -127,8 +127,16 @@ describe('ApiExplorerPage - Render', function () {
 
         // The header, the body itself, and the two fields the body requires.
         expect(badges($reading, 'required'))->toBe(1)
-            ->and(badges($reading, 'optional'))->toBe(5)
+            ->and(badges($reading, 'optional'))->toBe(4)
             ->and(badges($writing, 'required'))->toBe(4);
+    });
+
+    test('sets the names inside a description as names', function () {
+        // Generators write a name as a code span, and a reference full of stray
+        // backticks reads worse than one with none.
+        livewire(ApiExplorerPage::class)
+            ->assertSee('<code class="fae-inline-code">discount_value</code>', escape: false)
+            ->assertDontSee('`discount_value`');
     });
 
     test('strikes an endpoint on its way out through in the list', function () {
@@ -137,27 +145,16 @@ describe('ApiExplorerPage - Render', function () {
         livewire(ApiExplorerPage::class)->assertSee('fae-endpoint-path-deprecated', escape: false);
     });
 
-    test('says a response field can be missing, not that it is required', function () {
-        // A relation the endpoint does not eager load is documented by leaving it out
-        // of the required list, and that is the one thing a reader has to know before
-        // reaching into the payload for it.
+    test('names a schema fact with the word the document uses for it', function () {
+        // `optional` is what a response says by leaving a field out of its required
+        // list: the field can be missing altogether, which is how a relation the
+        // endpoint does not eager load is documented. These are the words of the
+        // specification and they are left in it — a reader of an API reference knows
+        // them, and explaining them would only take room from the schema.
         livewire(ApiExplorerPage::class)
             ->assertSee('optional')
-            ->assertSee('may be absent');
-    });
-
-    test('says what the badges of the schema mean where they are used', function () {
-        // The badge keeps the word the document uses; the legend translates it once.
-        livewire(ApiExplorerPage::class)
             ->assertSee('nullable')
-            ->assertSee('can be null')
-            ->assertSee('will be removed');
-    });
-
-    test('leaves out a legend for badges the schema does not use', function () {
-        livewire(ApiExplorerPage::class)
-            ->call('selectEndpoint', Endpoint::keyFor(HttpMethod::Delete, '/participants/{participant}'))
-            ->assertDontSee('can be null');
+            ->assertSee('deprecated');
     });
 
     test('puts the documented response headers beside the payload they arrive with', function () {

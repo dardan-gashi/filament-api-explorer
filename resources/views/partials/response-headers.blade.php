@@ -12,7 +12,7 @@
             @endif
 
             @if ($header->description)
-                <span class="fae-kv-value">{{ $header->description }}</span>
+                <span class="fae-kv-value">{!! \DardanGashi\FilamentApiExplorer\Support\InlineMarkdown::toHtml($header->description) !!}</span>
             @endif
         </div>
     @endforeach

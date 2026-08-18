@@ -27,11 +27,11 @@
     </div>
 
     @if ($endpoint->summary)
-        <p class="fae-summary">{{ $endpoint->summary }}</p>
+        <p class="fae-summary">{!! \DardanGashi\FilamentApiExplorer\Support\InlineMarkdown::toHtml($endpoint->summary) !!}</p>
     @endif
 
     @if ($endpoint->description && $endpoint->description !== $endpoint->summary)
-        <p class="fae-param-note">{{ $endpoint->description }}</p>
+        <p class="fae-param-note">{!! \DardanGashi\FilamentApiExplorer\Support\InlineMarkdown::toHtml($endpoint->description) !!}</p>
     @endif
 
     @if ($endpoint->meta !== [])
@@ -87,7 +87,7 @@
         </div>
 
         @if ($endpoint->requestBody->description)
-            <p class="fae-param-note">{{ $endpoint->requestBody->description }}</p>
+            <p class="fae-param-note">{!! \DardanGashi\FilamentApiExplorer\Support\InlineMarkdown::toHtml($endpoint->requestBody->description) !!}</p>
         @endif
 
         @php
@@ -118,17 +118,6 @@
             placeholder="{{ __('filament-api-explorer::explorer.labels.field_search') }}"
             aria-label="{{ __('filament-api-explorer::explorer.labels.field_search') }}"
         >
-    @endif
-
-    @if ($schemaLegend !== [])
-        <div class="fae-legend">
-            @foreach ($schemaLegend as $entry)
-                <span class="fae-legend-item">
-                    <span class="fae-badge fae-badge-{{ $entry['color'] }}">{{ $entry['label'] }}</span>
-                    {{ $entry['meaning'] }}
-                </span>
-            @endforeach
-        </div>
     @endif
 
     @include('filament-api-explorer::partials.responses')

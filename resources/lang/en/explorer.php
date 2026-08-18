@@ -57,17 +57,6 @@ return [
     ],
 
     /*
-     | The badges carry the words the specification itself uses, because those are
-     | the words a reader will search the document for. What they mean is said once,
-     | here, instead of on every row.
-     */
-    'legend' => [
-        'optional' => 'may be absent',
-        'nullable' => 'can be null',
-        'deprecated' => 'will be removed',
-    ],
-
-    /*
      | Captions the explorer can name. Any other `x-` extension is shown as it is.
      */
     'meta' => [

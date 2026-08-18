@@ -6,6 +6,7 @@ use DardanGashi\FilamentApiExplorer\Support\Documents;
 use DardanGashi\FilamentApiExplorer\Support\EndpointMeta;
 use DardanGashi\FilamentApiExplorer\Support\GroupLabel;
 use DardanGashi\FilamentApiExplorer\Support\HttpStatus;
+use DardanGashi\FilamentApiExplorer\Support\InlineMarkdown;
 use DardanGashi\FilamentApiExplorer\Support\InputKey;
 use DardanGashi\FilamentApiExplorer\Support\JsonHighlighter;
 use DardanGashi\FilamentApiExplorer\Support\PathParts;
@@ -15,7 +16,8 @@ use DardanGashi\FilamentApiExplorer\Support\SecretHeaders;
 // Support Helpers Test Suite
 // Sections: Documents::entries, Documents::string, GroupLabel::for, HttpStatus::color,
 //           InputKey::for, EndpointMeta::caption, EndpointMeta::icon, PathParts::split,
-//           JsonHighlighter::highlight, SecretHeaders::isSecret, SecretHeaders::redact
+//           JsonHighlighter::highlight, InlineMarkdown::toHtml,
+//           SecretHeaders::isSecret, SecretHeaders::redact
 // ----------------------------------------------------------------------------------
 
 // ------------------------------------------------------------
@@ -212,6 +214,39 @@ describe('JsonHighlighter - highlight', function () {
 
     test('leaves an empty payload empty', function () {
         expect(JsonHighlighter::highlight(''))->toBe('');
+    });
+});
+
+// ------------------------------------------------------------
+// InlineMarkdown - toHtml
+// ------------------------------------------------------------
+
+describe('InlineMarkdown - toHtml', function () {
+
+    test('sets a code span as code', function () {
+        expect(InlineMarkdown::toHtml('Alias of `discount_value`.'))
+            ->toBe('Alias of <code class="fae-inline-code">discount_value</code>.');
+    });
+
+    test('escapes the text around it', function () {
+        expect(InlineMarkdown::toHtml('Pass <script> in `name`'))
+            ->toBe('Pass &lt;script&gt; in <code class="fae-inline-code">name</code>');
+    });
+
+    test('escapes what is inside it', function () {
+        // A document is generated from source, and source is not to be trusted with
+        // markup any more than a user is.
+        expect(InlineMarkdown::toHtml('`<img onerror=alert(1)>`'))
+            ->toContain('&lt;img onerror=alert(1)&gt;')
+            ->not->toContain('<img');
+    });
+
+    test('leaves a lone backtick where it is', function () {
+        expect(InlineMarkdown::toHtml('a ` b'))->toBe('a ` b');
+    });
+
+    test('makes nothing of nothing', function () {
+        expect(InlineMarkdown::toHtml(null))->toBe('');
     });
 });
 

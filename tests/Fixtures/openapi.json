@@ -70,7 +70,7 @@
                     "discount": {
                         "type": "number",
                         "deprecated": true,
-                        "description": "Alias of discount_value."
+                        "description": "Alias of `discount_value`."
                     },
                     "is_active": {
                         "type": "boolean"
