@@ -68,10 +68,14 @@
         /**
          * The box scrolls at 70vh, so the row the arrows moved to is regularly
          * below the fold. Marking it is not enough — it has to be brought up.
+         *
+         * Found by position rather than by a marker on the row: an expression in
+         * an attribute cannot carry a double quote, and a selector for one would
+         * end the attribute in the middle of this object.
          */
         reveal() {
             this.$nextTick(() => this.$refs.results
-                ?.querySelector('[data-active="true"]')
+                ?.querySelectorAll('li')[this.active]
                 ?.scrollIntoView({ block: 'nearest' }));
         },
 
@@ -176,7 +180,7 @@
 
             <ul class="fae-palette-results" role="listbox" x-ref="results">
                 <template x-for="(item, index) in items" x-bind:key="item.kind + (item.resource?.group ?? item.endpoint.key)">
-                    <li x-bind:data-active="index === active">
+                    <li>
                         {{-- A resource: its name, the path below it and how many
                              endpoints hang off it. --}}
                         <button

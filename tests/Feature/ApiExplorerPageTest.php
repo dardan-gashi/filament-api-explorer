@@ -215,8 +215,7 @@ describe('ApiExplorerPage - Render', function () {
             ->assertSee('x-on:keydown.up.prevent="move(-1)"', escape: false)
             ->assertSee('x-on:keydown.enter.prevent="enter()"', escape: false)
             ->assertSee('x-on:keydown.left="term === \'\' && out()"', escape: false)
-            ->assertSee('x-on:keydown.right="term === \'\' && deeper()"', escape: false)
-            ->assertSee('x-bind:data-active="index === active"', escape: false);
+            ->assertSee('x-on:keydown.right="term === \'\' && deeper()"', escape: false);
     });
 
     test('marks an endpoint on its way out wherever it is listed', function () {
