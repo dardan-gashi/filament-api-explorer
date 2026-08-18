@@ -354,6 +354,31 @@ describe('ApiExplorerPage - Sending', function () {
         Http::assertNothingSent();
     });
 
+    test('refuses to send while a path segment is still empty', function () {
+        Http::fake();
+
+        livewire(ApiExplorerPage::class)
+            ->call('selectEndpoint', Endpoint::keyFor(HttpMethod::Get, '/vouchers/{code}'))
+            ->set('pathValues.'.InputKey::for('code'), '')
+            ->call('send')
+            ->assertNotified()
+            ->assertSet('result', null);
+
+        Http::assertNothingSent();
+    });
+
+    test('sends once the path segment is filled in', function () {
+        Http::fake(['api.bookshop.test/*' => Http::response(['code' => 'SUMMER10'], 200)]);
+
+        livewire(ApiExplorerPage::class)
+            ->call('selectEndpoint', Endpoint::keyFor(HttpMethod::Get, '/vouchers/{code}'))
+            ->set('pathValues.'.InputKey::for('code'), 'WINTER20')
+            ->call('send')
+            ->assertSet('result.status', 200);
+
+        Http::assertSent(fn ($request): bool => str_contains($request->url(), '/vouchers/WINTER20'));
+    });
+
     test('offers no sender for a method it will not send', function () {
         livewire(ApiExplorerPage::class)
             ->call('selectEndpoint', Endpoint::keyFor(HttpMethod::Post, '/vouchers'))

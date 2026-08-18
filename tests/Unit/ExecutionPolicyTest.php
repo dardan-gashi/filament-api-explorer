@@ -9,7 +9,7 @@ use DardanGashi\FilamentApiExplorer\Support\ExecutionPolicy;
 
 // ----------------------------------------------------------------------------------
 // ExecutionPolicy Test Suite
-// Sections: authorize, allows, allowedHosts
+// Sections: authorize, unresolved path, allows, allowedHosts
 // ----------------------------------------------------------------------------------
 
 function executionPolicy(bool $enabled = true, array $hosts = ['api.bookshop.test'], array $schemes = ['https', 'http']): ExecutionPolicy
@@ -60,6 +60,28 @@ describe('ExecutionPolicy - authorize', function () {
     test('refuses everything when no host is allowed', function () {
         executionPolicy(hosts: [])->authorize(policyRequest());
     })->throws(RequestNotAllowed::class);
+});
+
+// ------------------------------------------------------------
+// ExecutionPolicy - unresolved path
+// ------------------------------------------------------------
+
+describe('ExecutionPolicy - unresolved path', function () {
+
+    test('refuses a request whose path is still a template', function () {
+        // Laravel's HTTP client expands `{...}` as an URI template and an unknown
+        // placeholder expands to nothing, so this would ask for
+        // `/orders//subscriptions` — a different endpoint, or none at all.
+        executionPolicy()->authorize(policyRequest('https://api.bookshop.test/api/v2/orders/{order}/subscriptions'));
+    })->throws(RequestNotAllowed::class, 'Fill in the path parameter [order] before sending.');
+
+    test('names every segment that is still missing', function () {
+        executionPolicy()->authorize(policyRequest('https://api.bookshop.test/api/v2/orders/{order}/items/{item}'));
+    })->throws(RequestNotAllowed::class, 'Fill in the path parameters [order], [item] before sending.');
+
+    test('passes a request whose segments are all filled in', function () {
+        executionPolicy()->authorize(policyRequest('https://api.bookshop.test/api/v2/orders/42/subscriptions'));
+    })->throwsNoExceptions();
 });
 
 // ------------------------------------------------------------

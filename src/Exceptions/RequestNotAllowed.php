@@ -29,6 +29,18 @@ final class RequestNotAllowed extends RuntimeException
         return new self(sprintf('The host [%s] is not in the allowed hosts list.', $host ?? 'unknown'));
     }
 
+    /**
+     * @param  list<string>  $names
+     */
+    public static function unresolvedPath(array $names): self
+    {
+        return new self(sprintf(
+            'Fill in the path %s [%s] before sending.',
+            count($names) === 1 ? 'parameter' : 'parameters',
+            implode('], [', $names),
+        ));
+    }
+
     public static function insecureScheme(?string $scheme): self
     {
         return new self(sprintf('The scheme [%s] is not allowed.', $scheme ?? 'unknown'));

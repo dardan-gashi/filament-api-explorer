@@ -74,6 +74,12 @@ final class ExecutionPolicy
         if (! $this->allowsHost($blueprint->host())) {
             throw RequestNotAllowed::hostNotAllowed($blueprint->host());
         }
+
+        $unresolved = $blueprint->unresolvedPlaceholders();
+
+        if ($unresolved !== []) {
+            throw RequestNotAllowed::unresolvedPath($unresolved);
+        }
     }
 
     private function allowsHost(?string $host): bool

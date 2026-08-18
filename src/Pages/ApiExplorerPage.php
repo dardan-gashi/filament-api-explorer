@@ -494,7 +494,10 @@ class ApiExplorerPage extends Page
                 $fields[] = [
                     'bind' => $property.'.'.InputKey::for($parameter->name),
                     'name' => $parameter->name,
-                    'placeholder' => $parameter->suggestedValue() ?? '',
+                    // A path segment with nothing to suggest shows its own
+                    // placeholder, so an empty input reads as the hole it is.
+                    'placeholder' => $parameter->suggestedValue()
+                        ?? ($location === ParameterLocation::Path ? '{'.$parameter->name.'}' : ''),
                     'required' => $parameter->required,
                 ];
             }

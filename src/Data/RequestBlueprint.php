@@ -34,6 +34,25 @@ final readonly class RequestBlueprint
         return $this->url.'?'.http_build_query($this->query);
     }
 
+    /**
+     * The path placeholders still standing in the URL — `order` for
+     * `/orders/{order}/subscriptions`.
+     *
+     * A sample is meant to keep them, so it reads as the template it is. A
+     * request must never carry one: Laravel's HTTP client expands `{...}` as an
+     * URI template, and an unknown placeholder expands to nothing at all, which
+     * turns `/orders/{order}/subscriptions` into `/orders//subscriptions` and
+     * asks the API a question nobody meant to ask.
+     *
+     * @return list<string>
+     */
+    public function unresolvedPlaceholders(): array
+    {
+        preg_match_all('/\{([^{}]*)\}/', $this->url, $matches);
+
+        return array_values(array_unique($matches[1]));
+    }
+
     public function host(): ?string
     {
         return parse_url($this->url, PHP_URL_HOST) ?: null;
