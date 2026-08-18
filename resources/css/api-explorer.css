@@ -32,10 +32,19 @@
 	--fae-json-number: #1d4ed8;
 	--fae-json-literal: #7c3aed;
 
-	--fae-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+	--fae-mono: var(--mono-font-family, ui-monospace), SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+	/*
+	 | Filament's own type scale, so the explorer reads at the same size as the rest
+	 | of the panel: its body is --text-sm. The fallbacks keep the page sane if it is
+	 | ever rendered outside a Filament panel.
+	 */
+	--fae-font-xs: var(--text-xs, 0.75rem);
+	--fae-font-sm: var(--text-sm, 0.875rem);
+	--fae-font-base: var(--text-base, 1rem);
 
 	color: var(--fae-text);
-	font-size: 0.8125rem;
+	font-size: var(--fae-font-sm);
 	line-height: 1.5;
 }
 
@@ -153,7 +162,7 @@
 .fae-toolbar-meta {
 	color: var(--fae-text-muted);
 	font-family: var(--fae-mono);
-	font-size: 0.75rem;
+	font-size: var(--fae-font-xs);
 }
 
 .fae-select,
@@ -163,7 +172,7 @@
 	border-radius: 0.375rem;
 	color: var(--fae-text);
 	font-family: var(--fae-mono);
-	font-size: 0.75rem;
+	font-size: var(--fae-font-sm);
 	padding: 0.3125rem 0.5rem;
 	width: 100%;
 }
@@ -187,7 +196,7 @@
 	border-radius: 0.25rem;
 	display: inline-flex;
 	font-family: var(--fae-mono);
-	font-size: 0.6875rem;
+	font-size: var(--fae-font-xs);
 	font-weight: 600;
 	gap: 0.25rem;
 	letter-spacing: 0.02em;
@@ -251,7 +260,7 @@
 	border-radius: 0.25rem;
 	color: var(--fae-text-muted);
 	cursor: pointer;
-	font-size: 0.75rem;
+	font-size: var(--fae-font-sm);
 	padding: 0.1875rem 0.5rem;
 }
 
@@ -266,7 +275,7 @@
 
 .fae-group-label {
 	color: var(--fae-text-faint);
-	font-size: 0.6875rem;
+	font-size: var(--fae-font-xs);
 	font-weight: 600;
 	letter-spacing: 0.02em;
 	padding: 0.75rem 0.75rem 0.25rem;
@@ -292,7 +301,7 @@
 	cursor: pointer;
 	display: flex;
 	font-family: var(--fae-mono);
-	font-size: 0.75rem;
+	font-size: var(--fae-font-sm);
 	gap: 0.5rem;
 	padding: 0.25rem 0.375rem;
 	text-align: left;
@@ -333,7 +342,7 @@
 
 .fae-empty {
 	color: var(--fae-text-muted);
-	font-size: 0.75rem;
+	font-size: var(--fae-font-sm);
 	padding: 0.75rem;
 }
 
@@ -348,7 +357,7 @@
 
 .fae-endpoint-title {
 	font-family: var(--fae-mono);
-	font-size: 1rem;
+	font-size: var(--fae-font-base);
 	font-weight: 600;
 	word-break: break-all;
 }
@@ -363,7 +372,7 @@
 	display: flex;
 	flex-wrap: wrap;
 	font-family: var(--fae-mono);
-	font-size: 0.6875rem;
+	font-size: var(--fae-font-xs);
 	gap: 0.75rem;
 	margin-top: 0.5rem;
 }
@@ -371,7 +380,7 @@
 .fae-section-title {
 	border-bottom: 1px solid var(--fae-border);
 	color: var(--fae-text);
-	font-size: 0.8125rem;
+	font-size: var(--fae-font-sm);
 	font-weight: 600;
 	padding-bottom: 0.375rem;
 	margin: 0 0 0.5rem;
@@ -381,7 +390,7 @@
 	background: var(--fae-grey-bg);
 	border-radius: 0.375rem;
 	color: var(--fae-text-muted);
-	font-size: 0.75rem;
+	font-size: var(--fae-font-sm);
 	padding: 0.5rem 0.625rem;
 }
 
@@ -405,14 +414,14 @@
 
 .fae-param-name {
 	font-family: var(--fae-mono);
-	font-size: 0.8125rem;
+	font-size: var(--fae-font-sm);
 	font-weight: 600;
 }
 
 .fae-param-type {
 	color: var(--fae-text-muted);
 	font-family: var(--fae-mono);
-	font-size: 0.75rem;
+	font-size: var(--fae-font-xs);
 }
 
 .fae-param-note {
@@ -423,7 +432,7 @@
 .fae-enum {
 	color: var(--fae-text-muted);
 	font-family: var(--fae-mono);
-	font-size: 0.75rem;
+	font-size: var(--fae-font-xs);
 	margin-top: 0.125rem;
 }
 
@@ -519,7 +528,7 @@
 
 .fae-field-name {
 	font-family: var(--fae-mono);
-	font-size: 0.8125rem;
+	font-size: var(--fae-font-sm);
 	font-weight: 600;
 }
 
@@ -530,13 +539,13 @@
 .fae-field-type {
 	color: var(--fae-text-muted);
 	font-family: var(--fae-mono);
-	font-size: 0.75rem;
+	font-size: var(--fae-font-xs);
 }
 
 .fae-field-reference {
 	color: var(--fae-accent);
 	font-family: var(--fae-mono);
-	font-size: 0.75rem;
+	font-size: var(--fae-font-xs);
 }
 
 /* Indented past the chevron slot, so the text lines up with the field name, and
@@ -544,7 +553,7 @@
 .fae-field-description,
 .fae-field .fae-enum {
 	color: var(--fae-text-muted);
-	font-size: 0.75rem;
+	font-size: var(--fae-font-xs);
 	line-height: 1.35;
 	padding-left: 1.25rem;
 }
@@ -559,7 +568,7 @@
 	background: var(--fae-bg);
 	border-radius: 0.375rem;
 	font-family: var(--fae-mono);
-	font-size: 0.75rem;
+	font-size: var(--fae-font-sm);
 	line-height: 1.55;
 	margin: 0;
 	overflow-wrap: anywhere;
@@ -592,7 +601,7 @@
 	color: var(--fae-text-muted);
 	cursor: pointer;
 	display: inline-flex;
-	font-size: 0.6875rem;
+	font-size: var(--fae-font-xs);
 	gap: 0.25rem;
 	padding: 0.1875rem 0.5rem;
 }
@@ -653,7 +662,7 @@
 .fae-media-type {
 	color: var(--fae-text-faint);
 	font-family: var(--fae-mono);
-	font-size: 0.6875rem;
+	font-size: var(--fae-font-xs);
 }
 
 .fae-kv {
@@ -670,14 +679,14 @@
 
 .fae-kv-name {
 	font-family: var(--fae-mono);
-	font-size: 0.75rem;
+	font-size: var(--fae-font-sm);
 	font-weight: 600;
 }
 
 .fae-kv-value {
 	color: var(--fae-text-muted);
 	font-family: var(--fae-mono);
-	font-size: 0.75rem;
+	font-size: var(--fae-font-sm);
 }
 
 /* ---------------------------------------------------------------- sender */
@@ -698,7 +707,7 @@
 .fae-field-label {
 	color: var(--fae-text-muted);
 	font-family: var(--fae-mono);
-	font-size: 0.75rem;
+	font-size: var(--fae-font-xs);
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
@@ -720,7 +729,7 @@
 	display: flex;
 	flex-shrink: 0;
 	font-family: var(--fae-mono);
-	font-size: 0.75rem;
+	font-size: var(--fae-font-xs);
 	padding: 0 0.4375rem;
 }
 
@@ -741,7 +750,7 @@
 
 .fae-example-origin {
 	color: var(--fae-text-muted);
-	font-size: 0.75rem;
+	font-size: var(--fae-font-xs);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
