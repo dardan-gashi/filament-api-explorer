@@ -55,6 +55,10 @@
 
         <pre class="fae-code" x-show="open">{!! \DardanGashi\FilamentApiExplorer\Support\JsonHighlighter::highlight($section['body']) !!}</pre>
     </section>
+
+    @if ($section['headers'] !== [])
+        @include('filament-api-explorer::partials.response-headers', ['headers' => $section['headers']])
+    @endif
 @endforeach
 
 @if ($captureEnabled && $canSend && ! $hasCaptured)

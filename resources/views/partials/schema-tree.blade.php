@@ -2,6 +2,11 @@
      the connectors that say which field belongs to which. --}}
 @php
     $depth ??= 0;
+
+    // Only a request says something by calling a field required. In a response
+    // every documented field is simply there, so the badge would sit on nearly
+    // every row and the column of badges would become the thing you read.
+    $showRequired ??= false;
 @endphp
 
 <ul @class(['fae-tree', 'fae-tree-root' => $depth === 0])>
@@ -50,9 +55,9 @@
                     <span class="fae-field-reference">{{ $field->reference }}</span>
                 @endif
 
-                {{-- Grey on purpose: nearly every field is required, so a coloured
-                     badge on each one turns the column into the thing you read. --}}
-                @if ($field->required)
+                {{-- Grey on purpose: even where it is worth saying, required is not
+                     a warning. Colour stays with nullable and deprecated. --}}
+                @if ($showRequired && $field->required)
                     <span class="fae-badge fae-badge-gray">
                         {{ __('filament-api-explorer::explorer.labels.required') }}
                     </span>
@@ -84,6 +89,7 @@
                     @include('filament-api-explorer::partials.schema-tree', [
                         'fields' => $field->children,
                         'depth' => $depth + 1,
+                        'showRequired' => $showRequired,
                     ])
                 </div>
             @endif

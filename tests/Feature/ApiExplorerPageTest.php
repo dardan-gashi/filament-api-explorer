@@ -87,6 +87,61 @@ describe('ApiExplorerPage - Render', function () {
             ->assertSee('per_page');
     });
 
+    test('hands out the address of the endpoint on screen', function () {
+        // The selection lives in the query string, so the address bar is the
+        // permalink and copying it needs no round trip to the server.
+        livewire(ApiExplorerPage::class)->assertSee('window.location.href', escape: false);
+    });
+
+    test('draws the captions of an endpoint with the icons of the panel', function () {
+        // Sized in the markup, not only in the stylesheet: an unsized heroicon
+        // grows to fill its container wherever the host CSS has gone stale.
+        livewire(ApiExplorerPage::class)
+            ->assertSee('VoucherController@index')
+            ->assertSee('since v2.0')
+            ->assertSee('fae-meta-icon', escape: false)
+            ->assertSee('width="14"', escape: false);
+    });
+
+    test('marks a field required only where required changes the outcome', function () {
+        // In a response every documented field is simply there. `required` earns its
+        // row in a request body, where it separates an accepted call from a 422 —
+        // and the fixture's GET has none, so its one badge is the Authorization
+        // header the security scheme asks for.
+        $reading = livewire(ApiExplorerPage::class)->html();
+
+        $writing = livewire(ApiExplorerPage::class)
+            ->call('selectEndpoint', Endpoint::keyFor(HttpMethod::Post, '/vouchers'))
+            ->html();
+
+        // The header, the body itself, and the two fields the body requires.
+        expect(substr_count($reading, 'fae-badge-gray'))->toBe(1)
+            ->and(substr_count($writing, 'fae-badge-gray'))->toBe(4);
+    });
+
+    test('says what the badges of the schema mean where they are used', function () {
+        // The badge keeps the word the document uses; the legend translates it once.
+        livewire(ApiExplorerPage::class)
+            ->assertSee('nullable')
+            ->assertSee('can be null')
+            ->assertSee('will be removed');
+    });
+
+    test('leaves out a legend for badges the schema does not use', function () {
+        livewire(ApiExplorerPage::class)
+            ->call('selectEndpoint', Endpoint::keyFor(HttpMethod::Delete, '/participants/{participant}'))
+            ->assertDontSee('can be null');
+    });
+
+    test('puts the documented response headers beside the payload they arrive with', function () {
+        // The right column is everything that goes over the wire — the request, the
+        // body that comes back, and the headers that come back with it. Anything
+        // after the snippet is in that column.
+        $html = livewire(ApiExplorerPage::class)->html();
+
+        expect(strpos($html, 'X-RateLimit-Remaining'))->toBeGreaterThan((int) strpos($html, 'curl'));
+    });
+
     test('reports a specification that cannot be loaded instead of failing', function () {
         config()->set('filament-api-explorer.sources', [
             'v2' => ['driver' => 'file', 'path' => '/does/not/exist.json'],

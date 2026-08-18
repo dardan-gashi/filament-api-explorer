@@ -37,12 +37,12 @@ return [
     ],
 
     'labels' => [
-        'required' => 'erforderlich',
-        'nullable' => 'kann null sein',
-        'deprecated' => 'veraltet',
+        'required' => 'required',
+        'nullable' => 'nullable',
+        'deprecated' => 'deprecated',
         'default' => 'Standard :value',
-        'example' => 'Beispiel :value',
         'field_search' => 'Feld suchen',
+        'copy_link' => 'Link kopieren',
         'copy' => 'Kopieren',
         'copied' => 'Kopiert',
         'server' => 'Server',
@@ -53,6 +53,23 @@ return [
         'value' => 'Wert',
         'toggle' => 'Ein- oder ausklappen',
         'discard_sample' => 'Verwerfen',
+    ],
+
+    /*
+     | The badges carry the words the specification itself uses, because those are
+     | the words a reader will search the document for. What they mean is said once,
+     | here, instead of on every row.
+     */
+    'legend' => [
+        'nullable' => 'kann null sein',
+        'deprecated' => 'wird künftig entfernt',
+    ],
+
+    /*
+     | Captions the explorer can name. Any other `x-` extension is shown as it is.
+     */
+    'meta' => [
+        'since' => 'seit :value',
     ],
 
     'gaps' => [

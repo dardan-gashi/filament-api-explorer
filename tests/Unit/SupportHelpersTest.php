@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use DardanGashi\FilamentApiExplorer\Support\Documents;
+use DardanGashi\FilamentApiExplorer\Support\EndpointMeta;
 use DardanGashi\FilamentApiExplorer\Support\GroupLabel;
 use DardanGashi\FilamentApiExplorer\Support\HttpStatus;
 use DardanGashi\FilamentApiExplorer\Support\InputKey;
@@ -13,7 +14,7 @@ use DardanGashi\FilamentApiExplorer\Support\SecretHeaders;
 // ----------------------------------------------------------------------------------
 // Support Helpers Test Suite
 // Sections: Documents::entries, Documents::string, GroupLabel::for, HttpStatus::color,
-//           InputKey::for, PathParts::split,
+//           InputKey::for, EndpointMeta::caption, EndpointMeta::icon, PathParts::split,
 //           JsonHighlighter::highlight, SecretHeaders::isSecret, SecretHeaders::redact
 // ----------------------------------------------------------------------------------
 
@@ -125,6 +126,40 @@ describe('InputKey - for', function () {
 
     test('still produces a key for a name made only of punctuation', function () {
         expect(InputKey::for('[]'))->toStartWith('value_');
+    });
+});
+
+// ------------------------------------------------------------
+// EndpointMeta - caption
+// ------------------------------------------------------------
+
+describe('EndpointMeta - caption', function () {
+
+    test('words the extension it knows', function () {
+        expect(EndpointMeta::caption('since', 'v2.0'))->toBe('since v2.0');
+    });
+
+    test('hands back an extension it does not know exactly as the document wrote it', function () {
+        expect(EndpointMeta::caption('handler', 'VoucherController@index'))->toBe('VoucherController@index');
+    });
+});
+
+// ------------------------------------------------------------
+// EndpointMeta - icon
+// ------------------------------------------------------------
+
+describe('EndpointMeta - icon', function () {
+
+    test('names an icon for the extensions it knows', function () {
+        expect(EndpointMeta::icon('rate-limit'))->toBe('heroicon-o-clock')
+            ->and(EndpointMeta::icon('handler'))->toBe('heroicon-o-document-text')
+            ->and(EndpointMeta::icon('since'))->toBe('heroicon-o-bolt');
+    });
+
+    test('leaves an extension it does not know without one', function () {
+        // An icon is a claim about the value beside it, and a wrong claim is worse
+        // than none.
+        expect(EndpointMeta::icon('audience'))->toBeNull();
     });
 });
 

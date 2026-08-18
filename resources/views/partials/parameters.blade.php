@@ -22,10 +22,10 @@
                 </span>
             @endif
 
+            {{-- The example stands for itself: a reader of `Bearer <token>` needs
+                 no word in front of it saying that it is an example. --}}
             @if ($parameter->example !== null && ! $parameter->hasDefault())
-                <span class="fae-param-type">
-                    {{ __('filament-api-explorer::explorer.labels.example', ['value' => $parameter->example]) }}
-                </span>
+                <span class="fae-param-example">{{ $parameter->example }}</span>
             @endif
         </div>
 

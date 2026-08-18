@@ -41,8 +41,8 @@ return [
         'nullable' => 'nullable',
         'deprecated' => 'deprecated',
         'default' => 'Default :value',
-        'example' => 'Example :value',
         'field_search' => 'Find field',
+        'copy_link' => 'Copy link',
         'copy' => 'Copy',
         'copied' => 'Copied',
         'server' => 'Server',
@@ -53,6 +53,23 @@ return [
         'value' => 'Value',
         'toggle' => 'Expand or collapse',
         'discard_sample' => 'Discard',
+    ],
+
+    /*
+     | The badges carry the words the specification itself uses, because those are
+     | the words a reader will search the document for. What they mean is said once,
+     | here, instead of on every row.
+     */
+    'legend' => [
+        'nullable' => 'can be null',
+        'deprecated' => 'will be removed',
+    ],
+
+    /*
+     | Captions the explorer can name. Any other `x-` extension is shown as it is.
+     */
+    'meta' => [
+        'since' => 'since :value',
     ],
 
     'gaps' => [

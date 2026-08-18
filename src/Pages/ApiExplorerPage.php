@@ -16,6 +16,7 @@ use DardanGashi\FilamentApiExplorer\Data\Endpoint;
 use DardanGashi\FilamentApiExplorer\Data\ExecutedRequest;
 use DardanGashi\FilamentApiExplorer\Data\Parameter;
 use DardanGashi\FilamentApiExplorer\Data\RequestBlueprint;
+use DardanGashi\FilamentApiExplorer\Data\SchemaField;
 use DardanGashi\FilamentApiExplorer\Enums\ParameterLocation;
 use DardanGashi\FilamentApiExplorer\Enums\SnippetLanguage;
 use DardanGashi\FilamentApiExplorer\Exceptions\RequestNotAllowed;
@@ -300,6 +301,7 @@ class ApiExplorerPage extends Page
             'snippet' => $endpoint === null ? '' : $this->snippet($endpoint),
             'snippetLanguages' => app(SnippetRenderer::class)->languages(),
             'exampleSections' => $endpoint === null ? [] : $this->exampleSections($endpoint),
+            'schemaLegend' => $endpoint === null ? [] : $this->schemaLegend($endpoint),
             'emptyRequiredHeaders' => $endpoint === null ? [] : $this->emptyRequiredHeaders($endpoint),
             'captureEnabled' => $this->samples()->isEnabled(),
             'canSend' => $this->canSend(),
@@ -411,7 +413,7 @@ class ApiExplorerPage extends Page
      * having as a shape reference and worth nothing as an example, so it arrives
      * collapsed.
      *
-     * @return list<array{key: string, status: string|null, color: string, origin: string, body: string, captured: bool, collapsed: bool}>
+     * @return list<array{key: string, status: string|null, color: string, origin: string, body: string, captured: bool, collapsed: bool, headers: list<Parameter>}>
      */
     private function exampleSections(Endpoint $endpoint): array
     {
@@ -433,6 +435,7 @@ class ApiExplorerPage extends Page
                 'body' => $body->example,
                 'captured' => false,
                 'collapsed' => $body->exampleSynthesised,
+                'headers' => [],
             ];
         }
 
@@ -450,6 +453,7 @@ class ApiExplorerPage extends Page
                     'body' => $sample->body,
                     'captured' => true,
                     'collapsed' => false,
+                    'headers' => $response->headers,
                 ];
 
                 continue;
@@ -469,10 +473,49 @@ class ApiExplorerPage extends Page
                 'body' => $response->example,
                 'captured' => false,
                 'collapsed' => $response->exampleSynthesised,
+                'headers' => $response->headers,
             ];
         }
 
         return $sections;
+    }
+
+    /**
+     * The schema badges this endpoint actually uses, with what each one means.
+     *
+     * `nullable` and `deprecated` are the words the document uses, so they are the
+     * words the badge shows; the reader's language belongs in one legend rather
+     * than in a badge on every row. A legend for a badge that is not on screen
+     * would explain nothing, so each entry has to be earned.
+     *
+     * @return list<array{label: string, color: string, meaning: string}>
+     */
+    private function schemaLegend(Endpoint $endpoint): array
+    {
+        $fields = $endpoint->requestBody->fields ?? [];
+
+        foreach ($endpoint->responses as $response) {
+            $fields = [...$fields, ...$response->fields];
+        }
+
+        $legend = [];
+
+        foreach ([
+            ['nullable', 'info', fn (SchemaField $field): bool => $field->nullable],
+            ['deprecated', 'warning', fn (SchemaField $field): bool => $field->deprecated],
+        ] as [$badge, $color, $predicate]) {
+            if (! SchemaField::anyIn($fields, $predicate)) {
+                continue;
+            }
+
+            $legend[] = [
+                'label' => (string) __("filament-api-explorer::explorer.labels.{$badge}"),
+                'color' => $color,
+                'meaning' => (string) __("filament-api-explorer::explorer.legend.{$badge}"),
+            ];
+        }
+
+        return $legend;
     }
 
     /**

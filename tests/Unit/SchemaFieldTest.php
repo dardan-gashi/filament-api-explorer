@@ -6,7 +6,7 @@ use DardanGashi\FilamentApiExplorer\Data\SchemaField;
 
 // ----------------------------------------------------------------------------------
 // SchemaField Test Suite
-// Sections: matches, filter, filterAll, countRows
+// Sections: matches, filter, filterAll, anyIn, countRows
 // ----------------------------------------------------------------------------------
 
 function schemaTree(): SchemaField
@@ -112,6 +112,29 @@ describe('SchemaField - filterAll', function () {
 
     test('returns an empty list when nothing matches', function () {
         expect(SchemaField::filterAll(schemaTree()->children, 'participant'))->toBe([]);
+    });
+});
+
+// ------------------------------------------------------------
+// SchemaField - anyIn
+// ------------------------------------------------------------
+
+describe('SchemaField - anyIn', function () {
+
+    test('finds a match nested below the root', function () {
+        $fields = [new SchemaField(name: 'data', type: 'object', children: [
+            new SchemaField(name: 'valid_until', type: 'string', nullable: true),
+        ])];
+
+        expect(SchemaField::anyIn($fields, fn (SchemaField $field): bool => $field->nullable))->toBeTrue();
+    });
+
+    test('answers false when no field in the tree matches', function () {
+        expect(SchemaField::anyIn([schemaTree()], fn (SchemaField $field): bool => $field->deprecated))->toBeFalse();
+    });
+
+    test('answers false for a tree with no fields', function () {
+        expect(SchemaField::anyIn([], fn (SchemaField $field): bool => $field->nullable))->toBeFalse();
     });
 });
 

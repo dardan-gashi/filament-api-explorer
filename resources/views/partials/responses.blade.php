@@ -31,24 +31,6 @@
         @elseif ($response->mediaType)
             <p class="fae-empty">{{ __('filament-api-explorer::explorer.empty.fields') }}</p>
         @endif
-
-        @if ($response->hasHeaders())
-            <h4 class="fae-group-label">{{ __('filament-api-explorer::explorer.sections.response_headers') }}</h4>
-
-            @foreach ($response->headers as $header)
-                <div class="fae-kv">
-                    <span class="fae-kv-name">{{ $header->name }}</span>
-
-                    @if ($header->example !== null)
-                        <span class="fae-kv-value">{{ $header->example }}</span>
-                    @endif
-
-                    @if ($header->description)
-                        <span class="fae-kv-value">{{ $header->description }}</span>
-                    @endif
-                </div>
-            @endforeach
-        @endif
     </div>
 @empty
     <p class="fae-empty">{{ __('filament-api-explorer::explorer.gaps.responses') }}</p>

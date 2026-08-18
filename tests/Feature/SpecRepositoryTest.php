@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use Illuminate\Support\Facades\Cache;
-use DardanGashi\FilamentApiExplorer\Services\SpecParser;
 use DardanGashi\FilamentApiExplorer\Exceptions\SpecUnavailable;
+use DardanGashi\FilamentApiExplorer\Services\SpecParser;
 use DardanGashi\FilamentApiExplorer\Services\SpecRepository;
 use DardanGashi\FilamentApiExplorer\Sources\SpecSourceManager;
 

@@ -7,7 +7,14 @@
         <span class="fae-endpoint-title">{{ $endpoint->path }}</span>
 
         @foreach ($endpoint->security as $scheme)
-            <span class="fae-badge fae-badge-outline">{{ $spec->securityLabel($scheme) }}</span>
+            <span class="fae-badge fae-badge-violet">
+                @include('filament-api-explorer::partials.icon', [
+                    'name' => 'heroicon-m-lock-closed',
+                    'class' => 'fae-badge-icon',
+                ])
+
+                {{ $spec->securityLabel($scheme) }}
+            </span>
         @endforeach
 
         @if ($endpoint->deprecated)
@@ -15,6 +22,8 @@
                 {{ __('filament-api-explorer::explorer.labels.deprecated') }}
             </span>
         @endif
+
+        @include('filament-api-explorer::partials.permalink-button')
     </div>
 
     @if ($endpoint->summary)
@@ -27,8 +36,17 @@
 
     @if ($endpoint->meta !== [])
         <div class="fae-meta-row">
-            @foreach ($endpoint->meta as $value)
-                <span>{{ $value }}</span>
+            @foreach ($endpoint->meta as $key => $value)
+                <span class="fae-meta-item">
+                    @if ($icon = \DardanGashi\FilamentApiExplorer\Support\EndpointMeta::icon($key))
+                        @include('filament-api-explorer::partials.icon', [
+                            'name' => $icon,
+                            'class' => 'fae-meta-icon',
+                        ])
+                    @endif
+
+                    {{ \DardanGashi\FilamentApiExplorer\Support\EndpointMeta::caption($key, $value) }}
+                </span>
             @endforeach
         </div>
     @endif
@@ -81,25 +99,37 @@
         @elseif ($bodyFields === [])
             <p class="fae-empty">{{ __('filament-api-explorer::explorer.empty.field_match') }}</p>
         @else
-            @include('filament-api-explorer::partials.schema-tree', ['fields' => $bodyFields])
+            @include('filament-api-explorer::partials.schema-tree', [
+                'fields' => $bodyFields,
+                'showRequired' => true,
+            ])
         @endif
     </section>
 @endif
 
 <section class="fae-section">
-    <div class="fae-section-head">
-        <h3 class="fae-section-title">{{ __('filament-api-explorer::explorer.sections.responses') }}</h3>
+    <h3 class="fae-section-title">{{ __('filament-api-explorer::explorer.sections.responses') }}</h3>
 
-        @if ($endpoint->responses !== [])
-            <input
-                type="search"
-                class="fae-input fae-input-inline"
-                wire:model.live.debounce.300ms="fieldSearch"
-                placeholder="{{ __('filament-api-explorer::explorer.labels.field_search') }}"
-                aria-label="{{ __('filament-api-explorer::explorer.labels.field_search') }}"
-            >
-        @endif
-    </div>
+    @if ($endpoint->responses !== [])
+        <input
+            type="search"
+            class="fae-input fae-field-search"
+            wire:model.live.debounce.300ms="fieldSearch"
+            placeholder="{{ __('filament-api-explorer::explorer.labels.field_search') }}"
+            aria-label="{{ __('filament-api-explorer::explorer.labels.field_search') }}"
+        >
+    @endif
+
+    @if ($schemaLegend !== [])
+        <div class="fae-legend">
+            @foreach ($schemaLegend as $entry)
+                <span class="fae-legend-item">
+                    <span class="fae-badge fae-badge-{{ $entry['color'] }}">{{ $entry['label'] }}</span>
+                    {{ $entry['meaning'] }}
+                </span>
+            @endforeach
+        </div>
+    @endif
 
     @include('filament-api-explorer::partials.responses')
 </section>
