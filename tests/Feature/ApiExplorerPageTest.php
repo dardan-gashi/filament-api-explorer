@@ -218,6 +218,15 @@ describe('ApiExplorerPage - Render', function () {
             ->assertSee('x-on:keydown.right="term === \'\' && deeper()"', escape: false);
     });
 
+    test('says which keys those are', function () {
+        // The keys are the whole navigation now, so the palette states them once
+        // where they are used rather than nowhere at all.
+        livewire(ApiExplorerPage::class)
+            ->assertSee('<kbd class="fae-kbd">↑</kbd>', escape: false)
+            ->assertSee('<kbd class="fae-kbd">↵</kbd>', escape: false)
+            ->assertSee('<kbd class="fae-kbd">esc</kbd>', escape: false);
+    });
+
     test('marks an endpoint on its way out wherever it is listed', function () {
         // The question "which of these should I not build against" is asked of the
         // list, not of the endpoint somebody has already opened.

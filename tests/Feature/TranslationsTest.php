@@ -61,6 +61,10 @@ describe('Translations - Page', function () {
             ->assertSee('Query-Parameter')
             ->assertSee('Antworten')
             ->assertSee('Feld suchen')
+            // A key in the wrong group resolves to nothing and renders as itself,
+            // which no assertion on the markup around it would notice.
+            ->assertSee('Blättern')
+            ->assertSee('Zurück')
             ->assertSee('57 % dokumentiert')
             ->assertSee('Snapshot vom');
     });

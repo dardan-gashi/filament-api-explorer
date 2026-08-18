@@ -149,8 +149,9 @@ describe('Stylesheet - Selectors', function () {
         preg_match('/\.fae-palette-result-active \{([^}]*)\}/', stylesheet(), $rule);
 
         expect($rule[1] ?? '')->toContain('var(--fae-select)')
-            ->and($rule[1] ?? '')->toContain('var(--fae-accent)')
-            ->and($rule[1] ?? '')->not->toContain('var(--fae-panel');
+            ->and($rule[1] ?? '')->not->toContain('var(--fae-panel')
+            ->and(stylesheet())->toContain('--fae-select: rgb(15 23 42 / 0.08);')
+            ->toContain('--fae-select: rgb(255 255 255 / 0.08);');
     });
 
     test('colours every token the highlighters emit', function () {

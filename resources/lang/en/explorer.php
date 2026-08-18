@@ -32,6 +32,10 @@ return [
         'shortcut' => '⌘K',
         'placeholder' => 'Method, path or description',
         'empty' => 'No endpoint matches.',
+        'move' => 'Move',
+        'open' => 'Open',
+        'back' => 'Back',
+        'close' => 'Close',
     ],
 
     'sections' => [

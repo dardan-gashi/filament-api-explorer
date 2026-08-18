@@ -242,6 +242,30 @@
             <p class="fae-palette-empty" x-show="items.length === 0">
                 {{ __('filament-api-explorer::explorer.palette.empty') }}
             </p>
+
+            {{-- Read once and then never again, which is why it sits at the bottom
+                 and not in the way. --}}
+            <div class="fae-palette-keys">
+                <span class="fae-palette-key">
+                    <kbd class="fae-kbd">↑</kbd><kbd class="fae-kbd">↓</kbd>
+                    {{ __('filament-api-explorer::explorer.palette.move') }}
+                </span>
+
+                <span class="fae-palette-key">
+                    <kbd class="fae-kbd">↵</kbd>
+                    {{ __('filament-api-explorer::explorer.palette.open') }}
+                </span>
+
+                <span class="fae-palette-key">
+                    <kbd class="fae-kbd">←</kbd>
+                    {{ __('filament-api-explorer::explorer.palette.back') }}
+                </span>
+
+                <span class="fae-palette-key">
+                    <kbd class="fae-kbd">esc</kbd>
+                    {{ __('filament-api-explorer::explorer.palette.close') }}
+                </span>
+            </div>
         </div>
     </div>
 </div>

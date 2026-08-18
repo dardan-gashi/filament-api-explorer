@@ -16,7 +16,7 @@
 	--fae-text-muted: #64748b;
 	--fae-text-faint: #94a3b8;
 	--fae-accent: #2563eb;
-	--fae-select: rgb(37 99 235 / 0.10);
+	--fae-select: rgb(15 23 42 / 0.08);
 
 	--fae-green: #15803d;
 	--fae-green-bg: rgb(22 163 74 / 0.12);
@@ -64,7 +64,7 @@
 	--fae-text-muted: #8f8f8f;
 	--fae-text-faint: #6b6b6b;
 	--fae-accent: #60a5fa;
-	--fae-select: rgb(96 165 250 / 0.16);
+	--fae-select: rgb(255 255 255 / 0.08);
 
 	--fae-green: #4ade80;
 	--fae-green-bg: rgb(74 222 128 / 0.12);
@@ -231,8 +231,31 @@
 	color: var(--fae-text-faint);
 	font-family: var(--fae-mono);
 	font-size: var(--fae-font-xs);
-	margin-left: auto;
 	padding: 0 0.25rem;
+}
+
+.fae-palette-trigger .fae-kbd {
+	margin-left: auto;
+}
+
+/*
+ | What the keys do, at the bottom of the box where a reader looks for it once and
+ | then never again.
+ */
+.fae-palette-keys {
+	border-top: 1px solid var(--fae-border);
+	color: var(--fae-text-faint);
+	display: flex;
+	flex-wrap: wrap;
+	font-size: var(--fae-font-xs);
+	gap: 0.25rem 1rem;
+	padding: 0.5rem 0.75rem;
+}
+
+.fae-palette-key {
+	align-items: center;
+	display: inline-flex;
+	gap: 0.25rem;
 }
 
 .fae-palette-overlay {
@@ -320,13 +343,12 @@
 }
 
 /*
- | The row the keyboard is on. One token away from the panel colour is a highlight
- | nobody can see — and then the arrow keys look broken while they work perfectly.
- | The bar on the left says it a second time, for anyone the tint is too quiet for.
+ | The row the keyboard is on. It used to be drawn one token away from the panel
+ | colour, which is a highlight nobody can see — and then the arrow keys look
+ | broken while they work perfectly. Neutral, but far enough away to be seen.
  */
 .fae-palette-result-active {
 	background: var(--fae-select);
-	box-shadow: inset 2px 0 0 var(--fae-accent);
 	color: var(--fae-text);
 }
 

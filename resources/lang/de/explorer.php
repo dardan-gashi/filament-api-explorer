@@ -32,6 +32,10 @@ return [
         'shortcut' => '⌘K',
         'placeholder' => 'Methode, Pfad oder Beschreibung',
         'empty' => 'Kein Endpunkt passt.',
+        'move' => 'Blättern',
+        'open' => 'Öffnen',
+        'back' => 'Zurück',
+        'close' => 'Schließen',
     ],
 
     'sections' => [
