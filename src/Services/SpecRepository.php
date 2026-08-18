@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DardanGashi\FilamentApiExplorer\Services;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use DardanGashi\FilamentApiExplorer\Data\ApiSpec;
 use DardanGashi\FilamentApiExplorer\Exceptions\SpecUnavailable;
@@ -24,6 +25,10 @@ final class SpecRepository
      */
     private array $memoized = [];
 
+    /**
+     * @param  string  $context  What the document was built for, usually the
+     *                           application's root URL. See {@see key()}.
+     */
     public function __construct(
         private readonly SpecSourceManager $sources,
         private readonly SpecParser $parser,
@@ -31,6 +36,7 @@ final class SpecRepository
         private readonly bool $cacheEnabled = false,
         private readonly ?string $cacheStore = null,
         private readonly int $cacheTtl = 300,
+        private readonly string $context = '',
     ) {}
 
     /**
@@ -71,12 +77,29 @@ final class SpecRepository
 
         /** @var ApiSpec $spec */
         $spec = $this->cache->store($this->cacheStore)->remember(
-            "filament-api-explorer.spec.{$key}.{$generatedAt->getTimestamp()}",
+            $this->key($key, $generatedAt),
             $this->cacheTtl,
             fn (): ApiSpec => $this->parser->parse($source),
         );
 
         return $this->memoized[$key] = $spec;
+    }
+
+    /**
+     * The cache key of one parsed document.
+     *
+     * Besides the source and the document's own timestamp it carries the context
+     * it was built for. A generated document can name the URL of the request that
+     * produced it — the servers of an OpenAPI document usually do — and a console
+     * run has no request to take a host from. Without the context in the key, a
+     * document built by an artisan command would be served to a browser with the
+     * wrong host and port in it.
+     */
+    private function key(string $name, CarbonImmutable $generatedAt): string
+    {
+        $context = substr(sha1($this->context), 0, 8);
+
+        return "filament-api-explorer.spec.{$name}.{$generatedAt->getTimestamp()}.{$context}";
     }
 
     /**

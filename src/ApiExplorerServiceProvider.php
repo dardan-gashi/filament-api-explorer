@@ -66,6 +66,7 @@ final class ApiExplorerServiceProvider extends PackageServiceProvider
             cacheEnabled: (bool) config('filament-api-explorer.cache.enabled', false),
             cacheStore: $this->stringConfig('cache.store'),
             cacheTtl: $this->intConfig('cache.ttl', 300),
+            context: (string) url('/'),
         ));
 
         $this->app->singleton(SnippetRenderer::class, fn (): SnippetRenderer => new SnippetRenderer([

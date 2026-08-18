@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use Illuminate\Support\Facades\Cache;
+use DardanGashi\FilamentApiExplorer\Services\SpecParser;
 use DardanGashi\FilamentApiExplorer\Exceptions\SpecUnavailable;
 use DardanGashi\FilamentApiExplorer\Services\SpecRepository;
 use DardanGashi\FilamentApiExplorer\Sources\SpecSourceManager;
@@ -22,6 +24,21 @@ function repository(): SpecRepository
     app()->forgetInstance(SpecRepository::class);
 
     return app(SpecRepository::class);
+}
+
+/**
+ * A repository that caches for one named build context.
+ */
+function repositoryFor(string $context): SpecRepository
+{
+    return new SpecRepository(
+        sources: app(SpecSourceManager::class),
+        parser: app(SpecParser::class),
+        cache: app(CacheFactory::class),
+        cacheEnabled: true,
+        cacheTtl: 300,
+        context: $context,
+    );
 }
 
 // ------------------------------------------------------------
@@ -88,7 +105,36 @@ describe('SpecRepository - get', function () {
         // picked up without anybody clearing a cache.
         $timestamp = filemtime(__DIR__.'/../Fixtures/openapi.json');
 
-        expect(Cache::has("filament-api-explorer.spec.v2.{$timestamp}"))->toBeTrue();
+        $context = substr(sha1((string) url('/')), 0, 8);
+
+        expect(Cache::has("filament-api-explorer.spec.v2.{$timestamp}.{$context}"))->toBeTrue();
+    });
+
+    test('keeps the documents of two build contexts apart', function () {
+        // A generated document names the host it was built for, and an artisan
+        // command has no request to take a host from. What one context cached must
+        // never be served to the other.
+        Cache::flush();
+
+        repositoryFor('http://localhost')->get('v2');
+
+        $timestamp = filemtime(__DIR__.'/../Fixtures/openapi.json');
+        $console = substr(sha1('http://localhost'), 0, 8);
+        $browser = substr(sha1('http://localhost:8000'), 0, 8);
+
+        expect(Cache::has("filament-api-explorer.spec.v2.{$timestamp}.{$console}"))->toBeTrue()
+            ->and(Cache::has("filament-api-explorer.spec.v2.{$timestamp}.{$browser}"))->toBeFalse();
+    });
+
+    test('parses again for a context it has not cached', function () {
+        Cache::flush();
+
+        $console = repositoryFor('http://localhost')->get('v2');
+        $browser = repositoryFor('http://localhost:8000')->get('v2');
+
+        expect(Cache::has('filament-api-explorer.spec.v2.'.filemtime(__DIR__.'/../Fixtures/openapi.json').'.'.substr(sha1('http://localhost:8000'), 0, 8)))
+            ->toBeTrue()
+            ->and($browser->name)->toBe($console->name);
     });
 
     test('serves a cached specification on the next request', function () {
