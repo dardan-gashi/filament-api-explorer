@@ -139,6 +139,30 @@ describe('ApiExplorerPage - Render', function () {
             ->assertDontSee('`discount_value`');
     });
 
+    test('writes a path in the list without the part its group already says', function () {
+        // `/vouchers` on every row of the Vouchers group costs the width that
+        // `{code}` needs. The heading carries the prefix, the row carries the rest,
+        // and the full path stays on the row as its title.
+        livewire(ApiExplorerPage::class)
+            ->assertSee('/{code}')
+            ->assertSee('title="/vouchers/{code}"', escape: false);
+    });
+
+    test('folds a group away and opens it again for a filtered list', function () {
+        // A group folded shut must not swallow the row a filter just found, so the
+        // filter is part of the key Livewire replaces the group by.
+        $all = livewire(ApiExplorerPage::class)->html();
+
+        $filtered = livewire(ApiExplorerPage::class)
+            ->set('search', 'participants')
+            ->html();
+
+        expect($all)->toContain('x-data="{ open: true }"')
+            ->and(preg_match_all('/wire:key="group-([a-f0-9]{32})/', $all, $unfiltered))->toBeGreaterThan(0)
+            ->and(preg_match_all('/wire:key="group-([a-f0-9]{32})/', $filtered, $searched))->toBeGreaterThan(0)
+            ->and($searched[1][0])->not->toBe($unfiltered[1][0]);
+    });
+
     test('strikes an endpoint on its way out through in the list', function () {
         // Written on the row, not only in the header of the selected endpoint: the
         // question "which of these should I not build against" is asked of the list.

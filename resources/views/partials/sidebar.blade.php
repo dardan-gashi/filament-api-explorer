@@ -1,8 +1,14 @@
 @php
+    use Illuminate\Support\Str;
     use DardanGashi\FilamentApiExplorer\Support\GroupLabel;
     use DardanGashi\FilamentApiExplorer\Support\PathParts;
 
     $pathPrefix = $spec->commonPathPrefix();
+
+    // A group folded shut must never swallow a row the filter just found, so the
+    // filter is part of the key: Livewire replaces the group and Alpine starts it
+    // open again.
+    $listKey = md5($this->search.($this->onlyGaps ? 'gaps' : 'all'));
 @endphp
 
 <div class="fae-surface">
@@ -42,48 +48,84 @@
     </div>
 
     @forelse ($groups as $group => $groupEndpoints)
-        <div class="fae-group-label">{{ GroupLabel::for($group) }}</div>
+        @php
+            // A group of one shares nothing with anybody, so what is already stated
+            // elsewhere is the prefix of the whole document.
+            $groupPrefix = PathParts::sharedPrefix(array_map(
+                fn ($groupEndpoint): string => $groupEndpoint->path,
+                $groupEndpoints,
+            )) ?: $pathPrefix;
+        @endphp
 
-        <ul class="fae-endpoint-list">
-            @foreach ($groupEndpoints as $groupEndpoint)
-                @php
-                    $path = PathParts::split(\Illuminate\Support\Str::after($groupEndpoint->path, $pathPrefix));
-                @endphp
+        <div class="fae-group-block" x-data="{ open: true }" wire:key="group-{{ $listKey }}-{{ $loop->index }}">
+            <button type="button" class="fae-group" x-on:click="open = ! open" x-bind:aria-expanded="open ? 'true' : 'false'">
+                <svg
+                    class="fae-chevron"
+                    x-bind:class="{ 'fae-chevron-open': open }"
+                    viewBox="0 0 12 12"
+                    width="12"
+                    height="12"
+                    aria-hidden="true"
+                >
+                    <path
+                        d="M4.25 2.5 7.75 6l-3.5 3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.6"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    />
+                </svg>
 
-                <li>
-                    <button
-                        type="button"
-                        class="fae-endpoint-link"
-                        aria-current="{{ $endpoint?->key === $groupEndpoint->key ? 'true' : 'false' }}"
-                        title="{{ $groupEndpoint->path }}"
-                        wire:click="selectEndpoint(@js($groupEndpoint->key))"
-                    >
-                        <span class="fae-badge fae-badge-{{ $groupEndpoint->method->color() }} fae-method">
-                            {{ $groupEndpoint->method->label() }}
-                        </span>
+                <span class="fae-group-label">{{ GroupLabel::for($group) }}</span>
 
-                        {{-- The head gives way, the last segment never does: that is
-                             where one endpoint differs from the next. An endpoint on
-                             its way out is struck through, the same way a field is:
-                             otherwise you only find out after selecting it. --}}
-                        <span @class([
-                            'fae-endpoint-path',
-                            'fae-endpoint-path-deprecated' => $groupEndpoint->deprecated,
-                        ])>
-                            <span class="fae-path-head">{{ $path['head'] }}</span><span class="fae-path-tail">{{ $path['tail'] }}</span>
-                        </span>
+                {{-- What the rows below leave out, said once. --}}
+                @if ($groupPrefix !== '' && $groupPrefix !== $pathPrefix)
+                    <span class="fae-group-prefix">{{ Str::after($groupPrefix, $pathPrefix) }}</span>
+                @endif
+            </button>
 
-                        @unless ($groupEndpoint->isDocumented())
-                            <span
-                                class="fae-gap-dot"
-                                title="{{ __('filament-api-explorer::explorer.sidebar.incomplete') }}"
-                                aria-label="{{ __('filament-api-explorer::explorer.sidebar.incomplete') }}"
-                            >&bull;</span>
-                        @endunless
-                    </button>
-                </li>
-            @endforeach
-        </ul>
+            <ul class="fae-endpoint-list" x-show="open">
+                @foreach ($groupEndpoints as $groupEndpoint)
+                    @php
+                        $path = PathParts::split(PathParts::within($groupEndpoint->path, $groupPrefix));
+                    @endphp
+
+                    <li>
+                        <button
+                            type="button"
+                            class="fae-endpoint-link"
+                            aria-current="{{ $endpoint?->key === $groupEndpoint->key ? 'true' : 'false' }}"
+                            title="{{ $groupEndpoint->path }}"
+                            wire:click="selectEndpoint(@js($groupEndpoint->key))"
+                        >
+                            <span class="fae-badge fae-badge-{{ $groupEndpoint->method->color() }} fae-method">
+                                {{ $groupEndpoint->method->label() }}
+                            </span>
+
+                            {{-- The head gives way, the last segment never does: that is
+                                 where one endpoint differs from the next. An endpoint on
+                                 its way out is struck through, the same way a field is:
+                                 otherwise you only find out after selecting it. --}}
+                            <span @class([
+                                'fae-endpoint-path',
+                                'fae-endpoint-path-deprecated' => $groupEndpoint->deprecated,
+                            ])>
+                                <span class="fae-path-head">{{ $path['head'] }}</span><span class="fae-path-tail">{{ $path['tail'] }}</span>
+                            </span>
+
+                            @unless ($groupEndpoint->isDocumented())
+                                <span
+                                    class="fae-gap-dot"
+                                    title="{{ __('filament-api-explorer::explorer.sidebar.incomplete') }}"
+                                    aria-label="{{ __('filament-api-explorer::explorer.sidebar.incomplete') }}"
+                                >&bull;</span>
+                            @endunless
+                        </button>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
     @empty
         <p class="fae-empty">{{ __('filament-api-explorer::explorer.sidebar.empty') }}</p>
     @endforelse

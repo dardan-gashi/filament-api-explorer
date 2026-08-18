@@ -15,7 +15,8 @@ use DardanGashi\FilamentApiExplorer\Support\SecretHeaders;
 // ----------------------------------------------------------------------------------
 // Support Helpers Test Suite
 // Sections: Documents::entries, Documents::string, GroupLabel::for, HttpStatus::color,
-//           InputKey::for, EndpointMeta::caption, EndpointMeta::icon, PathParts::split,
+//           InputKey::for, EndpointMeta::caption, EndpointMeta::icon,
+//           PathParts::sharedPrefix, PathParts::within, PathParts::split,
 //           JsonHighlighter::highlight, InlineMarkdown::toHtml,
 //           SecretHeaders::isSecret, SecretHeaders::redact
 // ----------------------------------------------------------------------------------
@@ -163,6 +164,68 @@ describe('EndpointMeta - icon', function () {
         // An icon is a claim about the value beside it, and a wrong claim is worse
         // than none.
         expect(EndpointMeta::icon('audience'))->toBeNull();
+    });
+});
+
+// ------------------------------------------------------------
+// PathParts - sharedPrefix
+// ------------------------------------------------------------
+
+describe('PathParts - sharedPrefix', function () {
+
+    test('reads the prefix every path of a group shares', function () {
+        expect(PathParts::sharedPrefix([
+            '/v1/physical-products',
+            '/v1/physical-products/{physicalProduct}',
+            '/v1/physical-products/{physicalProduct}/variants',
+        ]))->toBe('/v1/physical-products');
+    });
+
+    test('cuts the prefix at a segment, not inside a word', function () {
+        // `/orders` and `/order-items` share five letters and no segment.
+        expect(PathParts::sharedPrefix(['/v1/orders', '/v1/order-items']))->toBe('/v1');
+    });
+
+    test('takes the whole path when two methods answer on it', function () {
+        expect(PathParts::sharedPrefix(['/v1/leads', '/v1/leads']))->toBe('/v1/leads');
+    });
+
+    test('shares nothing with a single path', function () {
+        expect(PathParts::sharedPrefix(['/v1/health']))->toBe('');
+    });
+
+    test('shares nothing when the first segment already differs', function () {
+        expect(PathParts::sharedPrefix(['/orders', '/vouchers']))->toBe('');
+    });
+});
+
+// ------------------------------------------------------------
+// PathParts - within
+// ------------------------------------------------------------
+
+describe('PathParts - within', function () {
+
+    test('drops the prefix the group heading already carries', function () {
+        expect(PathParts::within('/v1/orders/{order}', '/v1/orders'))->toBe('/{order}');
+    });
+
+    test('collapses what repeats down the group and keeps the last segment whole', function () {
+        // `/{order}` on every row says nothing the group has not said; `subscriptions`
+        // is the reason this row exists.
+        expect(PathParts::within('/v1/orders/{order}/subscriptions', '/v1/orders'))
+            ->toBe('/…/subscriptions');
+    });
+
+    test('reads the collection itself as the root of its group', function () {
+        expect(PathParts::within('/v1/orders', '/v1/orders'))->toBe('/');
+    });
+
+    test('keeps a path that has one segment left whole', function () {
+        expect(PathParts::within('/v1/health', '/v1'))->toBe('/health');
+    });
+
+    test('takes the path as it is when nothing is stated elsewhere', function () {
+        expect(PathParts::within('/health', ''))->toBe('/health');
     });
 });
 
