@@ -16,7 +16,7 @@ use DardanGashi\FilamentApiExplorer\Support\SecretHeaders;
 // Support Helpers Test Suite
 // Sections: Documents::entries, Documents::string, GroupLabel::for, HttpStatus::color,
 //           InputKey::for, EndpointMeta::caption, EndpointMeta::icon,
-//           PathParts::sharedPrefix, PathParts::within, PathParts::split,
+//           PathParts::sharedPrefix, PathParts::within,
 //           JsonHighlighter::highlight, InlineMarkdown::toHtml,
 //           SecretHeaders::isSecret, SecretHeaders::redact
 // ----------------------------------------------------------------------------------
@@ -226,26 +226,6 @@ describe('PathParts - within', function () {
 
     test('takes the path as it is when nothing is stated elsewhere', function () {
         expect(PathParts::within('/health', ''))->toBe('/health');
-    });
-});
-
-// ------------------------------------------------------------
-// PathParts - split
-// ------------------------------------------------------------
-
-describe('PathParts - split', function () {
-
-    test('keeps the last segment out of the part that may be shortened', function () {
-        expect(PathParts::split('/physical-products/{physicalProduct}/variants'))
-            ->toBe(['head' => '/physical-products/{physicalProduct}/', 'tail' => 'variants']);
-    });
-
-    test('handles a single segment', function () {
-        expect(PathParts::split('/orders'))->toBe(['head' => '/', 'tail' => 'orders']);
-    });
-
-    test('handles a path with no separator at all', function () {
-        expect(PathParts::split('orders'))->toBe(['head' => '', 'tail' => 'orders']);
     });
 });
 

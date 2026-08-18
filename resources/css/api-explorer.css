@@ -87,16 +87,15 @@
 	grid-template-columns: minmax(0, 1fr);
 }
 
-@media (min-width: 1024px) {
+/*
+ | Two columns and no third: what used to be a navigation column is a palette now,
+ | which is why the samples can sit beside the documentation from 1280px instead of
+ | from 1536px.
+ */
+@media (min-width: 1280px) {
 	.fae-shell {
-		grid-template-columns: 15rem minmax(0, 1fr);
+		grid-template-columns: minmax(0, 1fr) 26rem;
 		align-items: start;
-	}
-}
-
-@media (min-width: 1536px) {
-	.fae-shell {
-		grid-template-columns: 15rem minmax(0, 1fr) 26rem;
 	}
 }
 
@@ -250,6 +249,40 @@
 	width: 100%;
 }
 
+.fae-palette-head {
+	align-items: stretch;
+	display: flex;
+	flex-direction: column;
+}
+
+/* Which level the palette is on is not obvious until you see what you are inside of. */
+.fae-palette-back {
+	align-items: center;
+	background: var(--fae-panel-strong);
+	border: 0;
+	border-bottom: 1px solid var(--fae-border);
+	color: var(--fae-text-muted);
+	cursor: pointer;
+	display: flex;
+	font-family: var(--fae-mono);
+	font-size: var(--fae-font-xs);
+	gap: 0.375rem;
+	padding: 0.375rem 0.75rem;
+	text-align: left;
+	width: 100%;
+}
+
+.fae-palette-back:hover {
+	color: var(--fae-text);
+}
+
+.fae-palette-count {
+	color: var(--fae-text-faint);
+	font-family: var(--fae-mono);
+	font-size: var(--fae-font-xs);
+	margin-left: auto;
+}
+
 .fae-palette-input {
 	border: 0;
 	border-bottom: 1px solid var(--fae-border);
@@ -284,6 +317,7 @@
 
 .fae-palette-result-text {
 	display: flex;
+	flex: 1;
 	flex-direction: column;
 	gap: 0.125rem;
 	min-width: 0;
@@ -369,17 +403,11 @@
 	min-width: 2.75rem;
 }
 
-/* ---------------------------------------------------------------- sidebar */
-
-.fae-sidebar-search {
-	border-bottom: 1px solid var(--fae-border);
-	padding: 0.625rem;
-}
+/* ---------------------------------------------------------------- tabs */
 
 .fae-tabs {
 	display: flex;
 	gap: 0.25rem;
-	padding: 0.5rem 0.625rem 0;
 }
 
 .fae-tab {
@@ -401,6 +429,8 @@
 	color: var(--fae-text);
 }
 
+/* ---------------------------------------------------------------- navigation */
+
 .fae-group-label {
 	color: var(--fae-text-faint);
 	font-size: var(--fae-font-xs);
@@ -410,80 +440,6 @@
 
 .fae-group-label-flush {
 	padding: 0.5rem 0 0.25rem;
-}
-
-/*
- | Navigation in two levels: the resources, then the endpoints of one of them. Nine
- | resources fit without scrolling, and one level down the whole column belongs to
- | the paths instead of to a prefix every row repeats.
- */
-.fae-nav-list {
-	list-style: none;
-	margin: 0;
-	padding: 0.25rem 0.375rem 0.5rem;
-}
-
-.fae-nav-row {
-	align-items: center;
-	background: transparent;
-	border: 0;
-	border-radius: 0.375rem;
-	color: var(--fae-text-muted);
-	cursor: pointer;
-	display: flex;
-	gap: 0.5rem;
-	padding: 0.3125rem 0.5rem;
-	text-align: left;
-	width: 100%;
-}
-
-.fae-nav-row:hover {
-	background: var(--fae-panel-strong);
-	color: var(--fae-text);
-}
-
-.fae-nav-row-label {
-	flex: 1;
-	min-width: 0;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.fae-nav-row-count {
-	color: var(--fae-text-faint);
-	font-family: var(--fae-mono);
-	font-size: var(--fae-font-xs);
-}
-
-.fae-nav-back {
-	align-items: center;
-	background: transparent;
-	border: 0;
-	border-bottom: 1px solid var(--fae-border);
-	color: var(--fae-text-muted);
-	cursor: pointer;
-	display: flex;
-	gap: 0.375rem;
-	padding: 0.5rem 0.625rem;
-	text-align: left;
-	width: 100%;
-}
-
-.fae-nav-back:hover {
-	color: var(--fae-text);
-}
-
-.fae-nav-back-path {
-	font-family: var(--fae-mono);
-	font-size: var(--fae-font-sm);
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.fae-chevron-back {
-	flex-shrink: 0;
 }
 
 /* A filter that came from the address bar, said out loud. */
@@ -518,56 +474,8 @@
 	color: var(--fae-text);
 }
 
-.fae-endpoint-list {
-	list-style: none;
-	margin: 0;
-	padding: 0.25rem 0.375rem 0.5rem;
-}
-
-.fae-endpoint-link {
-	align-items: center;
-	background: transparent;
-	border: 0;
-	border-radius: 0.375rem;
-	color: var(--fae-text-muted);
-	cursor: pointer;
-	display: flex;
-	font-family: var(--fae-mono);
-	font-size: var(--fae-font-sm);
-	gap: 0.5rem;
-	padding: 0.25rem 0.375rem;
-	text-align: left;
-	width: 100%;
-}
-
-.fae-endpoint-link:hover {
-	background: var(--fae-panel-strong);
-	color: var(--fae-text);
-}
-
-.fae-endpoint-link[aria-current="true"] {
-	background: var(--fae-panel-strong);
-	color: var(--fae-text);
-}
-
-.fae-endpoint-path {
-	display: flex;
-	min-width: 0;
-	overflow: hidden;
-	white-space: nowrap;
-}
-
 .fae-endpoint-path-deprecated {
 	text-decoration: line-through;
-}
-
-.fae-path-head {
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-.fae-path-tail {
-	flex-shrink: 0;
 }
 
 .fae-gap-dot {
@@ -580,6 +488,75 @@
 	color: var(--fae-text-muted);
 	font-size: var(--fae-font-sm);
 	padding: 0.75rem;
+}
+
+/* ---------------------------------------------------------------- breadcrumb */
+
+/*
+ | Where the endpoint on screen sits, and one click away, what sits beside it. With
+ | no navigation column this is the only permanent "you are here" on the page.
+ */
+.fae-breadcrumb {
+	margin-bottom: 0.375rem;
+	position: relative;
+}
+
+.fae-breadcrumb-resource {
+	align-items: center;
+	background: transparent;
+	border: 0;
+	color: var(--fae-text-muted);
+	cursor: pointer;
+	display: flex;
+	font-family: var(--fae-mono);
+	font-size: var(--fae-font-xs);
+	gap: 0.25rem;
+	padding: 0;
+}
+
+.fae-breadcrumb-resource:hover {
+	color: var(--fae-text);
+}
+
+.fae-breadcrumb-siblings {
+	background: var(--fae-panel);
+	border: 1px solid var(--fae-border-strong);
+	border-radius: 0.375rem;
+	box-shadow: 0 12px 24px rgb(0 0 0 / 0.25);
+	display: flex;
+	flex-direction: column;
+	left: 0;
+	min-width: 16rem;
+	padding: 0.25rem;
+	position: absolute;
+	top: 100%;
+	z-index: 30;
+}
+
+.fae-breadcrumb-sibling {
+	align-items: center;
+	background: transparent;
+	border: 0;
+	border-radius: 0.25rem;
+	color: var(--fae-text-muted);
+	cursor: pointer;
+	display: flex;
+	gap: 0.5rem;
+	padding: 0.25rem 0.375rem;
+	text-align: left;
+	width: 100%;
+}
+
+.fae-breadcrumb-sibling:hover,
+.fae-breadcrumb-sibling[aria-current="true"] {
+	background: var(--fae-panel-strong);
+	color: var(--fae-text);
+}
+
+.fae-breadcrumb-path {
+	font-family: var(--fae-mono);
+	font-size: var(--fae-font-sm);
+	overflow-wrap: anywhere;
 }
 
 /* ---------------------------------------------------------------- endpoint */
@@ -791,6 +768,10 @@
 	max-width: 0.75rem;
 	transition: transform 120ms ease;
 	width: 0.75rem;
+}
+
+.fae-chevron-back {
+	flex-shrink: 0;
 }
 
 .fae-chevron-open {

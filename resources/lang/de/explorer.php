@@ -15,7 +15,7 @@ return [
         'endpoints' => ':count Endpunkte',
     ],
 
-    'sidebar' => [
+    'nav' => [
         'search' => 'Endpunkt',
         'all' => 'Alle',
         'gaps' => 'Lücken',

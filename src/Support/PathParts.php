@@ -7,12 +7,12 @@ namespace DardanGashi\FilamentApiExplorer\Support;
 use Illuminate\Support\Str;
 
 /**
- * Splits a path into the part that may be shortened and the part that must not.
+ * How a list of endpoint paths is written short without losing what tells them apart.
  *
- * Endpoint paths in a list are long and differ at the end — `/physical-products`
- * and `/physical-products/{physicalProduct}/tier-prices` share everything a
- * reader would use to tell them apart until the very last segment. Clipping the
- * tail is therefore the one thing a path list must not do.
+ * `/physical-products` and `/physical-products/{physicalProduct}/tier-prices` share
+ * everything a reader would use to distinguish them until the very last segment. So
+ * the shared part is stated once for the whole group, and the last segment is the
+ * one thing that is never touched.
  */
 final class PathParts
 {
@@ -72,22 +72,5 @@ final class PathParts
         $last = array_pop($segments);
 
         return $segments === [] ? '/'.$last : '/…/'.$last;
-    }
-
-    /**
-     * @return array{head: string, tail: string}
-     */
-    public static function split(string $path): array
-    {
-        $position = strrpos($path, '/');
-
-        if ($position === false) {
-            return ['head' => '', 'tail' => $path];
-        }
-
-        return [
-            'head' => substr($path, 0, $position + 1),
-            'tail' => substr($path, $position + 1),
-        ];
     }
 }

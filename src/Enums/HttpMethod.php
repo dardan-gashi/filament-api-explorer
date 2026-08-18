@@ -16,7 +16,7 @@ enum HttpMethod: string
 
     /**
      * The badge caption. Long verbs are abbreviated so every badge keeps the
-     * same width in the endpoint sidebar.
+     * same width in every list of endpoints.
      */
     public function label(): string
     {

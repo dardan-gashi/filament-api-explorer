@@ -150,7 +150,7 @@ final readonly class Endpoint
     }
 
     /**
-     * Free-text match used by the endpoint search in the sidebar.
+     * Free-text match used by the endpoint search.
      */
     public function matches(?string $term): bool
     {

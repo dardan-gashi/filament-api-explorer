@@ -1,4 +1,41 @@
 <section class="fae-section">
+    {{-- Where this endpoint sits, and what sits beside it. That a path also answers
+         PATCH, or that the resource has a sub-resource, is not something a reader
+         went looking for and exactly what they need to know. --}}
+    @if ($siblings !== [])
+        <div class="fae-breadcrumb" x-data="{ open: false }">
+            <button type="button" class="fae-breadcrumb-resource" x-on:click="open = ! open" x-bind:aria-expanded="open ? 'true' : 'false'">
+                <span>{{ $resourceCaption }}</span>
+
+                <svg class="fae-chevron" x-bind:class="{ 'fae-chevron-open': open }" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
+                    <path d="M4.25 2.5 7.75 6l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </button>
+
+            <div class="fae-breadcrumb-siblings" x-show="open" x-cloak>
+                @foreach ($siblings as $sibling)
+                    <button
+                        type="button"
+                        class="fae-breadcrumb-sibling"
+                        aria-current="{{ $sibling['key'] === $endpoint->key ? 'true' : 'false' }}"
+                        title="{{ $sibling['path'] }}"
+                        wire:click="selectEndpoint(@js($sibling['key']))"
+                    >
+                        <span class="fae-badge fae-badge-{{ $sibling['color'] }} fae-method">{{ $sibling['method'] }}</span>
+
+                        <span @class(['fae-breadcrumb-path', 'fae-endpoint-path-deprecated' => $sibling['deprecated']])>
+                            {{ $sibling['label'] }}
+                        </span>
+
+                        @unless ($sibling['documented'])
+                            <span class="fae-gap-dot">&bull;</span>
+                        @endunless
+                    </button>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     <div class="fae-endpoint-head">
         <span class="fae-badge fae-badge-{{ $endpoint->method->color() }} fae-method">
             {{ $endpoint->method->label() }}

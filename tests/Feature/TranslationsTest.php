@@ -55,7 +55,7 @@ describe('Translations - Page', function () {
         app()->setLocale('de');
 
         livewire(ApiExplorerPage::class)
-            ->assertSee('Endpunkt')
+            ->assertSee('Endpunkt suchen')
             ->assertSee('Lücken')
             ->assertSee('Anfrage-Header')
             ->assertSee('Query-Parameter')

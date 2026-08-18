@@ -1,5 +1,8 @@
-{{-- Jumping to an endpoint is typing, so the whole list travels to the browser once
-     and is searched there: a round trip per keystroke is felt on every keystroke.
+{{-- The navigation, all of it.
+
+     Jumping is typing and browsing is two levels, and both happen here: the whole
+     structure travels to the browser once, so neither costs a round trip — and
+     neither costs a column of the page for the rest of the time.
 
      The trigger stays in the toolbar where it cannot scroll away, and ⌘K opens it
      from anywhere on the page. --}}
@@ -9,20 +12,42 @@
         open: false,
         term: '',
         active: 0,
-        endpoints: @js($paletteEndpoints),
+        resource: @js($openResource),
+        resources: @js($resources),
+
+        get endpoints() {
+            return this.resources.flatMap((resource) => resource.endpoints);
+        },
 
         get results() {
             const term = this.term.trim().toLowerCase();
 
             if (term === '') {
-                return this.endpoints.slice(0, 12);
+                return [];
             }
 
             const words = term.split(/\s+/);
 
             return this.endpoints
                 .filter((endpoint) => words.every((word) => endpoint.haystack.includes(word)))
-                .slice(0, 12);
+                .slice(0, 20);
+        },
+
+        get opened() {
+            return this.resources.find((resource) => resource.group === this.resource) ?? null;
+        },
+
+        /** Whatever list is on screen, so one pair of arrow keys serves all three. */
+        get items() {
+            if (this.term.trim() !== '') {
+                return this.results.map((endpoint) => ({ kind: 'endpoint', endpoint }));
+            }
+
+            if (this.opened) {
+                return this.opened.endpoints.map((endpoint) => ({ kind: 'endpoint', endpoint }));
+            }
+
+            return this.resources.map((resource) => ({ kind: 'resource', resource }));
         },
 
         show() {
@@ -34,17 +59,50 @@
         },
 
         move(by) {
-            const last = this.results.length - 1;
+            const last = this.items.length - 1;
 
             this.active = Math.min(Math.max(this.active + by, 0), Math.max(last, 0));
         },
 
-        choose(endpoint) {
-            if (! endpoint) {
+        enter() {
+            const item = this.items[this.active];
+
+            if (! item) {
                 return;
             }
 
+            if (item.kind === 'resource') {
+                this.into(item.resource.group);
+
+                return;
+            }
+
+            this.choose(item.endpoint);
+        },
+
+        into(group) {
+            this.resource = group;
+            this.active = 0;
+            this.term = '';
+        },
+
+        /** One step out: from a term to no term, from a resource to the resources. */
+        out() {
+            if (this.term !== '') {
+                this.term = '';
+            } else {
+                this.resource = null;
+            }
+
+            this.active = 0;
+        },
+
+        choose(endpoint) {
             this.open = false;
+            this.resource = this.resources.find(
+                (resource) => resource.endpoints.some((candidate) => candidate.key === endpoint.key),
+            )?.group ?? null;
+
             $wire.selectEndpoint(endpoint.key);
         },
     }"
@@ -67,43 +125,94 @@
         aria-label="{{ __('filament-api-explorer::explorer.palette.trigger') }}"
     >
         <div class="fae-palette">
-            <input
-                type="text"
-                class="fae-input fae-palette-input"
-                x-ref="term"
-                x-model="term"
-                x-on:keydown.down.prevent="move(1)"
-                x-on:keydown.up.prevent="move(-1)"
-                x-on:keydown.enter.prevent="choose(results[active])"
-                placeholder="{{ __('filament-api-explorer::explorer.palette.placeholder') }}"
-                aria-label="{{ __('filament-api-explorer::explorer.palette.placeholder') }}"
-                autocomplete="off"
-            >
+            <div class="fae-palette-head">
+                {{-- The way back is a row, not only a key: which level you are on is
+                     not obvious until you see what you are inside of. --}}
+                <button type="button" class="fae-palette-back" x-show="opened && term.trim() === ''" x-on:click="out()">
+                    <svg class="fae-chevron fae-chevron-back" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
+                        <path d="M7.75 2.5 4.25 6l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+
+                    <span x-text="opened?.prefix || opened?.label"></span>
+                </button>
+
+                <input
+                    type="text"
+                    class="fae-input fae-palette-input"
+                    x-ref="term"
+                    x-model="term"
+                    x-on:keydown.down.prevent="move(1)"
+                    x-on:keydown.up.prevent="move(-1)"
+                    x-on:keydown.enter.prevent="enter()"
+                    x-on:keydown.left="term === '' && out()"
+                    placeholder="{{ __('filament-api-explorer::explorer.palette.placeholder') }}"
+                    aria-label="{{ __('filament-api-explorer::explorer.palette.placeholder') }}"
+                    autocomplete="off"
+                >
+            </div>
 
             <ul class="fae-palette-results" role="listbox">
-                <template x-for="(endpoint, index) in results" x-bind:key="endpoint.key">
+                <template x-for="(item, index) in items" x-bind:key="item.kind + (item.resource?.group ?? item.endpoint.key)">
                     <li>
+                        {{-- A resource: its name, the path below it and how many
+                             endpoints hang off it. --}}
                         <button
                             type="button"
                             class="fae-palette-result"
                             role="option"
+                            x-show="item.kind === 'resource'"
                             x-bind:aria-selected="index === active ? 'true' : 'false'"
                             x-bind:class="{ 'fae-palette-result-active': index === active }"
                             x-on:mouseenter="active = index"
-                            x-on:click="choose(endpoint)"
+                            x-on:click="into(item.resource.group)"
                         >
-                            <span class="fae-badge fae-method" x-bind:class="'fae-badge-' + endpoint.color" x-text="endpoint.method"></span>
+                            <span class="fae-palette-result-text">
+                                <span x-text="item.resource.label"></span>
+                                <span class="fae-palette-result-summary" x-text="item.resource.prefix"></span>
+                            </span>
+
+                            <span class="fae-palette-count" x-text="item.resource.endpoints.length"></span>
+
+                            <svg class="fae-chevron" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
+                                <path d="M4.25 2.5 7.75 6l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </button>
+
+                        {{-- An endpoint: inside a resource the part of the path it does
+                             not share, in a search result the whole thing. --}}
+                        <button
+                            type="button"
+                            class="fae-palette-result"
+                            role="option"
+                            x-show="item.kind === 'endpoint'"
+                            x-bind:aria-selected="index === active ? 'true' : 'false'"
+                            x-bind:class="{ 'fae-palette-result-active': index === active }"
+                            x-on:mouseenter="active = index"
+                            x-on:click="choose(item.endpoint)"
+                        >
+                            <span class="fae-badge fae-method" x-bind:class="'fae-badge-' + item.endpoint.color" x-text="item.endpoint.method"></span>
 
                             <span class="fae-palette-result-text">
-                                <span class="fae-palette-result-path" x-text="endpoint.path"></span>
-                                <span class="fae-palette-result-summary" x-text="endpoint.summary"></span>
+                                <span
+                                    class="fae-palette-result-path"
+                                    x-bind:class="{ 'fae-endpoint-path-deprecated': item.endpoint.deprecated }"
+                                    x-text="term.trim() === '' ? item.endpoint.label : item.endpoint.path"
+                                ></span>
+
+                                <span class="fae-palette-result-summary" x-text="item.endpoint.summary"></span>
                             </span>
+
+                            <span
+                                class="fae-gap-dot"
+                                x-show="! item.endpoint.documented"
+                                title="{{ __('filament-api-explorer::explorer.nav.incomplete') }}"
+                            >&bull;</span>
                         </button>
                     </li>
                 </template>
             </ul>
 
-            <p class="fae-palette-empty" x-show="results.length === 0">
+            <p class="fae-palette-empty" x-show="items.length === 0">
                 {{ __('filament-api-explorer::explorer.palette.empty') }}
             </p>
         </div>

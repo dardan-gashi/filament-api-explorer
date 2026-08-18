@@ -13,6 +13,23 @@ use DardanGashi\FilamentApiExplorer\Support\InputKey;
 use function Pest\Livewire\livewire;
 
 /**
+ * The resource of a name, as the palette receives it.
+ *
+ * @param  list<array<string, mixed>>  $resources
+ * @return array<string, mixed>
+ */
+function resource(array $resources, string $group): array
+{
+    foreach ($resources as $resource) {
+        if ($resource['group'] === $group) {
+            return $resource;
+        }
+    }
+
+    return [];
+}
+
+/**
  * How often a badge with exactly this label is rendered. The markup wraps a badge
  * over three lines, so the whitespace has to go before it can be counted.
  */
@@ -38,22 +55,33 @@ describe('ApiExplorerPage - Render', function () {
             ->assertSet('endpointKey', Endpoint::keyFor(HttpMethod::Get, '/vouchers'));
     });
 
-    test('opens on the resources of the api', function () {
-        // Something has to be on screen, so the first endpoint is selected — but that
-        // is not a choice anybody made, and it must not hide the rest of the api.
-        livewire(ApiExplorerPage::class)
-            ->assertSet('openGroup', null)
-            ->assertSee('Vouchers')
-            ->assertSee('Participants')
-            ->assertSee('Courses');
+    test('hands the whole navigation to the palette', function () {
+        // Two levels and a search, all of it in the browser: no column of the page is
+        // spent on navigation and no keystroke on a round trip.
+        $page = livewire(ApiExplorerPage::class)->assertSee('Find endpoint');
+
+        $resources = $page->viewData('resources');
+
+        expect(array_column($resources, 'group'))->toBe(['Vouchers', 'Participants', 'Courses'])
+            ->and(resource($resources, 'Vouchers')['endpoints'])->toHaveCount(3)
+            ->and(resource($resources, 'Participants')['endpoints'][0]['haystack'])
+            ->toContain('participants');
     });
 
-    test('opens on the resource an address names', function () {
-        // An endpoint in the address is a choice somebody made, so the navigation
-        // arrives among its neighbours rather than on the level above.
+    test('matches a term against the method, the path and the summary at once', function () {
+        // The haystack is what `ord sub` is matched against in the browser.
+        $resources = livewire(ApiExplorerPage::class)->viewData('resources');
+
+        expect(resource($resources, 'Vouchers')['endpoints'][0]['haystack'])
+            ->toBe('get /vouchers lists vouchers with cursor pagination. vouchers');
+    });
+
+    test('opens the palette on the resource of the endpoint on screen', function () {
+        // Typing is for jumping somewhere else; opening the palette while reading an
+        // endpoint shows what sits beside it.
         Livewire::withQueryParams(['endpoint' => Endpoint::keyFor(HttpMethod::Get, '/courses')]);
 
-        livewire(ApiExplorerPage::class)->assertSet('openGroup', 'Courses');
+        expect(livewire(ApiExplorerPage::class)->viewData('openResource'))->toBe('Courses');
     });
 
     test('shortens the method of an endpoint the way a table would', function () {
@@ -92,11 +120,11 @@ describe('ApiExplorerPage - Render', function () {
             'v2' => ['driver' => 'array', 'document' => $document],
         ]);
 
-        // Asserted on what is rendered: the raw tag is what the navigation sends back
-        // to the server when a resource is opened, and that is not text anybody reads.
-        livewire(ApiExplorerPage::class)
-            ->assertSee('>Course<', escape: false)
-            ->assertDontSee('>CourseApi<', escape: false);
+        // The raw tag stays as the key a resource is found by; what a reader sees is
+        // the caption.
+        $resources = livewire(ApiExplorerPage::class)->viewData('resources');
+
+        expect(resource($resources, 'CourseApi')['label'])->toBe('Course');
     });
 
     test('names the security scheme the endpoint needs', function () {
@@ -157,14 +185,15 @@ describe('ApiExplorerPage - Render', function () {
             ->assertDontSee('`discount_value`');
     });
 
-    test('writes a path in the list without the part its resource already says', function () {
-        // `/vouchers` on every row of the Vouchers group costs the width that
-        // `{code}` needs. The heading carries the prefix, the row carries the rest,
-        // and the full path stays on the row as its title.
-        livewire(ApiExplorerPage::class)
-            ->call('openGroup', 'Vouchers')
-            ->assertSee('/{code}')
-            ->assertSee('title="/vouchers/{code}"', escape: false);
+    test('writes an endpoint without the part its resource already says', function () {
+        // Inside `/vouchers` the endpoint `/vouchers/{code}` is `/{code}`; a search
+        // result carries the whole path, because there it stands on its own.
+        $vouchers = resource(livewire(ApiExplorerPage::class)->viewData('resources'), 'Vouchers');
+
+        expect($vouchers['prefix'])->toBe('/vouchers')
+            ->and(array_column($vouchers['endpoints'], 'label'))->toBe(['/', '/', '/{code}'])
+            ->and(array_column($vouchers['endpoints'], 'path'))
+            ->toBe(['/vouchers', '/vouchers', '/vouchers/{code}']);
     });
 
     test('offers every endpoint of the api to the palette', function () {
@@ -175,12 +204,13 @@ describe('ApiExplorerPage - Render', function () {
             ->assertSee('lists vouchers with cursor pagination. vouchers');
     });
 
-    test('strikes an endpoint on its way out through in the list', function () {
-        // Written on the row, not only in the header of the selected endpoint: the
-        // question "which of these should I not build against" is asked of the list.
-        livewire(ApiExplorerPage::class)
-            ->call('openGroup', 'Vouchers')
-            ->assertSee('fae-endpoint-path-deprecated', escape: false);
+    test('marks an endpoint on its way out wherever it is listed', function () {
+        // The question "which of these should I not build against" is asked of the
+        // list, not of the endpoint somebody has already opened.
+        $vouchers = resource(livewire(ApiExplorerPage::class)->viewData('resources'), 'Vouchers');
+
+        expect(array_column($vouchers['endpoints'], 'deprecated'))->toBe([false, false, true])
+            ->and(array_column($vouchers['endpoints'], 'documented'))->toBe([true, true, true]);
     });
 
     test('names a schema fact with the word the document uses for it', function () {
@@ -288,11 +318,12 @@ describe('ApiExplorerPage - Search', function () {
 describe('ApiExplorerPage - Gap Filter', function () {
 
     test('keeps only the resources with an incomplete documentation', function () {
-        livewire(ApiExplorerPage::class)
+        $resources = livewire(ApiExplorerPage::class)
             ->call('filterGaps', true)
             ->assertSet('onlyGaps', true)
-            ->assertSee('Participants')
-            ->assertDontSee('>Vouchers<', escape: false);
+            ->viewData('resources');
+
+        expect(array_column($resources, 'group'))->toBe(['Participants', 'Courses']);
     });
 
     test('selects a gap endpoint when the current one is complete', function () {
@@ -309,22 +340,23 @@ describe('ApiExplorerPage - Gap Filter', function () {
     });
 
     test('restores every resource when the filter is cleared', function () {
-        livewire(ApiExplorerPage::class)
+        $resources = livewire(ApiExplorerPage::class)
             ->call('filterGaps', true)
-            ->assertDontSee('>Vouchers<', escape: false)
             ->call('filterGaps', false)
             ->assertSet('onlyGaps', false)
-            ->assertSee('>Vouchers<', escape: false);
+            ->viewData('resources');
+
+        expect(array_column($resources, 'group'))->toContain('Vouchers');
     });
 
-    test('leaves the open resource when a filter empties it', function () {
-        // A resource whose endpoints are all documented has nothing to show under the
-        // gap filter, and an empty list is worse than the level above it.
-        livewire(ApiExplorerPage::class)
-            ->call('openGroup', 'Vouchers')
+    test('keeps a filtered endpoint out of the palette rather than in it', function () {
+        // What `?gaps=` leaves out never reaches the browser, so a filtered palette
+        // cannot offer an endpoint the address has excluded.
+        $resources = livewire(ApiExplorerPage::class)
             ->call('filterGaps', true)
-            ->assertSee('Participants')
-            ->assertDontSee('title="/vouchers/{code}"', escape: false);
+            ->viewData('resources');
+
+        expect(array_column($resources, 'group'))->not->toContain('Vouchers');
     });
 });
 

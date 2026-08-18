@@ -9,6 +9,7 @@ use Filament\Pages\Page;
 use Filament\Pages\PageConfiguration;
 use Filament\Support\Enums\Width;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Url;
 use DardanGashi\FilamentApiExplorer\ApiExplorerPlugin;
 use DardanGashi\FilamentApiExplorer\Data\ApiSpec;
@@ -26,7 +27,9 @@ use DardanGashi\FilamentApiExplorer\Services\RequestExecutor;
 use DardanGashi\FilamentApiExplorer\Services\ResponseSampleStore;
 use DardanGashi\FilamentApiExplorer\Services\SnippetRenderer;
 use DardanGashi\FilamentApiExplorer\Services\SpecRepository;
+use DardanGashi\FilamentApiExplorer\Support\GroupLabel;
 use DardanGashi\FilamentApiExplorer\Support\InputKey;
+use DardanGashi\FilamentApiExplorer\Support\PathParts;
 
 class ApiExplorerPage extends Page
 {
@@ -50,12 +53,6 @@ class ApiExplorerPage extends Page
 
     #[Url(as: 'gaps', history: true)]
     public bool $onlyGaps = false;
-
-    /**
-     * The resource whose endpoints the navigation is showing. Null is the level
-     * above it, the list of resources.
-     */
-    public ?string $openGroup = null;
 
     /**
      * Narrows the schema trees of the selected endpoint.
@@ -92,17 +89,7 @@ class ApiExplorerPage extends Page
         $this->source ??= $this->plugin()?->getSource() ?? $this->specs()->defaultName();
         $this->server = $this->defaultServer();
 
-        // An endpoint in the address is a choice somebody made, so the navigation
-        // opens on its resource. Without one it opens on the resources themselves:
-        // the first endpoint is selected to have something on screen, and that is no
-        // reason to hide the rest of the api behind a back button.
-        $addressed = $this->endpointKey !== null;
-
         $this->syncSelection();
-
-        if ($addressed) {
-            $this->openGroup = $this->currentEndpoint()?->group;
-        }
     }
 
     // -----------------------------------------------------------------
@@ -201,19 +188,8 @@ class ApiExplorerPage extends Page
 
         $this->endpointKey = $key;
         $this->fieldSearch = '';
-        // Whichever way an endpoint was reached, the navigation shows it among its
-        // neighbours afterwards.
-        $this->openGroup = $endpoint->group;
 
         $this->prefillRequest();
-    }
-
-    /**
-     * Show the endpoints of one resource, or the resources themselves.
-     */
-    public function openGroup(?string $group): void
-    {
-        $this->openGroup = $group;
     }
 
     public function clearSearch(): void
@@ -327,11 +303,11 @@ class ApiExplorerPage extends Page
         return [
             'spec' => $spec,
             'coverage' => $spec->coverage(),
-            'groups' => $groups = app(EndpointNavigator::class)->groups($spec, $this->search, $this->onlyGaps),
-            // Not `openGroup`: a public property of the same name would shadow it in
-            // the view, and the resolved one is the only one safe to index with.
-            'navGroup' => $this->resolvedGroup($groups),
-            'paletteEndpoints' => $this->paletteEndpoints($spec),
+            'resources' => $resources = $this->resources($spec),
+            // The resource the palette opens on: the one the reader is looking at.
+            'openResource' => $endpoint?->group,
+            'siblings' => $endpoint === null ? [] : $this->siblings($resources, $endpoint),
+            'resourceCaption' => $endpoint === null ? '' : $this->resourceCaption($resources, $endpoint),
             'endpoint' => $endpoint,
             'sourceNames' => $this->specs()->names(),
             'serverOptions' => $this->serverOptions(),
@@ -519,56 +495,106 @@ class ApiExplorerPage extends Page
     }
 
     /**
-     * The resource the navigation is showing, if it still has endpoints under the
-     * current filter. A filter that empties a resource puts the reader back on the
-     * level above rather than in front of an empty list.
+     * The whole navigation, as one structure.
      *
-     * @param  array<string, list<Endpoint>>  $groups
+     * It travels to the browser once and is both browsed and searched there: a
+     * document of this size is a few dozen kilobytes, and a round trip per keystroke
+     * is felt on every one of them. `haystack` is what a term is matched against —
+     * method, path, summary and resource in one lowercased string, so `ord sub`
+     * finds `GET /orders/{order}/subscriptions`.
+     *
+     * Filters stay on the server, because they belong to the address: what `?q=` and
+     * `?gaps=` leave out never reaches the palette.
+     *
+     * @return list<array{group: string, label: string, prefix: string, endpoints: list<array{key: string, method: string, color: string, path: string, label: string, summary: string, deprecated: bool, documented: bool, haystack: string}>}>
      */
-    private function resolvedGroup(array $groups): ?string
+    private function resources(ApiSpec $spec): array
     {
-        // Only an explicit choice opens a resource: selecting an endpoint sets it, and
-        // so does an endpoint named in the address. The endpoint that is merely
-        // selected to have something on screen does not.
-        return $this->openGroup !== null && isset($groups[$this->openGroup])
-            ? $this->openGroup
-            : null;
-    }
+        $groups = app(EndpointNavigator::class)->groups($spec, $this->search, $this->onlyGaps);
+        $documentPrefix = $spec->commonPathPrefix();
+        $resources = [];
 
-    /**
-     * Every endpoint of the specification, as the command palette needs it.
-     *
-     * The whole list travels to the browser once and is searched there: a document
-     * of this size is a few dozen kilobytes, and a round trip per keystroke is felt
-     * on every one of them. `haystack` is what a term is matched against — method,
-     * path, summary and resource in one lowercased string, so `ord sub` finds
-     * `GET /orders/{order}/subscriptions`.
-     *
-     * @return list<array{key: string, method: string, color: string, path: string, summary: string, haystack: string}>
-     */
-    private function paletteEndpoints(ApiSpec $spec): array
-    {
-        $endpoints = [];
+        foreach ($groups as $group => $endpoints) {
+            $prefix = PathParts::sharedPrefix(array_map(
+                fn (Endpoint $endpoint): string => $endpoint->path,
+                $endpoints,
+            )) ?: $documentPrefix;
 
-        foreach ($spec->endpoints as $endpoint) {
-            $summary = $endpoint->summary ?? '';
-
-            $endpoints[] = [
-                'key' => $endpoint->key,
-                'method' => $endpoint->method->label(),
-                'color' => $endpoint->method->color(),
-                'path' => $endpoint->path,
-                'summary' => $summary,
-                'haystack' => mb_strtolower(implode(' ', [
-                    $endpoint->method->label(),
-                    $endpoint->path,
-                    $summary,
-                    $endpoint->group,
-                ])),
+            $resources[] = [
+                'group' => $group,
+                'label' => GroupLabel::for($group),
+                'prefix' => (string) Str::after($prefix, $documentPrefix),
+                'endpoints' => array_map(
+                    fn (Endpoint $endpoint): array => $this->paletteEndpoint($endpoint, $prefix),
+                    $endpoints,
+                ),
             ];
         }
 
-        return $endpoints;
+        return $resources;
+    }
+
+    /**
+     * @return array{key: string, method: string, color: string, path: string, label: string, summary: string, deprecated: bool, documented: bool, haystack: string}
+     */
+    private function paletteEndpoint(Endpoint $endpoint, string $prefix): array
+    {
+        $summary = $endpoint->summary ?? '';
+
+        return [
+            'key' => $endpoint->key,
+            'method' => $endpoint->method->label(),
+            'color' => $endpoint->method->color(),
+            'path' => $endpoint->path,
+            // Inside its resource an endpoint is only what the resource is not.
+            'label' => PathParts::within($endpoint->path, $prefix),
+            'summary' => $summary,
+            'deprecated' => $endpoint->deprecated,
+            'documented' => $endpoint->isDocumented(),
+            'haystack' => mb_strtolower(implode(' ', [
+                $endpoint->method->label(),
+                $endpoint->path,
+                $summary,
+                $endpoint->group,
+            ])),
+        ];
+    }
+
+    /**
+     * What the resource of an endpoint is called in the breadcrumb: the path its
+     * endpoints share, or the name of the tag where they share none.
+     *
+     * @param  list<array{group: string, label: string, prefix: string, endpoints: list<array<string, mixed>>}>  $resources
+     */
+    private function resourceCaption(array $resources, Endpoint $endpoint): string
+    {
+        foreach ($resources as $resource) {
+            if ($resource['group'] === $endpoint->group) {
+                return $resource['prefix'] !== '' ? $resource['prefix'] : $resource['label'];
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * The endpoints beside the one on screen, for the breadcrumb of its header.
+     *
+     * That a path also answers PATCH, or that the resource has a sub-resource, is
+     * not something a reader went looking for and exactly what they need to know.
+     *
+     * @param  list<array{group: string, label: string, prefix: string, endpoints: list<array<string, mixed>>}>  $resources
+     * @return list<array<string, mixed>>
+     */
+    private function siblings(array $resources, Endpoint $endpoint): array
+    {
+        foreach ($resources as $resource) {
+            if ($resource['group'] === $endpoint->group) {
+                return $resource['endpoints'];
+            }
+        }
+
+        return [];
     }
 
     /**

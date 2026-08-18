@@ -1,8 +1,31 @@
 <x-filament-panels::page>
     <div class="fae">
-        {{-- One row: what is being read on the left of the badges it belongs to. --}}
+        {{-- One row: how to get somewhere on the left, what is being read on the
+             right of the badges it belongs to. --}}
         <div class="fae-toolbar">
             @include('filament-api-explorer::partials.palette')
+
+            <button
+                type="button"
+                class="fae-button"
+                aria-pressed="{{ $this->onlyGaps ? 'true' : 'false' }}"
+                wire:click="filterGaps({{ $this->onlyGaps ? 'false' : 'true' }})"
+            >
+                {{ __('filament-api-explorer::explorer.nav.gaps') }}
+                @if ($coverage->gapCount() > 0)
+                    ({{ $coverage->gapCount() }})
+                @endif
+            </button>
+
+            @if ($this->search !== '')
+                {{-- A term can arrive from the address bar, and a navigation narrowed
+                     by something invisible is one that looks broken. --}}
+                <span class="fae-nav-filter">
+                    <span class="fae-nav-filter-term">{{ $this->search }}</span>
+
+                    <button type="button" class="fae-nav-filter-clear" wire:click="clearSearch">&times;</button>
+                </span>
+            @endif
 
             @if (count($sourceNames) > 1)
                 <select
@@ -42,8 +65,6 @@
         @endif
 
         <div class="fae-shell">
-            @include('filament-api-explorer::partials.sidebar')
-
             <div class="fae-surface">
                 @if ($endpoint)
                     @include('filament-api-explorer::partials.endpoint')
