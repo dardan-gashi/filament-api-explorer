@@ -23,6 +23,17 @@ return [
         'incomplete' => 'Dokumentation ist unvollständig',
     ],
 
+    /*
+     | Springen ist Tippen: das Suchfeld liegt in der Kopfzeile und öffnet sich mit
+     | ⌘K von jeder Stelle der Seite.
+     */
+    'palette' => [
+        'trigger' => 'Endpunkt suchen',
+        'shortcut' => '⌘K',
+        'placeholder' => 'Methode, Pfad oder Beschreibung',
+        'empty' => 'Kein Endpunkt passt.',
+    ],
+
     'sections' => [
         'path' => 'Pfad-Parameter',
         'header' => 'Anfrage-Header',

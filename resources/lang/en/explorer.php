@@ -23,6 +23,17 @@ return [
         'incomplete' => 'Documentation is incomplete',
     ],
 
+    /*
+     | Jumping is typing: the search sits in the toolbar and opens with ⌘K from
+     | anywhere on the page.
+     */
+    'palette' => [
+        'trigger' => 'Find endpoint',
+        'shortcut' => '⌘K',
+        'placeholder' => 'Method, path or description',
+        'empty' => 'No endpoint matches.',
+    ],
+
     'sections' => [
         'path' => 'Path parameters',
         'header' => 'Request headers',

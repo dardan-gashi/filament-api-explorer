@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
+use Livewire\Livewire;
 use DardanGashi\FilamentApiExplorer\Data\Endpoint;
 use DardanGashi\FilamentApiExplorer\Enums\HttpMethod;
 use DardanGashi\FilamentApiExplorer\Pages\ApiExplorerPage;
@@ -37,11 +38,26 @@ describe('ApiExplorerPage - Render', function () {
             ->assertSet('endpointKey', Endpoint::keyFor(HttpMethod::Get, '/vouchers'));
     });
 
-    test('lists every endpoint grouped by its tag', function () {
+    test('opens on the resources of the api', function () {
+        // Something has to be on screen, so the first endpoint is selected — but that
+        // is not a choice anybody made, and it must not hide the rest of the api.
         livewire(ApiExplorerPage::class)
+            ->assertSet('openGroup', null)
             ->assertSee('Vouchers')
             ->assertSee('Participants')
-            ->assertSee('Courses')
+            ->assertSee('Courses');
+    });
+
+    test('opens on the resource an address names', function () {
+        // An endpoint in the address is a choice somebody made, so the navigation
+        // arrives among its neighbours rather than on the level above.
+        Livewire::withQueryParams(['endpoint' => Endpoint::keyFor(HttpMethod::Get, '/courses')]);
+
+        livewire(ApiExplorerPage::class)->assertSet('openGroup', 'Courses');
+    });
+
+    test('shortens the method of an endpoint the way a table would', function () {
+        livewire(ApiExplorerPage::class)
             ->assertSee('DEL', escape: false)
             ->assertDontSee('DELETE');
     });
@@ -76,9 +92,11 @@ describe('ApiExplorerPage - Render', function () {
             'v2' => ['driver' => 'array', 'document' => $document],
         ]);
 
+        // Asserted on what is rendered: the raw tag is what the navigation sends back
+        // to the server when a resource is opened, and that is not text anybody reads.
         livewire(ApiExplorerPage::class)
-            ->assertSee('Course')
-            ->assertDontSee('CourseApi');
+            ->assertSee('>Course<', escape: false)
+            ->assertDontSee('>CourseApi<', escape: false);
     });
 
     test('names the security scheme the endpoint needs', function () {
@@ -139,34 +157,30 @@ describe('ApiExplorerPage - Render', function () {
             ->assertDontSee('`discount_value`');
     });
 
-    test('writes a path in the list without the part its group already says', function () {
+    test('writes a path in the list without the part its resource already says', function () {
         // `/vouchers` on every row of the Vouchers group costs the width that
         // `{code}` needs. The heading carries the prefix, the row carries the rest,
         // and the full path stays on the row as its title.
         livewire(ApiExplorerPage::class)
+            ->call('openGroup', 'Vouchers')
             ->assertSee('/{code}')
             ->assertSee('title="/vouchers/{code}"', escape: false);
     });
 
-    test('folds a group away and opens it again for a filtered list', function () {
-        // A group folded shut must not swallow the row a filter just found, so the
-        // filter is part of the key Livewire replaces the group by.
-        $all = livewire(ApiExplorerPage::class)->html();
-
-        $filtered = livewire(ApiExplorerPage::class)
-            ->set('search', 'participants')
-            ->html();
-
-        expect($all)->toContain('x-data="{ open: true }"')
-            ->and(preg_match_all('/wire:key="group-([a-f0-9]{32})/', $all, $unfiltered))->toBeGreaterThan(0)
-            ->and(preg_match_all('/wire:key="group-([a-f0-9]{32})/', $filtered, $searched))->toBeGreaterThan(0)
-            ->and($searched[1][0])->not->toBe($unfiltered[1][0]);
+    test('offers every endpoint of the api to the palette', function () {
+        // The whole list travels once and is searched in the browser, so a term is
+        // matched without a round trip per keystroke.
+        livewire(ApiExplorerPage::class)
+            ->assertSee('{participant}')
+            ->assertSee('lists vouchers with cursor pagination. vouchers');
     });
 
     test('strikes an endpoint on its way out through in the list', function () {
         // Written on the row, not only in the header of the selected endpoint: the
         // question "which of these should I not build against" is asked of the list.
-        livewire(ApiExplorerPage::class)->assertSee('fae-endpoint-path-deprecated', escape: false);
+        livewire(ApiExplorerPage::class)
+            ->call('openGroup', 'Vouchers')
+            ->assertSee('fae-endpoint-path-deprecated', escape: false);
     });
 
     test('names a schema fact with the word the document uses for it', function () {
@@ -273,12 +287,12 @@ describe('ApiExplorerPage - Search', function () {
 
 describe('ApiExplorerPage - Gap Filter', function () {
 
-    test('keeps only the endpoints with an incomplete documentation', function () {
+    test('keeps only the resources with an incomplete documentation', function () {
         livewire(ApiExplorerPage::class)
             ->call('filterGaps', true)
             ->assertSet('onlyGaps', true)
             ->assertSee('Participants')
-            ->assertDontSee('Lists vouchers with cursor pagination.');
+            ->assertDontSee('>Vouchers<', escape: false);
     });
 
     test('selects a gap endpoint when the current one is complete', function () {
@@ -294,13 +308,23 @@ describe('ApiExplorerPage - Gap Filter', function () {
             ->assertSee('No response documented');
     });
 
-    test('restores every endpoint when the filter is cleared', function () {
+    test('restores every resource when the filter is cleared', function () {
         livewire(ApiExplorerPage::class)
             ->call('filterGaps', true)
-            ->assertDontSee('Vouchers')
+            ->assertDontSee('>Vouchers<', escape: false)
             ->call('filterGaps', false)
             ->assertSet('onlyGaps', false)
-            ->assertSee('Vouchers');
+            ->assertSee('>Vouchers<', escape: false);
+    });
+
+    test('leaves the open resource when a filter empties it', function () {
+        // A resource whose endpoints are all documented has nothing to show under the
+        // gap filter, and an empty list is worse than the level above it.
+        livewire(ApiExplorerPage::class)
+            ->call('openGroup', 'Vouchers')
+            ->call('filterGaps', true)
+            ->assertSee('Participants')
+            ->assertDontSee('title="/vouchers/{code}"', escape: false);
     });
 });
 

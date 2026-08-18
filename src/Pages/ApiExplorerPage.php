@@ -52,6 +52,12 @@ class ApiExplorerPage extends Page
     public bool $onlyGaps = false;
 
     /**
+     * The resource whose endpoints the navigation is showing. Null is the level
+     * above it, the list of resources.
+     */
+    public ?string $openGroup = null;
+
+    /**
      * Narrows the schema trees of the selected endpoint.
      */
     public string $fieldSearch = '';
@@ -86,7 +92,17 @@ class ApiExplorerPage extends Page
         $this->source ??= $this->plugin()?->getSource() ?? $this->specs()->defaultName();
         $this->server = $this->defaultServer();
 
+        // An endpoint in the address is a choice somebody made, so the navigation
+        // opens on its resource. Without one it opens on the resources themselves:
+        // the first endpoint is selected to have something on screen, and that is no
+        // reason to hide the rest of the api behind a back button.
+        $addressed = $this->endpointKey !== null;
+
         $this->syncSelection();
+
+        if ($addressed) {
+            $this->openGroup = $this->currentEndpoint()?->group;
+        }
     }
 
     // -----------------------------------------------------------------
@@ -177,14 +193,34 @@ class ApiExplorerPage extends Page
 
     public function selectEndpoint(string $key): void
     {
-        if ($this->spec()->find($key) === null) {
+        $endpoint = $this->spec()->find($key);
+
+        if ($endpoint === null) {
             return;
         }
 
         $this->endpointKey = $key;
         $this->fieldSearch = '';
+        // Whichever way an endpoint was reached, the navigation shows it among its
+        // neighbours afterwards.
+        $this->openGroup = $endpoint->group;
 
         $this->prefillRequest();
+    }
+
+    /**
+     * Show the endpoints of one resource, or the resources themselves.
+     */
+    public function openGroup(?string $group): void
+    {
+        $this->openGroup = $group;
+    }
+
+    public function clearSearch(): void
+    {
+        $this->search = '';
+
+        $this->syncSelection();
     }
 
     public function setSnippetLanguage(string $language): void
@@ -291,7 +327,11 @@ class ApiExplorerPage extends Page
         return [
             'spec' => $spec,
             'coverage' => $spec->coverage(),
-            'groups' => app(EndpointNavigator::class)->groups($spec, $this->search, $this->onlyGaps),
+            'groups' => $groups = app(EndpointNavigator::class)->groups($spec, $this->search, $this->onlyGaps),
+            // Not `openGroup`: a public property of the same name would shadow it in
+            // the view, and the resolved one is the only one safe to index with.
+            'navGroup' => $this->resolvedGroup($groups),
+            'paletteEndpoints' => $this->paletteEndpoints($spec),
             'endpoint' => $endpoint,
             'sourceNames' => $this->specs()->names(),
             'serverOptions' => $this->serverOptions(),
@@ -476,6 +516,59 @@ class ApiExplorerPage extends Page
         }
 
         return $sections;
+    }
+
+    /**
+     * The resource the navigation is showing, if it still has endpoints under the
+     * current filter. A filter that empties a resource puts the reader back on the
+     * level above rather than in front of an empty list.
+     *
+     * @param  array<string, list<Endpoint>>  $groups
+     */
+    private function resolvedGroup(array $groups): ?string
+    {
+        // Only an explicit choice opens a resource: selecting an endpoint sets it, and
+        // so does an endpoint named in the address. The endpoint that is merely
+        // selected to have something on screen does not.
+        return $this->openGroup !== null && isset($groups[$this->openGroup])
+            ? $this->openGroup
+            : null;
+    }
+
+    /**
+     * Every endpoint of the specification, as the command palette needs it.
+     *
+     * The whole list travels to the browser once and is searched there: a document
+     * of this size is a few dozen kilobytes, and a round trip per keystroke is felt
+     * on every one of them. `haystack` is what a term is matched against — method,
+     * path, summary and resource in one lowercased string, so `ord sub` finds
+     * `GET /orders/{order}/subscriptions`.
+     *
+     * @return list<array{key: string, method: string, color: string, path: string, summary: string, haystack: string}>
+     */
+    private function paletteEndpoints(ApiSpec $spec): array
+    {
+        $endpoints = [];
+
+        foreach ($spec->endpoints as $endpoint) {
+            $summary = $endpoint->summary ?? '';
+
+            $endpoints[] = [
+                'key' => $endpoint->key,
+                'method' => $endpoint->method->label(),
+                'color' => $endpoint->method->color(),
+                'path' => $endpoint->path,
+                'summary' => $summary,
+                'haystack' => mb_strtolower(implode(' ', [
+                    $endpoint->method->label(),
+                    $endpoint->path,
+                    $summary,
+                    $endpoint->group,
+                ])),
+            ];
+        }
+
+        return $endpoints;
     }
 
     /**

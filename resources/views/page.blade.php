@@ -2,6 +2,8 @@
     <div class="fae">
         {{-- One row: what is being read on the left of the badges it belongs to. --}}
         <div class="fae-toolbar">
+            @include('filament-api-explorer::partials.palette')
+
             @if (count($sourceNames) > 1)
                 <select
                     class="fae-select"
