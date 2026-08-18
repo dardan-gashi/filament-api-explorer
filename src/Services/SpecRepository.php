@@ -17,6 +17,13 @@ use Throwable;
  * Results are memoised per request, and optionally cached across requests. The
  * cache key carries the document's own timestamp, so a regenerated document is
  * picked up without anyone having to clear a cache.
+ *
+ * What is cached is the document, not the parsed specification. Generating a
+ * document costs about a second and parsing it about fifteen milliseconds, so
+ * caching the parsed objects buys a percent and pays for it with the objects
+ * themselves: a cache entry written before a data class gained a property is
+ * restored without that property, and reading it fails on a typed property that
+ * was never initialised. A cached array cannot go out of shape with the code.
  */
 final class SpecRepository
 {
@@ -75,14 +82,14 @@ final class SpecRepository
             return $this->memoized[$key] = $this->parser->parse($source);
         }
 
-        /** @var ApiSpec $spec */
-        $spec = $this->cache->store($this->cacheStore)->remember(
+        /** @var array<string, mixed> $document */
+        $document = $this->cache->store($this->cacheStore)->remember(
             $this->key($key, $generatedAt),
             $this->cacheTtl,
-            fn (): ApiSpec => $this->parser->parse($source),
+            fn (): array => $source->document(),
         );
 
-        return $this->memoized[$key] = $spec;
+        return $this->memoized[$key] = $this->parser->parseDocument($key, $document, $generatedAt);
     }
 
     /**
@@ -99,7 +106,7 @@ final class SpecRepository
     {
         $context = substr(sha1($this->context), 0, 8);
 
-        return "filament-api-explorer.spec.{$name}.{$generatedAt->getTimestamp()}.{$context}";
+        return "filament-api-explorer.document.{$name}.{$generatedAt->getTimestamp()}.{$context}";
     }
 
     /**

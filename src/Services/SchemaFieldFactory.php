@@ -62,6 +62,7 @@ final class SchemaFieldFactory
         array $schema,
         ReferenceResolver $references,
         bool $required = false,
+        bool $optional = false,
         int $depth = 1,
         array $seenReferences = [],
     ): SchemaField {
@@ -91,6 +92,7 @@ final class SchemaFieldFactory
             format: Documents::string($resolved, 'format'),
             description: Documents::string($resolved, 'description'),
             required: $required,
+            optional: $optional,
             nullable: $nullable,
             deprecated: Documents::isTrue($resolved, 'deprecated'),
             enum: $this->enumValues($resolved),
@@ -137,11 +139,17 @@ final class SchemaFieldFactory
         $fields = [];
 
         foreach (Documents::entries(Documents::map($schema, 'properties')) as [$name, $property]) {
+            $names = in_array($name, $required, true);
+
             $fields[] = $this->field(
                 name: $name,
                 schema: Documents::toMap($property),
                 references: $references,
-                required: in_array($name, $required, true),
+                required: $names,
+                // A schema that names its required fields says, by leaving one out,
+                // that it can be absent. One that names none says nothing at all,
+                // and guessing would put a badge on every row.
+                optional: $required !== [] && ! $names,
                 depth: $depth,
                 seenReferences: $seenReferences,
             );

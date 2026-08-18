@@ -1,525 +1,526 @@
 {
-  "openapi": "3.1.0",
-  "info": {
-    "title": "Bookshop API",
-    "version": "2.4.1",
-    "description": "A catalogue and order API."
-  },
-  "servers": [
-    {
-      "url": "https://api.bookshop.test/api/{version}",
-      "variables": {
-        "version": {
-          "default": "v2"
-        }
-      }
-    }
-  ],
-  "security": [
-    {
-      "sanctum": []
-    }
-  ],
-  "components": {
-    "securitySchemes": {
-      "sanctum": {
-        "type": "http",
-        "scheme": "bearer",
-        "description": "Personal access token issued by the panel."
-      }
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Bookshop API",
+        "version": "2.4.1",
+        "description": "A catalogue and order API."
     },
-    "schemas": {
-      "CourseResource": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "title": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "title"
-        ]
-      },
-      "VoucherResource": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "code": {
-            "type": "string",
-            "description": "Always stored in upper case."
-          },
-          "discount_type": {
-            "type": "string",
-            "enum": [
-              "percentage",
-              "fixed"
-            ]
-          },
-          "discount_value": {
-            "type": "number",
-            "description": "Percent or amount in EUR, depending on discount_type."
-          },
-          "discount": {
-            "type": "number",
-            "deprecated": true,
-            "description": "Alias of discount_value."
-          },
-          "is_active": {
-            "type": "boolean"
-          },
-          "valid_until": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "date-time"
-          },
-          "restrictions": {
-            "type": "object",
-            "properties": {
-              "min_order_value": {
-                "type": [
-                  "number",
-                  "null"
-                ]
-              },
-              "max_uses": {
-                "type": [
-                  "integer",
-                  "null"
-                ]
-              },
-              "used_count": {
-                "type": "integer"
-              },
-              "first_order_only": {
-                "type": "boolean"
-              }
-            }
-          },
-          "course": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CourseResource"
-              }
-            ],
-            "nullable": true
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "code",
-          "discount_type",
-          "discount_value",
-          "is_active",
-          "created_at"
-        ]
-      },
-      "VoucherListResource": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/VoucherResource"
-            }
-          },
-          "meta": {
-            "type": "object",
-            "properties": {
-              "total": {
-                "type": "integer"
-              },
-              "per_page": {
-                "type": "integer"
-              },
-              "next_cursor": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              }
-            }
-          }
-        }
-      },
-      "ValidationError": {
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string"
-          },
-          "errors": {
-            "type": "object"
-          }
-        }
-      },
-      "ParticipantResource": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "first_name": {
-            "type": "string"
-          },
-          "last_name": {
-            "type": "string"
-          },
-          "email": {
-            "type": "string",
-            "format": "email"
-          }
-        },
-        "required": [
-          "id",
-          "first_name",
-          "last_name"
-        ]
-      }
-    }
-  },
-  "paths": {
-    "/vouchers": {
-      "get": {
-        "tags": [
-          "Vouchers"
-        ],
-        "summary": "Lists vouchers with cursor pagination.",
-        "description": "Without a filter only active vouchers are returned.",
-        "x-handler": "VoucherController@index",
-        "x-rate-limit": "60/min",
-        "x-since": "v2.0",
-        "parameters": [
-          {
-            "name": "If-None-Match",
-            "in": "header",
-            "schema": {
-              "type": "string"
-            },
-            "description": "ETag of the previous response. A hit answers 304."
-          },
-          {
-            "name": "Accept-Language",
-            "in": "header",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "de",
-                "en"
-              ],
-              "default": "de"
-            },
-            "description": "Language of the error messages."
-          },
-          {
-            "name": "filter[code]",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Substring, case insensitive."
-          },
-          {
-            "name": "filter[is_active]",
-            "in": "query",
-            "schema": {
-              "type": "boolean",
-              "default": true
-            },
-            "description": "Restrict to active vouchers."
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "code",
-                "-code",
-                "created_at",
-                "-created_at"
-              ],
-              "default": "-created_at"
-            },
-            "description": "Sort key."
-          },
-          {
-            "name": "per_page",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "default": 25
-            },
-            "description": "Between 1 and 100."
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Taken from meta.next_cursor."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "One page of vouchers.",
-            "headers": {
-              "ETag": {
-                "schema": {
-                  "type": "string"
-                },
-                "example": "\"a3f1\""
-              },
-              "Cache-Control": {
-                "schema": {
-                  "type": "string"
-                },
-                "example": "private, max-age=60"
-              },
-              "X-RateLimit-Remaining": {
-                "schema": {
-                  "type": "integer"
-                },
-                "example": 58
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VoucherListResource"
-                },
-                "example": {
-                  "data": [
-                    {
-                      "id": "9b4e2c1f-0000-4000-8000-000000000000",
-                      "code": "SUMMER10",
-                      "discount_type": "percentage",
-                      "discount_value": 10,
-                      "is_active": true,
-                      "valid_until": null,
-                      "created_at": "2026-06-01T00:00:00+00:00"
-                    }
-                  ],
-                  "meta": {
-                    "total": 42,
-                    "per_page": 25,
-                    "next_cursor": "eyJ2"
-                  }
+    "servers": [
+        {
+            "url": "https://api.bookshop.test/api/{version}",
+            "variables": {
+                "version": {
+                    "default": "v2"
                 }
-              }
             }
-          },
-          "304": {
-            "description": "Not modified. No body is sent when If-None-Match matches."
-          },
-          "401": {
-            "description": "Not authenticated.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Invalid filter or sort key.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ValidationError"
-                },
-                "example": {
-                  "message": "Invalid sort key.",
-                  "errors": {
-                    "sort": [
-                      "Not allowed."
-                    ]
-                  }
-                }
-              }
-            }
-          }
         }
-      },
-      "post": {
-        "tags": [
-          "Vouchers"
-        ],
-        "summary": "Creates a voucher.",
-        "requestBody": {
-          "required": true,
-          "description": "The voucher to create.",
-          "content": {
-            "application/json": {
-              "schema": {
+    ],
+    "security": [
+        {
+            "sanctum": []
+        }
+    ],
+    "components": {
+        "securitySchemes": {
+            "sanctum": {
+                "type": "http",
+                "scheme": "bearer",
+                "description": "Personal access token issued by the panel."
+            }
+        },
+        "schemas": {
+            "CourseResource": {
                 "type": "object",
-                "required": [
-                  "code",
-                  "value"
-                ],
                 "properties": {
-                  "code": {
-                    "type": "string",
-                    "description": "The code customers redeem.",
-                    "maxLength": 32
-                  },
-                  "value": {
-                    "type": "integer",
-                    "description": "The discount in cents."
-                  },
-                  "expires_at": {
-                    "type": "string",
-                    "format": "date",
-                    "nullable": true,
-                    "description": "When the voucher stops working."
-                  }
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "title": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "title"
+                ]
+            },
+            "VoucherResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "code": {
+                        "type": "string",
+                        "description": "Always stored in upper case."
+                    },
+                    "discount_type": {
+                        "type": "string",
+                        "enum": [
+                            "percentage",
+                            "fixed"
+                        ]
+                    },
+                    "discount_value": {
+                        "type": "number",
+                        "description": "Percent or amount in EUR, depending on discount_type."
+                    },
+                    "discount": {
+                        "type": "number",
+                        "deprecated": true,
+                        "description": "Alias of discount_value."
+                    },
+                    "is_active": {
+                        "type": "boolean"
+                    },
+                    "valid_until": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "restrictions": {
+                        "type": "object",
+                        "properties": {
+                            "min_order_value": {
+                                "type": [
+                                    "number",
+                                    "null"
+                                ]
+                            },
+                            "max_uses": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "used_count": {
+                                "type": "integer"
+                            },
+                            "first_order_only": {
+                                "type": "boolean"
+                            }
+                        }
+                    },
+                    "course": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/CourseResource"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "id",
+                    "code",
+                    "discount_type",
+                    "discount_value",
+                    "is_active",
+                    "created_at"
+                ]
+            },
+            "VoucherListResource": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/VoucherResource"
+                        }
+                    },
+                    "meta": {
+                        "type": "object",
+                        "properties": {
+                            "total": {
+                                "type": "integer"
+                            },
+                            "per_page": {
+                                "type": "integer"
+                            },
+                            "next_cursor": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        }
+                    }
                 }
-              }
+            },
+            "ValidationError": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    },
+                    "errors": {
+                        "type": "object"
+                    }
+                }
+            },
+            "ParticipantResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "first_name": {
+                        "type": "string"
+                    },
+                    "last_name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    }
+                },
+                "required": [
+                    "id",
+                    "first_name",
+                    "last_name"
+                ]
             }
-          }
+        }
+    },
+    "paths": {
+        "/vouchers": {
+            "get": {
+                "tags": [
+                    "Vouchers"
+                ],
+                "summary": "Lists vouchers with cursor pagination.",
+                "description": "Without a filter only active vouchers are returned.",
+                "x-handler": "VoucherController@index",
+                "x-rate-limit": "60/min",
+                "x-since": "v2.0",
+                "parameters": [
+                    {
+                        "name": "If-None-Match",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "ETag of the previous response. A hit answers 304."
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "de",
+                                "en"
+                            ],
+                            "default": "de"
+                        },
+                        "description": "Language of the error messages."
+                    },
+                    {
+                        "name": "filter[code]",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Substring, case insensitive."
+                    },
+                    {
+                        "name": "filter[is_active]",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "description": "Restrict to active vouchers."
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "code",
+                                "-code",
+                                "created_at",
+                                "-created_at"
+                            ],
+                            "default": "-created_at"
+                        },
+                        "description": "Sort key."
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 25
+                        },
+                        "description": "Between 1 and 100."
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Taken from meta.next_cursor."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "One page of vouchers.",
+                        "headers": {
+                            "ETag": {
+                                "schema": {
+                                    "type": "string"
+                                },
+                                "example": "\"a3f1\""
+                            },
+                            "Cache-Control": {
+                                "schema": {
+                                    "type": "string"
+                                },
+                                "example": "private, max-age=60"
+                            },
+                            "X-RateLimit-Remaining": {
+                                "schema": {
+                                    "type": "integer"
+                                },
+                                "example": 58
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VoucherListResource"
+                                },
+                                "example": {
+                                    "data": [
+                                        {
+                                            "id": "9b4e2c1f-0000-4000-8000-000000000000",
+                                            "code": "SUMMER10",
+                                            "discount_type": "percentage",
+                                            "discount_value": 10,
+                                            "is_active": true,
+                                            "valid_until": null,
+                                            "created_at": "2026-06-01T00:00:00+00:00"
+                                        }
+                                    ],
+                                    "meta": {
+                                        "total": 42,
+                                        "per_page": 25,
+                                        "next_cursor": "eyJ2"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "304": {
+                        "description": "Not modified. No body is sent when If-None-Match matches."
+                    },
+                    "401": {
+                        "description": "Not authenticated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid filter or sort key.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                },
+                                "example": {
+                                    "message": "Invalid sort key.",
+                                    "errors": {
+                                        "sort": [
+                                            "Not allowed."
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Vouchers"
+                ],
+                "summary": "Creates a voucher.",
+                "requestBody": {
+                    "required": true,
+                    "description": "The voucher to create.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "code",
+                                    "value"
+                                ],
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "description": "The code customers redeem.",
+                                        "maxLength": 32
+                                    },
+                                    "value": {
+                                        "type": "integer",
+                                        "description": "The discount in cents."
+                                    },
+                                    "expires_at": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "nullable": true,
+                                        "description": "When the voucher stops working."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "The created voucher.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VoucherResource"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         },
-        "responses": {
-          "201": {
-            "description": "The created voucher.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VoucherResource"
+        "/vouchers/{code}": {
+            "parameters": [
+                {
+                    "name": "code",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    },
+                    "description": "The voucher code.",
+                    "example": "SUMMER10"
                 }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/vouchers/{code}": {
-      "parameters": [
-        {
-          "name": "code",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string"
-          },
-          "description": "The voucher code.",
-          "example": "SUMMER10"
-        }
-      ],
-      "get": {
-        "tags": [
-          "Vouchers"
-        ],
-        "summary": "Shows a single voucher.",
-        "responses": {
-          "200": {
-            "description": "The voucher.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VoucherResource"
+            ],
+            "get": {
+                "tags": [
+                    "Vouchers"
+                ],
+                "summary": "Shows a single voucher.",
+                "deprecated": true,
+                "responses": {
+                    "200": {
+                        "description": "The voucher.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VoucherResource"
+                                }
+                            }
+                        }
+                    }
                 }
-              }
             }
-          }
-        }
-      }
-    },
-    "/participants": {
-      "get": {
-        "tags": [
-          "Participants"
-        ],
-        "responses": {}
-      }
-    },
-    "/courses": {
-      "get": {
-        "tags": [
-          "Courses"
-        ],
-        "summary": "Lists courses.",
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "integer"
+        },
+        "/participants": {
+            "get": {
+                "tags": [
+                    "Participants"
+                ],
+                "responses": {}
             }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Courses.",
-            "content": {
-              "application/json": {}
-            }
-          }
-        }
-      }
-    },
-    "/participants/{participant}": {
-      "parameters": [
-        {
-          "name": "participant",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "description": "The participant UUID."
-        }
-      ],
-      "patch": {
-        "tags": [
-          "Participants"
-        ],
-        "summary": "Updates a participant.",
-        "responses": {
-          "200": {
-            "description": "The updated participant.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ParticipantResource"
+        },
+        "/courses": {
+            "get": {
+                "tags": [
+                    "Courses"
+                ],
+                "summary": "Lists courses.",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Courses.",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
                 }
-              }
             }
-          }
+        },
+        "/participants/{participant}": {
+            "parameters": [
+                {
+                    "name": "participant",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "description": "The participant UUID."
+                }
+            ],
+            "patch": {
+                "tags": [
+                    "Participants"
+                ],
+                "summary": "Updates a participant.",
+                "responses": {
+                    "200": {
+                        "description": "The updated participant.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ParticipantResource"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Participants"
+                ],
+                "summary": "Removes a participant from an event.",
+                "responses": {
+                    "204": {
+                        "description": "Removed. No body is returned."
+                    }
+                }
+            }
         }
-      },
-      "delete": {
-        "tags": [
-          "Participants"
-        ],
-        "summary": "Removes a participant from an event.",
-        "responses": {
-          "204": {
-            "description": "Removed. No body is returned."
-          }
-        }
-      }
     }
-  }
 }

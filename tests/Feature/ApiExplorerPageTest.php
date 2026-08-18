@@ -11,6 +11,15 @@ use DardanGashi\FilamentApiExplorer\Support\InputKey;
 
 use function Pest\Livewire\livewire;
 
+/**
+ * How often a badge with exactly this label is rendered. The markup wraps a badge
+ * over three lines, so the whitespace has to go before it can be counted.
+ */
+function badges(string $html, string $label): int
+{
+    return substr_count((string) preg_replace('/\s+/', '', $html), ">{$label}<");
+}
+
 // ----------------------------------------------------------------------------------
 // ApiExplorerPage Test Suite
 // Sections: Render, Endpoint Selection, Search, Gap Filter, Snippets, Sending, Examples
@@ -104,10 +113,12 @@ describe('ApiExplorerPage - Render', function () {
     });
 
     test('marks a field required only where required changes the outcome', function () {
-        // In a response every documented field is simply there. `required` earns its
-        // row in a request body, where it separates an accepted call from a 422 —
-        // and the fixture's GET has none, so its one badge is the Authorization
-        // header the security scheme asks for.
+        // In a response, `required` would sit on nearly every row and say nothing.
+        // What is worth saying there is its mirror image: five fields of the fixture
+        // are left out of a required list and can therefore be missing from the
+        // payload. In a body the word earns its row — it separates an accepted call
+        // from a 422 — and in the reading endpoint the one badge left is the
+        // Authorization header the security scheme asks for.
         $reading = livewire(ApiExplorerPage::class)->html();
 
         $writing = livewire(ApiExplorerPage::class)
@@ -115,8 +126,24 @@ describe('ApiExplorerPage - Render', function () {
             ->html();
 
         // The header, the body itself, and the two fields the body requires.
-        expect(substr_count($reading, 'fae-badge-gray'))->toBe(1)
-            ->and(substr_count($writing, 'fae-badge-gray'))->toBe(4);
+        expect(badges($reading, 'required'))->toBe(1)
+            ->and(badges($reading, 'optional'))->toBe(5)
+            ->and(badges($writing, 'required'))->toBe(4);
+    });
+
+    test('strikes an endpoint on its way out through in the list', function () {
+        // Written on the row, not only in the header of the selected endpoint: the
+        // question "which of these should I not build against" is asked of the list.
+        livewire(ApiExplorerPage::class)->assertSee('fae-endpoint-path-deprecated', escape: false);
+    });
+
+    test('says a response field can be missing, not that it is required', function () {
+        // A relation the endpoint does not eager load is documented by leaving it out
+        // of the required list, and that is the one thing a reader has to know before
+        // reaching into the payload for it.
+        livewire(ApiExplorerPage::class)
+            ->assertSee('optional')
+            ->assertSee('may be absent');
     });
 
     test('says what the badges of the schema mean where they are used', function () {

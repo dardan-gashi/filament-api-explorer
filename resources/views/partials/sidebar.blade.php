@@ -63,8 +63,13 @@
                         </span>
 
                         {{-- The head gives way, the last segment never does: that is
-                             where one endpoint differs from the next. --}}
-                        <span class="fae-endpoint-path">
+                             where one endpoint differs from the next. An endpoint on
+                             its way out is struck through, the same way a field is:
+                             otherwise you only find out after selecting it. --}}
+                        <span @class([
+                            'fae-endpoint-path',
+                            'fae-endpoint-path-deprecated' => $groupEndpoint->deprecated,
+                        ])>
                             <span class="fae-path-head">{{ $path['head'] }}</span><span class="fae-path-tail">{{ $path['tail'] }}</span>
                         </span>
 

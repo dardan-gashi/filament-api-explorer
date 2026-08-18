@@ -38,6 +38,7 @@ return [
 
     'labels' => [
         'required' => 'required',
+        'optional' => 'optional',
         'nullable' => 'nullable',
         'deprecated' => 'deprecated',
         'default' => 'Default :value',
@@ -61,6 +62,7 @@ return [
      | here, instead of on every row.
      */
     'legend' => [
+        'optional' => 'may be absent',
         'nullable' => 'can be null',
         'deprecated' => 'will be removed',
     ],

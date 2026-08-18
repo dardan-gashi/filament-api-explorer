@@ -483,16 +483,18 @@ class ApiExplorerPage extends Page
     /**
      * The schema badges this endpoint actually uses, with what each one means.
      *
-     * `nullable` and `deprecated` are the words the document uses, so they are the
-     * words the badge shows; the reader's language belongs in one legend rather
-     * than in a badge on every row. A legend for a badge that is not on screen
-     * would explain nothing, so each entry has to be earned.
+     * `optional`, `nullable` and `deprecated` are the words the document uses, so
+     * they are the words the badge shows; the reader's language belongs in one
+     * legend rather than in a badge on every row. A legend for a badge that is not
+     * on screen would explain nothing, so each entry has to be earned — which is
+     * why the response trees are what it is read from, the only trees that carry
+     * these three.
      *
      * @return list<array{label: string, color: string, meaning: string}>
      */
     private function schemaLegend(Endpoint $endpoint): array
     {
-        $fields = $endpoint->requestBody->fields ?? [];
+        $fields = [];
 
         foreach ($endpoint->responses as $response) {
             $fields = [...$fields, ...$response->fields];
@@ -501,6 +503,7 @@ class ApiExplorerPage extends Page
         $legend = [];
 
         foreach ([
+            ['optional', 'gray', fn (SchemaField $field): bool => $field->optional],
             ['nullable', 'info', fn (SchemaField $field): bool => $field->nullable],
             ['deprecated', 'warning', fn (SchemaField $field): bool => $field->deprecated],
         ] as [$badge, $color, $predicate]) {

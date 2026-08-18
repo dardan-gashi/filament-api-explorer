@@ -16,6 +16,10 @@ use Illuminate\Support\Str;
 final readonly class SchemaField
 {
     /**
+     * @param  bool  $required  Named by the schema as one a request has to send.
+     * @param  bool  $optional  Left out of a schema that names the rest, which is how
+     *                          a response says a field can be missing entirely — a
+     *                          relation the endpoint does not load, for instance.
      * @param  list<string>  $enum
      * @param  list<SchemaField>  $children
      */
@@ -25,6 +29,7 @@ final readonly class SchemaField
         public ?string $format = null,
         public ?string $description = null,
         public bool $required = false,
+        public bool $optional = false,
         public bool $nullable = false,
         public bool $deprecated = false,
         public array $enum = [],
@@ -81,6 +86,7 @@ final readonly class SchemaField
             format: $this->format,
             description: $this->description,
             required: $this->required,
+            optional: $this->optional,
             nullable: $this->nullable,
             deprecated: $this->deprecated,
             enum: $this->enum,

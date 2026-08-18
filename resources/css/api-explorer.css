@@ -340,6 +340,10 @@
 	white-space: nowrap;
 }
 
+.fae-endpoint-path-deprecated {
+	text-decoration: line-through;
+}
+
 .fae-path-head {
 	overflow: hidden;
 	text-overflow: ellipsis;

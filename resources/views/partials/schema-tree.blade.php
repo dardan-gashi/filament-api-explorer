@@ -55,11 +55,19 @@
                     <span class="fae-field-reference">{{ $field->reference }}</span>
                 @endif
 
-                {{-- Grey on purpose: even where it is worth saying, required is not
-                     a warning. Colour stays with nullable and deprecated. --}}
+                {{-- Grey on purpose: even where it is worth saying, neither of these
+                     is a warning. Colour stays with nullable and deprecated. --}}
                 @if ($showRequired && $field->required)
                     <span class="fae-badge fae-badge-gray">
                         {{ __('filament-api-explorer::explorer.labels.required') }}
+                    </span>
+                @endif
+
+                {{-- The mirror image in a response: a field the document leaves out of
+                     its required list can be missing from the payload altogether. --}}
+                @if (! $showRequired && $field->optional)
+                    <span class="fae-badge fae-badge-gray">
+                        {{ __('filament-api-explorer::explorer.labels.optional') }}
                     </span>
                 @endif
 

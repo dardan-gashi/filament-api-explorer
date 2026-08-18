@@ -95,7 +95,7 @@ describe('SpecRepository - get', function () {
         repository()->get();
     })->throws(SpecUnavailable::class);
 
-    test('caches the parsed specification when caching is on', function () {
+    test('caches the document when caching is on', function () {
         config()->set('filament-api-explorer.cache.enabled', true);
         Cache::flush();
 
@@ -107,7 +107,7 @@ describe('SpecRepository - get', function () {
 
         $context = substr(sha1((string) url('/')), 0, 8);
 
-        expect(Cache::has("filament-api-explorer.spec.v2.{$timestamp}.{$context}"))->toBeTrue();
+        expect(Cache::has("filament-api-explorer.document.v2.{$timestamp}.{$context}"))->toBeTrue();
     });
 
     test('keeps the documents of two build contexts apart', function () {
@@ -122,8 +122,8 @@ describe('SpecRepository - get', function () {
         $console = substr(sha1('http://localhost'), 0, 8);
         $browser = substr(sha1('http://localhost:8000'), 0, 8);
 
-        expect(Cache::has("filament-api-explorer.spec.v2.{$timestamp}.{$console}"))->toBeTrue()
-            ->and(Cache::has("filament-api-explorer.spec.v2.{$timestamp}.{$browser}"))->toBeFalse();
+        expect(Cache::has("filament-api-explorer.document.v2.{$timestamp}.{$console}"))->toBeTrue()
+            ->and(Cache::has("filament-api-explorer.document.v2.{$timestamp}.{$browser}"))->toBeFalse();
     });
 
     test('parses again for a context it has not cached', function () {
@@ -132,9 +132,29 @@ describe('SpecRepository - get', function () {
         $console = repositoryFor('http://localhost')->get('v2');
         $browser = repositoryFor('http://localhost:8000')->get('v2');
 
-        expect(Cache::has('filament-api-explorer.spec.v2.'.filemtime(__DIR__.'/../Fixtures/openapi.json').'.'.substr(sha1('http://localhost:8000'), 0, 8)))
+        expect(Cache::has('filament-api-explorer.document.v2.'.filemtime(__DIR__.'/../Fixtures/openapi.json').'.'.substr(sha1('http://localhost:8000'), 0, 8)))
             ->toBeTrue()
             ->and($browser->name)->toBe($console->name);
+    });
+
+    test('parses what it cached with the classes of today', function () {
+        // A cache entry outlives the code that wrote it. Keeping the objects in it
+        // would restore a SchemaField that predates a property, and reading that
+        // property fails on a typed property nobody ever initialised — so what goes
+        // in is the document, and the parsing happens on the way out.
+        config()->set('filament-api-explorer.cache.enabled', true);
+        Cache::flush();
+
+        repository()->get('v2');
+
+        $cached = Cache::get(
+            'filament-api-explorer.document.v2.'
+            .filemtime(__DIR__.'/../Fixtures/openapi.json').'.'
+            .substr(sha1((string) url('/')), 0, 8)
+        );
+
+        expect($cached)->toBeArray()
+            ->and($cached)->toHaveKey('openapi');
     });
 
     test('serves a cached specification on the next request', function () {
