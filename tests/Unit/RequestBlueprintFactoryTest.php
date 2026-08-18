@@ -3,12 +3,27 @@
 declare(strict_types=1);
 
 use DardanGashi\FilamentApiExplorer\Data\Parameter;
+use DardanGashi\FilamentApiExplorer\Data\ResponseDefinition;
 use DardanGashi\FilamentApiExplorer\Enums\ParameterLocation;
 use DardanGashi\FilamentApiExplorer\Services\RequestBlueprintFactory;
 
+/**
+ * The authentication header the parser synthesises from a bearer security scheme.
+ */
+function authorizationHeader(): Parameter
+{
+    return new Parameter(
+        name: 'Authorization',
+        in: ParameterLocation::Header,
+        required: true,
+        example: 'Bearer <token>',
+        inferred: true,
+    );
+}
+
 // ----------------------------------------------------------------------------------
 // RequestBlueprintFactory Test Suite
-// Sections: make, suggestions
+// Sections: make, header scheme, accept header, suggestions
 // ----------------------------------------------------------------------------------
 
 // ------------------------------------------------------------
@@ -71,8 +86,10 @@ describe('RequestBlueprintFactory - make', function () {
             headers: ['X-Injected' => 'value'],
         );
 
+        // The Accept header is the explorer's own; nothing a stale form left behind
+        // travels with the request.
         expect($blueprint->query)->toBe(['sort' => 'code'])
-            ->and($blueprint->headers)->toBe([]);
+            ->and($blueprint->headers)->not->toHaveKey('X-Injected');
     });
 
     test('trims what the user typed', function () {
@@ -89,6 +106,117 @@ describe('RequestBlueprintFactory - make', function () {
         $blueprint = (new RequestBlueprintFactory)->make(endpoint(), 'https://api.bookshop.test');
 
         expect($blueprint->method)->toBe(endpoint()->method);
+    });
+});
+
+// ------------------------------------------------------------
+// RequestBlueprintFactory - header scheme
+// ------------------------------------------------------------
+
+describe('RequestBlueprintFactory - header scheme', function () {
+
+    test('puts the documented scheme in front of a pasted credential', function () {
+        // Users paste `8|mBjl…`, not `Bearer 8|mBjl…`. Sanctum needs the scheme, and
+        // without it the API can only answer 401.
+        $blueprint = (new RequestBlueprintFactory)->make(
+            endpoint: endpoint(parameters: [authorizationHeader()]),
+            server: 'https://api.bookshop.test/api',
+            headers: ['Authorization' => '8|mBjlFcdRlSGG'],
+        );
+
+        expect($blueprint->headers['Authorization'])->toBe('Bearer 8|mBjlFcdRlSGG');
+    });
+
+    test('does not repeat a scheme the user typed', function () {
+        $blueprint = (new RequestBlueprintFactory)->make(
+            endpoint: endpoint(parameters: [authorizationHeader()]),
+            server: 'https://api.bookshop.test/api',
+            headers: ['Authorization' => 'Bearer 8|mBjlFcdRlSGG'],
+        );
+
+        expect($blueprint->headers['Authorization'])->toBe('Bearer 8|mBjlFcdRlSGG');
+    });
+
+    test('ignores the casing of a scheme the user typed', function () {
+        $blueprint = (new RequestBlueprintFactory)->make(
+            endpoint: endpoint(parameters: [authorizationHeader()]),
+            server: 'https://api.bookshop.test/api',
+            headers: ['Authorization' => 'bearer 8|mBjlFcdRlSGG'],
+        );
+
+        expect($blueprint->headers['Authorization'])->toBe('bearer 8|mBjlFcdRlSGG');
+    });
+
+    test('adds no scheme to a header that documents none', function () {
+        $blueprint = (new RequestBlueprintFactory)->make(
+            endpoint: endpoint(parameters: [
+                new Parameter(name: 'If-None-Match', in: ParameterLocation::Header, example: '"a3f1"'),
+            ]),
+            server: 'https://api.bookshop.test/api',
+            headers: ['If-None-Match' => '"b7c2"'],
+        );
+
+        expect($blueprint->headers['If-None-Match'])->toBe('"b7c2"');
+    });
+
+    test('sends nothing for a credential left empty', function () {
+        $blueprint = (new RequestBlueprintFactory)->make(
+            endpoint: endpoint(parameters: [authorizationHeader()]),
+            server: 'https://api.bookshop.test/api',
+            headers: ['Authorization' => '   '],
+        );
+
+        expect($blueprint->headers)->not->toHaveKey('Authorization');
+    });
+});
+
+// ------------------------------------------------------------
+// RequestBlueprintFactory - accept header
+// ------------------------------------------------------------
+
+describe('RequestBlueprintFactory - accept header', function () {
+
+    test('asks for the media type the endpoint documents', function () {
+        $blueprint = (new RequestBlueprintFactory)->make(
+            endpoint: endpoint(responses: [new ResponseDefinition(status: '200', mediaType: 'application/vnd.api+json')]),
+            server: 'https://api.bookshop.test/api',
+        );
+
+        expect($blueprint->headers)->toBe(['Accept' => 'application/vnd.api+json']);
+    });
+
+    test('asks for json when the endpoint documents no media type', function () {
+        // Without an Accept header a Laravel API answers an unauthenticated request
+        // with a redirect to a login page instead of a 401, so asking is not optional.
+        $blueprint = (new RequestBlueprintFactory)->make(
+            endpoint: endpoint(),
+            server: 'https://api.bookshop.test/api',
+        );
+
+        expect($blueprint->headers)->toBe(['Accept' => 'application/json']);
+    });
+
+    test('leaves an Accept header the document declares itself', function () {
+        $blueprint = (new RequestBlueprintFactory)->make(
+            endpoint: endpoint(parameters: [new Parameter(name: 'accept', in: ParameterLocation::Header)]),
+            server: 'https://api.bookshop.test/api',
+            headers: ['accept' => 'text/csv'],
+        );
+
+        expect($blueprint->headers)->toBe(['accept' => 'text/csv']);
+    });
+
+    test('keeps the headers the user typed beside it', function () {
+        $blueprint = (new RequestBlueprintFactory)->make(
+            endpoint: endpoint(parameters: [new Parameter(name: 'Authorization', in: ParameterLocation::Header)]),
+            server: 'https://api.bookshop.test/api',
+            headers: ['Authorization' => 'Bearer live-token'],
+        );
+
+        expect($blueprint->headers)->toBe([
+            'Accept' => 'application/json',
+            'Authorization' => 'Bearer live-token',
+        ]);
     });
 });
 

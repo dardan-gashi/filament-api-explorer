@@ -9,7 +9,7 @@ use DardanGashi\FilamentApiExplorer\Support\ExecutionPolicy;
 
 // ----------------------------------------------------------------------------------
 // ExecutionPolicy Test Suite
-// Sections: authorize, unresolved path, allows, allowedHosts
+// Sections: authorize, unresolved path, placeholder headers, allows, allowedHosts
 // ----------------------------------------------------------------------------------
 
 function executionPolicy(bool $enabled = true, array $hosts = ['api.bookshop.test'], array $schemes = ['https', 'http']): ExecutionPolicy
@@ -81,6 +81,31 @@ describe('ExecutionPolicy - unresolved path', function () {
 
     test('passes a request whose segments are all filled in', function () {
         executionPolicy()->authorize(policyRequest('https://api.bookshop.test/api/v2/orders/42/subscriptions'));
+    })->throwsNoExceptions();
+});
+
+// ------------------------------------------------------------
+// ExecutionPolicy - placeholder headers
+// ------------------------------------------------------------
+
+describe('ExecutionPolicy - placeholder headers', function () {
+
+    test('refuses a header that still holds the documented example', function () {
+        // `Bearer <token>` describes what belongs in the field. Sending it can only
+        // produce a 401, and a 401 nobody understands.
+        executionPolicy()->authorize(new RequestBlueprint(
+            method: HttpMethod::Get,
+            url: 'https://api.bookshop.test/api/v2/vouchers',
+            headers: ['Authorization' => 'Bearer <token>'],
+        ));
+    })->throws(RequestNotAllowed::class, 'The header [Authorization] still holds the example');
+
+    test('passes a header that holds a real value', function () {
+        executionPolicy()->authorize(new RequestBlueprint(
+            method: HttpMethod::Get,
+            url: 'https://api.bookshop.test/api/v2/vouchers',
+            headers: ['Authorization' => 'Bearer 7|abcdef', 'Accept' => 'application/json'],
+        ));
     })->throwsNoExceptions();
 });
 

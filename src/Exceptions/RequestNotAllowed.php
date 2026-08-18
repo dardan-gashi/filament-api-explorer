@@ -41,6 +41,18 @@ final class RequestNotAllowed extends RuntimeException
         ));
     }
 
+    /**
+     * @param  list<string>  $names
+     */
+    public static function placeholderHeader(array $names): self
+    {
+        return new self(sprintf(
+            'The %s [%s] still holds the example from the documentation. Replace it with a real value.',
+            count($names) === 1 ? 'header' : 'headers',
+            implode('], [', $names),
+        ));
+    }
+
     public static function insecureScheme(?string $scheme): self
     {
         return new self(sprintf('The scheme [%s] is not allowed.', $scheme ?? 'unknown'));

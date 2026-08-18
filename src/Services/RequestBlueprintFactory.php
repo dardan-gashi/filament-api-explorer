@@ -31,8 +31,32 @@ final class RequestBlueprintFactory
             method: $endpoint->method,
             url: $this->url($endpoint, $server, $pathParameters),
             query: $this->only($queryParameters, $endpoint, ParameterLocation::Query),
-            headers: $this->only($headers, $endpoint, ParameterLocation::Header),
+            headers: $this->withAccept($this->headers($headers, $endpoint), $endpoint),
         );
+    }
+
+    /**
+     * Ask for the media type the endpoint documents.
+     *
+     * A client that sends no `Accept` gets whatever the server thinks a browser
+     * wants, and for a Laravel API that is an HTML page: an expired token comes
+     * back as a redirect to a login page instead of as a 401, and where no such
+     * page exists the framework fails while building the redirect and answers
+     * 500. Asking for JSON is what any real client does, so the sample and the
+     * live request both do it — unless the document declares its own `Accept`.
+     *
+     * @param  array<string, string>  $headers
+     * @return array<string, string>
+     */
+    private function withAccept(array $headers, Endpoint $endpoint): array
+    {
+        foreach (array_keys($headers) as $name) {
+            if (strcasecmp($name, 'Accept') === 0) {
+                return $headers;
+            }
+        }
+
+        return ['Accept' => $endpoint->primaryResponse()->mediaType ?? 'application/json', ...$headers];
     }
 
     /**
@@ -71,6 +95,27 @@ final class RequestBlueprintFactory
         }
 
         return rtrim($server, '/').'/'.ltrim($path, '/');
+    }
+
+    /**
+     * Header values, each with the scheme its documentation prescribes.
+     *
+     * @param  array<string, string>  $values
+     * @return array<string, string>
+     */
+    private function headers(array $values, Endpoint $endpoint): array
+    {
+        $headers = [];
+
+        foreach ($endpoint->parametersIn(ParameterLocation::Header) as $parameter) {
+            $value = $parameter->withScheme(trim($values[$parameter->name] ?? ''));
+
+            if ($value !== '') {
+                $headers[$parameter->name] = $value;
+            }
+        }
+
+        return $headers;
     }
 
     /**

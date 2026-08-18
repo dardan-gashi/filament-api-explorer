@@ -80,6 +80,12 @@ final class ExecutionPolicy
         if ($unresolved !== []) {
             throw RequestNotAllowed::unresolvedPath($unresolved);
         }
+
+        $placeholders = $blueprint->placeholderHeaders();
+
+        if ($placeholders !== []) {
+            throw RequestNotAllowed::placeholderHeader($placeholders);
+        }
     }
 
     private function allowsHost(?string $host): bool

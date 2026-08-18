@@ -53,6 +53,26 @@ final readonly class RequestBlueprint
         return array_values(array_unique($matches[1]));
     }
 
+    /**
+     * Headers whose value still reads like the documentation's placeholder —
+     * `Bearer <token>`, `<key>`. The example beside a header is a description of
+     * what belongs there, and sending it verbatim can only ever fail.
+     *
+     * @return list<string>
+     */
+    public function placeholderHeaders(): array
+    {
+        $names = [];
+
+        foreach ($this->headers as $name => $value) {
+            if (preg_match('/<[^<>]+>/', $value) === 1) {
+                $names[] = $name;
+            }
+        }
+
+        return $names;
+    }
+
     public function host(): ?string
     {
         return parse_url($this->url, PHP_URL_HOST) ?: null;

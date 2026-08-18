@@ -66,6 +66,7 @@ return [
     'notes' => [
         'unsafe_method' => 'The explorer only sends GET requests, so this endpoint can be read but not tried.',
         'sending_disabled' => 'Sending requests is disabled for this panel.',
+        'missing_credentials' => 'The :headers field is empty, so the header was not sent at all.',
         'capture' => 'Send it once — the real response replaces the structure example here.',
     ],
 

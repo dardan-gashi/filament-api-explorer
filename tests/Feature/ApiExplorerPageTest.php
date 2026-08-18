@@ -214,6 +214,10 @@ describe('ApiExplorerPage - Snippets', function () {
             ->assertSee('sort=-created_at');
     });
 
+    test('puts the Accept header in the sample too, so copying it is enough', function () {
+        livewire(ApiExplorerPage::class)->assertSee('Accept: application/json');
+    });
+
     test('renders the credential as a shell variable rather than a value', function () {
         livewire(ApiExplorerPage::class)
             ->set('headerValues.'.InputKey::for('Authorization'), 'Bearer super-secret')
@@ -332,6 +336,14 @@ describe('ApiExplorerPage - Sending', function () {
         Http::assertSent(fn ($request): bool => str_contains($request->url(), 'sort=-created_at'));
     });
 
+    test('asks the API for json, so an error comes back as an error', function () {
+        Http::fake(['api.bookshop.test/*' => Http::response([], 200)]);
+
+        livewire(ApiExplorerPage::class)->call('send');
+
+        Http::assertSent(fn ($request): bool => $request->hasHeader('Accept', 'application/json'));
+    });
+
     test('sends only the header values the user typed', function () {
         Http::fake(['api.bookshop.test/*' => Http::response([], 200)]);
 
@@ -340,6 +352,51 @@ describe('ApiExplorerPage - Sending', function () {
             ->call('send');
 
         Http::assertSent(fn ($request): bool => $request->hasHeader('Authorization', 'Bearer live-token'));
+    });
+
+    test('sends a pasted token with the scheme its documentation prescribes', function () {
+        Http::fake(['api.bookshop.test/*' => Http::response([], 200)]);
+
+        livewire(ApiExplorerPage::class)
+            // What a user has in the clipboard is the token, not the header value.
+            ->set('headerValues.'.InputKey::for('Authorization'), '8|mBjlFcdRlSGG')
+            ->call('send');
+
+        Http::assertSent(fn ($request): bool => $request->hasHeader('Authorization', 'Bearer 8|mBjlFcdRlSGG'));
+    });
+
+    test('keeps the scheme visible beside the field, not inside it', function () {
+        livewire(ApiExplorerPage::class)
+            ->assertSee('fae-input-prefix', escape: false)
+            ->assertSee('&lt;token&gt;', escape: false);
+    });
+
+    test('refuses to send the documented example as a credential', function () {
+        Http::fake();
+
+        livewire(ApiExplorerPage::class)
+            ->set('headerValues.'.InputKey::for('Authorization'), 'Bearer <token>')
+            ->call('send')
+            ->assertNotified()
+            ->assertSet('result', null);
+
+        Http::assertNothingSent();
+    });
+
+    test('says which credential was empty when the api answers 401', function () {
+        Http::fake(['api.bookshop.test/*' => Http::response(['message' => 'Unauthenticated'], 401)]);
+
+        livewire(ApiExplorerPage::class)
+            ->call('send')
+            ->assertSee('The Authorization field is empty');
+    });
+
+    test('says nothing about credentials when the request succeeds', function () {
+        Http::fake(['api.bookshop.test/*' => Http::response(['data' => []], 200)]);
+
+        livewire(ApiExplorerPage::class)
+            ->call('send')
+            ->assertDontSee('The Authorization field is empty');
     });
 
     test('refuses a host that is not allowed', function () {

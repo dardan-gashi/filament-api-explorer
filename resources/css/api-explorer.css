@@ -703,6 +703,31 @@
 	text-overflow: ellipsis;
 }
 
+/* The scheme is part of the header, not part of what the user has to type. */
+.fae-input-group {
+	align-items: stretch;
+	display: flex;
+	min-width: 0;
+}
+
+.fae-input-prefix {
+	align-items: center;
+	background: var(--fae-panel-strong);
+	border: 1px solid var(--fae-border-strong);
+	border-right: 0;
+	border-radius: 0.375rem 0 0 0.375rem;
+	color: var(--fae-text-muted);
+	display: flex;
+	flex-shrink: 0;
+	font-family: var(--fae-mono);
+	font-size: 0.75rem;
+	padding: 0 0.4375rem;
+}
+
+.fae-input-prefix + .fae-input {
+	border-radius: 0 0.375rem 0.375rem 0;
+}
+
 .fae-sender-actions {
 	align-items: center;
 	display: flex;

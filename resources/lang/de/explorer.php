@@ -66,6 +66,7 @@ return [
     'notes' => [
         'unsafe_method' => 'Der Explorer sendet nur GET-Anfragen, dieser Endpunkt ist daher nur lesbar.',
         'sending_disabled' => 'Das Senden von Anfragen ist für dieses Panel deaktiviert.',
+        'missing_credentials' => 'Das Feld :headers ist leer — der Header wurde nicht mitgesendet.',
         'capture' => 'Einmal senden — die echte Antwort ersetzt hier das Struktur-Beispiel.',
     ],
 

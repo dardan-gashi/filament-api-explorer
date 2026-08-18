@@ -300,6 +300,7 @@ class ApiExplorerPage extends Page
             'snippet' => $endpoint === null ? '' : $this->snippet($endpoint),
             'snippetLanguages' => app(SnippetRenderer::class)->languages(),
             'exampleSections' => $endpoint === null ? [] : $this->exampleSections($endpoint),
+            'emptyRequiredHeaders' => $endpoint === null ? [] : $this->emptyRequiredHeaders($endpoint),
             'captureEnabled' => $this->samples()->isEnabled(),
             'canSend' => $this->canSend(),
             'sendingEnabled' => $this->plugin()?->allowsRequestSending() ?? true,
@@ -375,6 +376,30 @@ class ApiExplorerPage extends Page
         }
 
         return $values;
+    }
+
+    /**
+     * Required headers the user has left empty.
+     *
+     * An empty header is simply not sent, and the API answers a request without
+     * credentials the only way it can: 401. That is a correct answer to a
+     * question nobody meant to ask, so the result says which field was empty
+     * rather than leaving the reader to guess.
+     *
+     * @return list<string>
+     */
+    private function emptyRequiredHeaders(Endpoint $endpoint): array
+    {
+        $typed = $this->valuesFor($endpoint, ParameterLocation::Header);
+        $names = [];
+
+        foreach ($endpoint->parametersIn(ParameterLocation::Header) as $parameter) {
+            if ($parameter->required && ($typed[$parameter->name] ?? '') === '') {
+                $names[] = $parameter->name;
+            }
+        }
+
+        return $names;
     }
 
     /**
@@ -477,7 +502,7 @@ class ApiExplorerPage extends Page
      * The inputs of the request panel. Cookies are documented but not sent, so
      * they get no input.
      *
-     * @return list<array{label: string, fields: list<array{bind: string, name: string, placeholder: string, required: bool}>}>
+     * @return list<array{label: string, fields: list<array{bind: string, name: string, placeholder: string, required: bool, scheme: string|null}>}>
      */
     private function senderSections(Endpoint $endpoint): array
     {
@@ -496,9 +521,12 @@ class ApiExplorerPage extends Page
                     'name' => $parameter->name,
                     // A path segment with nothing to suggest shows its own
                     // placeholder, so an empty input reads as the hole it is.
-                    'placeholder' => $parameter->suggestedValue()
+                    'placeholder' => $parameter->credentialPlaceholder()
                         ?? ($location === ParameterLocation::Path ? '{'.$parameter->name.'}' : ''),
                     'required' => $parameter->required,
+                    // Stated beside the input, so the field asks for the credential
+                    // and not for a whole header value.
+                    'scheme' => $parameter->headerScheme(),
                 ];
             }
 

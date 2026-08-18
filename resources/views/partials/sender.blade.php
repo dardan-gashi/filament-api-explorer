@@ -29,13 +29,19 @@
                         {{ $field['name'] }}@if ($field['required'])<span class="fae-gap-dot">&nbsp;*</span>@endif
                     </label>
 
-                    <input
-                        id="fae-{{ $field['bind'] }}"
-                        type="text"
-                        class="fae-input"
-                        wire:model="{{ $field['bind'] }}"
-                        placeholder="{{ $field['placeholder'] }}"
-                    >
+                    <div class="fae-input-group">
+                        @if ($field['scheme'])
+                            <span class="fae-input-prefix">{{ $field['scheme'] }}</span>
+                        @endif
+
+                        <input
+                            id="fae-{{ $field['bind'] }}"
+                            type="text"
+                            class="fae-input"
+                            wire:model="{{ $field['bind'] }}"
+                            placeholder="{{ $field['placeholder'] }}"
+                        >
+                    </div>
                 </div>
             @endforeach
         @endforeach
@@ -89,6 +95,14 @@
         @if ($result->hasFailed())
             <p class="fae-note">{{ $result->error }}</p>
         @else
+            @if (in_array($result->status, [401, 403], true) && $emptyRequiredHeaders !== [])
+                <p class="fae-note">
+                    {{ __('filament-api-explorer::explorer.notes.missing_credentials', [
+                        'headers' => implode(', ', $emptyRequiredHeaders),
+                    ]) }}
+                </p>
+            @endif
+
             @foreach ($result->headers as $name => $value)
                 <div class="fae-kv">
                     <span class="fae-kv-name">{{ $name }}</span>
