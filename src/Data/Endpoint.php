@@ -170,10 +170,15 @@ final readonly class Endpoint
         return false;
     }
 
+    /**
+     * Parameters the explorer inferred are skipped: an authentication header
+     * read off a security scheme is not part of the document, so a missing
+     * description on it says nothing about how well the API is documented.
+     */
     private function hasUndescribedParameter(): bool
     {
         foreach ($this->parameters as $parameter) {
-            if (blank($parameter->description)) {
+            if (! $parameter->inferred && blank($parameter->description)) {
                 return true;
             }
         }

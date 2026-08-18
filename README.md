@@ -64,6 +64,9 @@ driver at it:
 php artisan scramble:export --path=storage/api-docs/v2.json
 ```
 
+Or skip the export step and read the document straight out of the generator — see
+the driver below.
+
 ### Reading a document from somewhere else
 
 Register your own driver from a service provider. Anything that can hand over a
@@ -90,6 +93,55 @@ $this->app->resolving(SpecSourceManager::class, function (SpecSourceManager $man
 Implement `DardanGashi\FilamentApiExplorer\Contracts\SpecSource` directly if your
 source can also report when the document last changed — the explorer shows that
 as the snapshot time and uses it to key its cache.
+
+### Example: a Scramble driver
+
+A generator builds its document from the code on every call, so it has no
+snapshot time — return `null` and let the generator do its own caching:
+
+```php
+final class ScrambleSpecSource implements SpecSource
+{
+    public function __construct(
+        private readonly string $name,
+        private readonly CacheableGenerator $generator,
+        private readonly string $api = Scramble::DEFAULT_API,
+    ) {}
+
+    public function name(): string
+    {
+        return $this->name;
+    }
+
+    public function document(): array
+    {
+        try {
+            $document = ($this->generator)(Scramble::getGeneratorConfig($this->api));
+        } catch (Throwable $exception) {
+            throw new SpecUnavailable("Scramble failed: {$exception->getMessage()}", previous: $exception);
+        }
+
+        return Documents::toMap($document);
+    }
+
+    public function generatedAt(): ?CarbonImmutable
+    {
+        return null;
+    }
+}
+```
+
+Throwing `SpecUnavailable` matters: the page renders an empty state for it and
+lets anything else bubble up, so a document that cannot be built never takes the
+panel down with it.
+
+Two things are worth knowing before you point a navigation badge at a generated
+document. The badge is rendered on *every* page of the panel, and `count` and
+`coverage` both need the whole document to compute — with a generator behind the
+source that means a full analysis per page view, so leave the badge off (the
+documented share is on the explorer's own page anyway). And prime the generator's
+cache in production — `php artisan scramble:cache` for Scramble — so neither the
+page nor the badge pays for the analysis at request time.
 
 ## Configuring the plugin
 

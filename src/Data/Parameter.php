@@ -15,6 +15,9 @@ final readonly class Parameter
 {
     /**
      * @param  list<string>  $enum
+     * @param  bool  $inferred  Whether the explorer added this parameter itself — an
+     *                          authentication header read off a security scheme, say —
+     *                          rather than finding it in the document.
      */
     public function __construct(
         public string $name,
@@ -26,6 +29,7 @@ final readonly class Parameter
         public string|int|float|bool|null $default = null,
         public bool $deprecated = false,
         public string|int|float|bool|null $example = null,
+        public bool $inferred = false,
     ) {}
 
     public function hasDefault(): bool

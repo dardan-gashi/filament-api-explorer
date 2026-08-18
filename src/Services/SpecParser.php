@@ -298,6 +298,7 @@ final class SpecParser
                 required: true,
                 description: Documents::string($scheme, 'description'),
                 example: $example,
+                inferred: true,
             );
         }
 

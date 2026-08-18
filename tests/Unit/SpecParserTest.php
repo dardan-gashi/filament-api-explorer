@@ -120,6 +120,22 @@ describe('SpecParser - parseDocument', function () {
             ->and($authorization?->description)->toBe('Personal access token issued by the panel.');
     });
 
+    test('marks the implied authentication header as inferred', function () {
+        // A generator that leaves its security scheme undescribed — Scramble
+        // does — must not cost the endpoint its documented standing.
+        $document = fixtureDocument();
+        unset($document['components']['securitySchemes']['sanctum']['description']);
+
+        $endpoint = parser()->parseDocument('v2', $document)
+            ->find(Endpoint::keyFor(HttpMethod::Get, '/vouchers'));
+
+        $authorization = $endpoint?->parametersIn(ParameterLocation::Header)[0];
+
+        expect($authorization?->inferred)->toBeTrue()
+            ->and($authorization?->description)->toBeNull()
+            ->and($endpoint?->gaps())->toBe([]);
+    });
+
     test('leaves an authentication header the document declares itself', function () {
         $document = fixtureDocument();
         $document['paths']['/vouchers']['get']['parameters'][] = [

@@ -191,6 +191,22 @@ describe('Endpoint - gaps', function () {
 
         expect($subject->gaps())->toBe([DocumentationGap::Parameters]);
     });
+
+    test('ignores a parameter the explorer inferred itself', function () {
+        // The authentication header is read off a security scheme rather than
+        // documented, so a missing description on it is not the API's fault.
+        $subject = endpoint(
+            parameters: [new Parameter(
+                name: 'Authorization',
+                in: ParameterLocation::Header,
+                required: true,
+                inferred: true,
+            )],
+            responses: [documentedResponse()],
+        );
+
+        expect($subject->gaps())->toBe([]);
+    });
 });
 
 // ------------------------------------------------------------
