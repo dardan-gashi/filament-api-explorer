@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DardanGashi\FilamentApiExplorer\Support;
+namespace DardanGashi\FilamentApiExplorer\Highlighting;
 
 /**
  * The machinery every code highlighter on this page shares.

@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\File;
-use DardanGashi\FilamentApiExplorer\Support\JavaScriptHighlighter;
-use DardanGashi\FilamentApiExplorer\Support\JsonHighlighter;
-use DardanGashi\FilamentApiExplorer\Support\PhpHighlighter;
-use DardanGashi\FilamentApiExplorer\Support\ShellHighlighter;
+use DardanGashi\FilamentApiExplorer\Highlighting\HttpHighlighter;
+use DardanGashi\FilamentApiExplorer\Highlighting\JavaScriptHighlighter;
+use DardanGashi\FilamentApiExplorer\Highlighting\JsonHighlighter;
+use DardanGashi\FilamentApiExplorer\Highlighting\PhpHighlighter;
+use DardanGashi\FilamentApiExplorer\Highlighting\PythonHighlighter;
+use DardanGashi\FilamentApiExplorer\Highlighting\ShellHighlighter;
 use Symfony\Component\Finder\SplFileInfo;
 
 // ----------------------------------------------------------------------------------
@@ -77,6 +79,8 @@ function tokenClassesEmitted(): array
         ShellHighlighter::highlight('curl -H "Authorization: Bearer $TOKEN" # the token is yours'),
         PhpHighlighter::highlight("// the token is yours\nuse Illuminate\\Support\\Facades\\Http;\n\n\$data = Http::get('https://example.test')->json();"),
         JavaScriptHighlighter::highlight('const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })'),
+        HttpHighlighter::highlight("GET /api/v1/orders HTTP/1.1\nAuthorization: Bearer {{token}}"),
+        PythonHighlighter::highlight("# the token is yours\nimport requests\n\nrequests.get('https://example.test', headers={'Authorization': f'Bearer {token}'})"),
     ];
 
     preg_match_all('/class="(fae-code-[a-z-]+)"/', implode('', $samples), $matches);

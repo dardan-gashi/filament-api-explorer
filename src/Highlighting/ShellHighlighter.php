@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DardanGashi\FilamentApiExplorer\Support;
+namespace DardanGashi\FilamentApiExplorer\Highlighting;
 
 /**
  * Marks up a shell command, which on this page means a curl sample.

@@ -3,18 +3,21 @@
 declare(strict_types=1);
 
 use DardanGashi\FilamentApiExplorer\Enums\SnippetLanguage;
-use DardanGashi\FilamentApiExplorer\Support\Highlighter;
-use DardanGashi\FilamentApiExplorer\Support\JavaScriptHighlighter;
-use DardanGashi\FilamentApiExplorer\Support\JsonHighlighter;
-use DardanGashi\FilamentApiExplorer\Support\PhpHighlighter;
-use DardanGashi\FilamentApiExplorer\Support\ShellHighlighter;
-use DardanGashi\FilamentApiExplorer\Support\SnippetHighlighter;
+use DardanGashi\FilamentApiExplorer\Highlighting\Highlighter;
+use DardanGashi\FilamentApiExplorer\Highlighting\HttpHighlighter;
+use DardanGashi\FilamentApiExplorer\Highlighting\JavaScriptHighlighter;
+use DardanGashi\FilamentApiExplorer\Highlighting\JsonHighlighter;
+use DardanGashi\FilamentApiExplorer\Highlighting\PhpHighlighter;
+use DardanGashi\FilamentApiExplorer\Highlighting\PythonHighlighter;
+use DardanGashi\FilamentApiExplorer\Highlighting\ShellHighlighter;
+use DardanGashi\FilamentApiExplorer\Highlighting\SnippetHighlighter;
 
 // ----------------------------------------------------------------------------------
 // Highlighter Test Suite
 // Sections: Highlighter::markUp, JsonHighlighter::highlight,
-//           ShellHighlighter::highlight, PhpHighlighter::highlight,
-//           JavaScriptHighlighter::highlight, SnippetHighlighter::highlight
+//           ShellHighlighter::highlight, HttpHighlighter::highlight,
+//           PhpHighlighter::highlight, JavaScriptHighlighter::highlight,
+//           PythonHighlighter::highlight, SnippetHighlighter::highlight
 // ----------------------------------------------------------------------------------
 
 // ------------------------------------------------------------
@@ -128,6 +131,33 @@ describe('ShellHighlighter - highlight', function () {
 });
 
 // ------------------------------------------------------------
+// HttpHighlighter - highlight
+// ------------------------------------------------------------
+
+describe('HttpHighlighter - highlight', function () {
+
+    test('marks up the request line', function () {
+        $html = HttpHighlighter::highlight('GET /api/v1/orders?per_page=25 HTTP/1.1');
+
+        expect($html)->toContain('<span class="fae-code-keyword">GET</span>')
+            ->and($html)->toContain('<span class="fae-code-literal">HTTP/1.1</span>');
+    });
+
+    test('marks up a field name and leaves its value alone', function () {
+        $html = HttpHighlighter::highlight("Host: api.bookshop.test\nAccept: application/json");
+
+        expect($html)->toContain('<span class="fae-code-property">Host</span>: api.bookshop.test')
+            ->and($html)->toContain('<span class="fae-code-property">Accept</span>: application/json');
+    });
+
+    test('marks up the credential the editors resolve', function () {
+        $html = HttpHighlighter::highlight('Authorization: Bearer {{token}}');
+
+        expect($html)->toContain('Bearer <span class="fae-code-variable">{{token}}</span>');
+    });
+});
+
+// ------------------------------------------------------------
 // PhpHighlighter - highlight
 // ------------------------------------------------------------
 
@@ -213,6 +243,43 @@ describe('JavaScriptHighlighter - highlight', function () {
 });
 
 // ------------------------------------------------------------
+// PythonHighlighter - highlight
+// ------------------------------------------------------------
+
+describe('PythonHighlighter - highlight', function () {
+
+    test('marks up keywords, calls and dictionary keys', function () {
+        $html = PythonHighlighter::highlight("import requests\n\nresponse = requests.get('https://example.test', headers={'Accept': 'application/json'})");
+
+        expect($html)->toContain('<span class="fae-code-keyword">import</span>')
+            ->and($html)->toContain('<span class="fae-code-call">get</span>')
+            ->and($html)->toContain('<span class="fae-code-property">&#039;Accept&#039;</span>')
+            ->and($html)->toContain('<span class="fae-code-string">&#039;application/json&#039;</span>');
+    });
+
+    test('marks up the credential interpolated into an f-string', function () {
+        $html = PythonHighlighter::highlight("'Authorization': f'Bearer {token}',");
+
+        expect($html)->toContain(
+            '<span class="fae-code-template">f&#039;Bearer <span class="fae-code-variable">{token}</span>&#039;</span>'
+        );
+    });
+
+    test('reads a string without the prefix as a plain string', function () {
+        // Only an f-string interpolates, so braces in any other one are braces.
+        $html = PythonHighlighter::highlight("url = 'https://example.test/orders/{order}'");
+
+        expect($html)->not->toContain('fae-code-variable')
+            ->and($html)->toContain('<span class="fae-code-string">');
+    });
+
+    test('marks up a comment', function () {
+        expect(PythonHighlighter::highlight('# the token is yours'))
+            ->toContain('<span class="fae-code-comment"># the token is yours</span>');
+    });
+});
+
+// ------------------------------------------------------------
 // SnippetHighlighter - highlight
 // ------------------------------------------------------------
 
@@ -223,6 +290,11 @@ describe('SnippetHighlighter - highlight', function () {
             ->toContain('<span class="fae-code-keyword">-X</span>');
     });
 
+    test('reads a raw request as HTTP', function () {
+        expect(SnippetHighlighter::highlight('GET /api/v1/orders HTTP/1.1', SnippetLanguage::Http))
+            ->toContain('<span class="fae-code-keyword">GET</span>');
+    });
+
     test('reads a PHP sample as PHP', function () {
         expect(SnippetHighlighter::highlight('$response = Http::get($url);', SnippetLanguage::Php))
             ->toContain('<span class="fae-code-variable">$response</span>');
@@ -231,5 +303,10 @@ describe('SnippetHighlighter - highlight', function () {
     test('reads a JavaScript sample as JavaScript', function () {
         expect(SnippetHighlighter::highlight('const response = await fetch(url)', SnippetLanguage::JavaScript))
             ->toContain('<span class="fae-code-keyword">const</span>');
+    });
+
+    test('reads a Python sample as Python', function () {
+        expect(SnippetHighlighter::highlight('import requests', SnippetLanguage::Python))
+            ->toContain('<span class="fae-code-keyword">import</span>');
     });
 });

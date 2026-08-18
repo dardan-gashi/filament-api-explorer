@@ -72,9 +72,4 @@ final class JavaScriptSnippet extends Snippet
             ? $name
             : $this->quote($name);
     }
-
-    private function quote(string $value): string
-    {
-        return "'".str_replace(['\\', "'"], ['\\\\', "\\'"], $value)."'";
-    }
 }

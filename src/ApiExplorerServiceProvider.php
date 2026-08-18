@@ -18,8 +18,10 @@ use DardanGashi\FilamentApiExplorer\Services\SnippetRenderer;
 use DardanGashi\FilamentApiExplorer\Services\SpecParser;
 use DardanGashi\FilamentApiExplorer\Services\SpecRepository;
 use DardanGashi\FilamentApiExplorer\Snippets\CurlSnippet;
+use DardanGashi\FilamentApiExplorer\Snippets\HttpSnippet;
 use DardanGashi\FilamentApiExplorer\Snippets\JavaScriptSnippet;
 use DardanGashi\FilamentApiExplorer\Snippets\PhpSnippet;
+use DardanGashi\FilamentApiExplorer\Snippets\PythonSnippet;
 use DardanGashi\FilamentApiExplorer\Sources\SpecSourceManager;
 use DardanGashi\FilamentApiExplorer\Support\Documents;
 use DardanGashi\FilamentApiExplorer\Support\ExecutionPolicy;
@@ -71,8 +73,10 @@ final class ApiExplorerServiceProvider extends PackageServiceProvider
 
         $this->app->singleton(SnippetRenderer::class, fn (): SnippetRenderer => new SnippetRenderer([
             new CurlSnippet,
+            new HttpSnippet,
             new PhpSnippet,
             new JavaScriptSnippet,
+            new PythonSnippet,
         ]));
 
         $this->app->singleton(ExecutionPolicy::class, fn (): ExecutionPolicy => new ExecutionPolicy(

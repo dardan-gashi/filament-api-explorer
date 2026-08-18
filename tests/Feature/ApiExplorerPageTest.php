@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 use DardanGashi\FilamentApiExplorer\Data\Endpoint;
 use DardanGashi\FilamentApiExplorer\Enums\HttpMethod;
+use DardanGashi\FilamentApiExplorer\Enums\SnippetLanguage;
 use DardanGashi\FilamentApiExplorer\Pages\ApiExplorerPage;
 use DardanGashi\FilamentApiExplorer\Support\InputKey;
 
@@ -390,6 +391,27 @@ describe('ApiExplorerPage - Snippets', function () {
             ->set('headerValues.'.InputKey::for('Authorization'), 'Bearer super-secret')
             ->assertSee('Bearer <span class="fae-code-variable">$TOKEN</span>', escape: false)
             ->assertDontSee('super-secret');
+    });
+
+    test('offers every registered language as a tab', function () {
+        // The wire format first, then the languages: the order they are read in.
+        expect(array_map(
+            fn (SnippetLanguage $language): string => $language->value,
+            livewire(ApiExplorerPage::class)->viewData('snippetLanguages'),
+        ))->toBe(['curl', 'http', 'php', 'js', 'python']);
+    });
+
+    test('renders the request in its wire format', function () {
+        livewire(ApiExplorerPage::class)
+            ->call('setSnippetLanguage', 'http')
+            ->assertSee('<span class="fae-code-keyword">GET</span>', escape: false)
+            ->assertSee('Host: api.bookshop.test');
+    });
+
+    test('renders the Python sample', function () {
+        livewire(ApiExplorerPage::class)
+            ->call('setSnippetLanguage', 'python')
+            ->assertSee('<span class="fae-code-keyword">import</span> requests', escape: false);
     });
 
     test('switches to another language', function () {

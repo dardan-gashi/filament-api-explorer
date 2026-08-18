@@ -2,8 +2,8 @@
 
 An OpenAPI-driven API reference inside a Filament panel: find any endpoint from a
 `⌘K` palette, read request and response schemas as a searchable tree, copy a
-request sample in curl, PHP or JavaScript — and send a `GET` request to see the
-live response next to the documented one.
+request sample in five languages — and send a `GET` request to see the live
+response next to the documented one.
 
 Responses you fetch are kept and shown as the endpoint's example, because a real
 payload documents an API and a skeleton built from its schema does not.
@@ -179,7 +179,16 @@ token colours for all of them, and no syntax-highlighting library in the browser
 A credential is drawn as the variable it is, so the one thing you have to replace
 is the one thing that stands out.
 
-Three languages ship: curl, PHP (Laravel's HTTP client) and JavaScript (`fetch`).
+Five samples ship:
+
+| Tab      | What it writes                                                        |
+| -------- | --------------------------------------------------------------------- |
+| `curl`   | one option per line, `-G` where a `GET` carries parameters            |
+| `HTTP`   | the request as it goes over the wire — runs in the HTTP client of PhpStorm and the REST Client of VS Code, imports into Postman |
+| `PHP`    | Laravel's HTTP client                                                 |
+| `JS`     | the browser's `fetch`                                                 |
+| `Python` | `requests`                                                            |
+
 Which library a language reaches for is yours to change — implement
 `RequestSnippet` and register it over the one that ships:
 
@@ -187,8 +196,13 @@ Which library a language reaches for is yours to change — implement
 app(SnippetRenderer::class)->register(new GuzzleSnippet);
 ```
 
-A language of its own also needs a case in `SnippetLanguage`, which makes it a
-change to this package rather than one in your application.
+A language of its own takes three things, and only the first is outside your
+reach: a case on `SnippetLanguage`, which is what the tab and the query string
+are keyed on, so that one is a change to this package. The other two are a
+`RequestSnippet` that writes the sample and a highlighter for it — and a
+highlighter is one regular expression whose named groups are the token classes,
+which `Highlighter` turns into the same colours every other language uses. See
+`src/Highlighting/SnippetHighlighter.php`, where the three meet.
 
 ## Sending requests
 
@@ -207,7 +221,8 @@ Sending runs server-side, and it is restricted on purpose:
 - redirects are not followed, so a `30x` cannot lead somewhere the policy would
   have refused
 - credentials never reach the code samples: a header that carries one is rendered
-  as `$TOKEN`, `$token` or `${token}` in the sample you copy
+  as the placeholder of its language — `$TOKEN`, `{{token}}`, `$token`,
+  `${token}`, `f'…{token}'` — in the sample you copy
 
 ```php
 'execution' => [

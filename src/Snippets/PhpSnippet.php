@@ -58,9 +58,4 @@ final class PhpSnippet extends Snippet
 
         return $this->lines([...$lines, '', '$data = $response->json();']);
     }
-
-    private function quote(string $value): string
-    {
-        return "'".str_replace(['\\', "'"], ['\\\\', "\\'"], $value)."'";
-    }
 }

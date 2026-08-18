@@ -53,7 +53,7 @@
             </div>
         </div>
 
-        <pre class="fae-code" x-show="open">{!! \DardanGashi\FilamentApiExplorer\Support\JsonHighlighter::highlight($section['body']) !!}</pre>
+        <pre class="fae-code" x-show="open">{!! \DardanGashi\FilamentApiExplorer\Highlighting\JsonHighlighter::highlight($section['body']) !!}</pre>
     </section>
 
     @if ($section['headers'] !== [])

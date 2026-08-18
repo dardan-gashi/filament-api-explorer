@@ -51,6 +51,15 @@ abstract class Snippet implements RequestSnippet
     }
 
     /**
+     * A value as a single-quoted literal. PHP, JavaScript and Python spell one
+     * the same way, and every sample that carries a value carries it quoted.
+     */
+    protected function quote(string $value): string
+    {
+        return "'".str_replace(['\\', "'"], ['\\\\', "\\'"], $value)."'";
+    }
+
+    /**
      * Join the lines of a sample. Blank entries are kept, because they are the
      * paragraph breaks that make a sample readable, and the newline is always
      * `\n` so a copied sample looks the same wherever it is pasted.
