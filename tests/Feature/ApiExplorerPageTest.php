@@ -368,9 +368,17 @@ describe('ApiExplorerPage - Snippets', function () {
 
     test('renders a curl sample for the selected endpoint', function () {
         livewire(ApiExplorerPage::class)
-            ->assertSee('curl -G')
             ->assertSee('https://api.bookshop.test/api/v2/vouchers')
             ->assertSee('sort=-created_at');
+    });
+
+    test('marks up the sample it renders', function () {
+        // Every sample is also on the page unmarked, inside the clipboard button, so
+        // an assertion on the plain text passes whether the reader sees highlighting
+        // or not. The tokens are what says the sample was highlighted.
+        livewire(ApiExplorerPage::class)
+            ->assertSee('<span class="fae-code-call">curl</span>', escape: false)
+            ->assertSee('<span class="fae-code-keyword">-G</span>', escape: false);
     });
 
     test('puts the Accept header in the sample too, so copying it is enough', function () {
@@ -380,7 +388,7 @@ describe('ApiExplorerPage - Snippets', function () {
     test('renders the credential as a shell variable rather than a value', function () {
         livewire(ApiExplorerPage::class)
             ->set('headerValues.'.InputKey::for('Authorization'), 'Bearer super-secret')
-            ->assertSee('Bearer $TOKEN')
+            ->assertSee('Bearer <span class="fae-code-variable">$TOKEN</span>', escape: false)
             ->assertDontSee('super-secret');
     });
 
@@ -388,7 +396,7 @@ describe('ApiExplorerPage - Snippets', function () {
         livewire(ApiExplorerPage::class)
             ->call('setSnippetLanguage', 'php')
             ->assertSet('snippetLanguage', 'php')
-            ->assertSee('Http::withHeaders');
+            ->assertSee('Http::<span class="fae-code-call">withHeaders</span>', escape: false);
     });
 
     test('ignores an unknown language', function () {

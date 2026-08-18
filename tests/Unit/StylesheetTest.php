@@ -3,6 +3,10 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\File;
+use DardanGashi\FilamentApiExplorer\Support\JavaScriptHighlighter;
+use DardanGashi\FilamentApiExplorer\Support\JsonHighlighter;
+use DardanGashi\FilamentApiExplorer\Support\PhpHighlighter;
+use DardanGashi\FilamentApiExplorer\Support\ShellHighlighter;
 use Symfony\Component\Finder\SplFileInfo;
 
 // ----------------------------------------------------------------------------------
@@ -54,6 +58,28 @@ function classesInViews(): array
 function classesWithOwnRule(): array
 {
     preg_match_all('/(?m)^\.(fae-[a-z0-9-]+)[\s,]*[{,]/', stylesheet(), $matches);
+
+    return array_values(array_unique($matches[1]));
+}
+
+/**
+ * Every token class the highlighters actually emit, taken from a sample of each
+ * language written to exercise all of them. The classes are composed at runtime
+ * from the names of the capture groups, so the only honest way to collect them is
+ * to run a highlighter and read what came out.
+ *
+ * @return list<string>
+ */
+function tokenClassesEmitted(): array
+{
+    $samples = [
+        JsonHighlighter::highlight('{"code": "SUMMER10", "total": 42, "active": true}'),
+        ShellHighlighter::highlight('curl -H "Authorization: Bearer $TOKEN" # the token is yours'),
+        PhpHighlighter::highlight("// the token is yours\nuse Illuminate\\Support\\Facades\\Http;\n\n\$data = Http::get('https://example.test')->json();"),
+        JavaScriptHighlighter::highlight('const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })'),
+    ];
+
+    preg_match_all('/class="(fae-code-[a-z-]+)"/', implode('', $samples), $matches);
 
     return array_values(array_unique($matches[1]));
 }
@@ -111,5 +137,15 @@ describe('Stylesheet - Selectors', function () {
         // siblings is the one thing that can only be said through the context.
         expect(array_values(array_diff(classesInViews(), classesWithOwnRule())))
             ->toBe(['fae-response']);
+    });
+
+    test('colours every token the highlighters emit', function () {
+        // A token class with no rule behind it is drawn in the body colour, which
+        // reads as a highlighter that failed to recognise it. The count pins the
+        // sample: if a language learns a token, the sample has to exercise it.
+        $emitted = tokenClassesEmitted();
+
+        expect($emitted)->toHaveCount(9)
+            ->and(array_values(array_diff($emitted, classesWithOwnRule())))->toBe([]);
     });
 });

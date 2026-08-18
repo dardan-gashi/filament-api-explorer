@@ -315,6 +315,7 @@ class ApiExplorerPage extends Page
             'senderSections' => $endpoint === null ? [] : $this->senderSections($endpoint),
             'snippet' => $endpoint === null ? '' : $this->snippet($endpoint),
             'snippetLanguages' => app(SnippetRenderer::class)->languages(),
+            'snippetSyntax' => $this->snippetSyntax(),
             'exampleSections' => $endpoint === null ? [] : $this->exampleSections($endpoint),
             'emptyRequiredHeaders' => $endpoint === null ? [] : $this->emptyRequiredHeaders($endpoint),
             'captureEnabled' => $this->samples()->isEnabled(),
@@ -332,9 +333,19 @@ class ApiExplorerPage extends Page
     private function snippet(Endpoint $endpoint): string
     {
         return app(SnippetRenderer::class)->render(
-            SnippetLanguage::tryFrom($this->snippetLanguage) ?? SnippetLanguage::default(),
+            $this->snippetSyntax(),
             $this->documentationBlueprint($endpoint),
         );
+    }
+
+    /**
+     * The language of the current snippet tab, which decides both what is
+     * rendered and how it is marked up. The property behind it is a string,
+     * because it comes from the query string.
+     */
+    private function snippetSyntax(): SnippetLanguage
+    {
+        return SnippetLanguage::tryFrom($this->snippetLanguage) ?? SnippetLanguage::default();
     }
 
     private function documentationBlueprint(Endpoint $endpoint): RequestBlueprint

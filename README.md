@@ -1,9 +1,9 @@
 # Filament API Explorer
 
-An OpenAPI-driven API reference inside a Filament panel: browse endpoints grouped
-by tag, read request and response schemas as a searchable tree, copy a request
-sample in curl, PHP or JavaScript — and send a `GET` request to see the live
-response next to the documented one.
+An OpenAPI-driven API reference inside a Filament panel: find any endpoint from a
+`⌘K` palette, read request and response schemas as a searchable tree, copy a
+request sample in curl, PHP or JavaScript — and send a `GET` request to see the
+live response next to the documented one.
 
 Responses you fetch are kept and shown as the endpoint's example, because a real
 payload documents an API and a skeleton built from its schema does not.
@@ -11,8 +11,8 @@ payload documents an API and a skeleton built from its schema does not.
 The page also tells you what is *not* documented: every endpoint is checked for
 a missing explanation, a missing response, a response without a schema, a body
 it takes without documenting, and parameters without a description. The header
-shows the documented share of the API, and the sidebar can be narrowed to the
-gaps.
+shows the documented share of the API, and one toggle narrows the whole page to
+those gaps.
 
 ## Requirements
 
@@ -167,6 +167,28 @@ ApiExplorerPlugin::make()
     ->enabledInProduction()                // off by default
     ->authorizeUsing(fn (): bool => auth()->user()?->isDeveloper() ?? false);
 ```
+
+## Code samples
+
+A sample is never written down. Every one is generated from the same blueprint
+the live sender uses, so what you copy is what the explorer would send, and no
+sample can fall behind a document that changed.
+
+Samples are highlighted on the server — one pattern per language, one set of
+token colours for all of them, and no syntax-highlighting library in the browser.
+A credential is drawn as the variable it is, so the one thing you have to replace
+is the one thing that stands out.
+
+Three languages ship: curl, PHP (Laravel's HTTP client) and JavaScript (`fetch`).
+Which library a language reaches for is yours to change — implement
+`RequestSnippet` and register it over the one that ships:
+
+```php
+app(SnippetRenderer::class)->register(new GuzzleSnippet);
+```
+
+A language of its own also needs a case in `SnippetLanguage`, which makes it a
+change to this package rather than one in your application.
 
 ## Sending requests
 

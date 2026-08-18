@@ -1,0 +1,235 @@
+<?php
+
+declare(strict_types=1);
+
+use DardanGashi\FilamentApiExplorer\Enums\SnippetLanguage;
+use DardanGashi\FilamentApiExplorer\Support\Highlighter;
+use DardanGashi\FilamentApiExplorer\Support\JavaScriptHighlighter;
+use DardanGashi\FilamentApiExplorer\Support\JsonHighlighter;
+use DardanGashi\FilamentApiExplorer\Support\PhpHighlighter;
+use DardanGashi\FilamentApiExplorer\Support\ShellHighlighter;
+use DardanGashi\FilamentApiExplorer\Support\SnippetHighlighter;
+
+// ----------------------------------------------------------------------------------
+// Highlighter Test Suite
+// Sections: Highlighter::markUp, JsonHighlighter::highlight,
+//           ShellHighlighter::highlight, PhpHighlighter::highlight,
+//           JavaScriptHighlighter::highlight, SnippetHighlighter::highlight
+// ----------------------------------------------------------------------------------
+
+// ------------------------------------------------------------
+// Highlighter - markUp
+// ------------------------------------------------------------
+
+describe('Highlighter - markUp', function () {
+
+    test('names the token class after the group that matched', function () {
+        $html = Highlighter::markUp(
+            'let x = 1',
+            '/(?P<keyword>\blet\b)|(?P<number>\d+)/',
+        );
+
+        expect($html)->toBe('<span class="fae-code-keyword">let</span> x = <span class="fae-code-number">1</span>');
+    });
+
+    test('escapes what it marks up', function () {
+        $html = Highlighter::markUp('"<script>alert(1)</script>"', '/(?P<string>"[^"]*")/');
+
+        expect($html)->not->toContain('<script>')
+            ->and($html)->toContain('&lt;script&gt;');
+    });
+
+    test('escapes what it recognises nothing in', function () {
+        expect(Highlighter::markUp('<b>plain</b>', '/(?P<number>\d+)/'))
+            ->toBe('&lt;b&gt;plain&lt;/b&gt;');
+    });
+
+    test('marks up inside a token where a pattern says how', function () {
+        // The credential sits inside a string the shell would expand, so the
+        // string is marked up and the variable inside it as well.
+        $html = Highlighter::markUp(
+            '"Bearer $TOKEN"',
+            '/(?P<string>"[^"]*")/',
+            ['string' => '/(?P<variable>\$\w+)/'],
+        );
+
+        expect($html)->toBe(
+            '<span class="fae-code-string">&quot;Bearer <span class="fae-code-variable">$TOKEN</span>&quot;</span>'
+        );
+    });
+
+    test('leaves an empty input empty', function () {
+        expect(Highlighter::markUp('', '/(?P<number>\d+)/'))->toBe('');
+    });
+});
+
+// ------------------------------------------------------------
+// JsonHighlighter - highlight
+// ------------------------------------------------------------
+
+describe('JsonHighlighter - highlight', function () {
+
+    test('marks up keys, strings, numbers and literals', function () {
+        $html = JsonHighlighter::highlight('{"code": "SUMMER10", "total": 42, "is_active": true}');
+
+        expect($html)->toContain('<span class="fae-code-property">&quot;code&quot;</span>')
+            ->and($html)->toContain('<span class="fae-code-string">&quot;SUMMER10&quot;</span>')
+            ->and($html)->toContain('<span class="fae-code-number">42</span>')
+            ->and($html)->toContain('<span class="fae-code-literal">true</span>');
+    });
+
+    test('escapes the payload it marks up', function () {
+        $html = JsonHighlighter::highlight('{"note": "<script>alert(1)</script>"}');
+
+        expect($html)->not->toContain('<script>')
+            ->and($html)->toContain('&lt;script&gt;');
+    });
+
+    test('escapes a payload it recognises nothing in', function () {
+        expect(JsonHighlighter::highlight('<b>plain</b>'))->toBe('&lt;b&gt;plain&lt;/b&gt;');
+    });
+
+    test('leaves an empty payload empty', function () {
+        expect(JsonHighlighter::highlight(''))->toBe('');
+    });
+});
+
+// ------------------------------------------------------------
+// ShellHighlighter - highlight
+// ------------------------------------------------------------
+
+describe('ShellHighlighter - highlight', function () {
+
+    test('marks up the command, its flags and its arguments', function () {
+        $html = ShellHighlighter::highlight("curl -G \\\n  \"https://example.test/orders\"");
+
+        expect($html)->toContain('<span class="fae-code-call">curl</span>')
+            ->and($html)->toContain('<span class="fae-code-keyword">-G</span>')
+            ->and($html)->toContain('<span class="fae-code-string">&quot;https://example.test/orders&quot;</span>');
+    });
+
+    test('marks up the credential the shell would expand inside the quotes', function () {
+        $html = ShellHighlighter::highlight('  -H "Authorization: Bearer $TOKEN"');
+
+        expect($html)->toContain('Bearer <span class="fae-code-variable">$TOKEN</span>');
+    });
+
+    test('takes a flag only where an argument starts', function () {
+        // A hyphen inside a path is part of the path, not an option.
+        $html = ShellHighlighter::highlight('  "https://example.test/physical-products"');
+
+        expect($html)->not->toContain('fae-code-keyword');
+    });
+
+    test('marks up a comment', function () {
+        expect(ShellHighlighter::highlight('# the token is yours'))
+            ->toContain('<span class="fae-code-comment"># the token is yours</span>');
+    });
+});
+
+// ------------------------------------------------------------
+// PhpHighlighter - highlight
+// ------------------------------------------------------------
+
+describe('PhpHighlighter - highlight', function () {
+
+    test('marks up keywords, variables and calls', function () {
+        $html = PhpHighlighter::highlight("use Illuminate\\Support\\Facades\\Http;\n\n\$response = Http::withHeaders([])->get('https://example.test');");
+
+        expect($html)->toContain('<span class="fae-code-keyword">use</span>')
+            ->and($html)->toContain('<span class="fae-code-variable">$response</span>')
+            ->and($html)->toContain('<span class="fae-code-call">withHeaders</span>')
+            ->and($html)->toContain('<span class="fae-code-string">&#039;https://example.test&#039;</span>');
+    });
+
+    test('marks up a name being called and not one being mentioned', function () {
+        $html = PhpHighlighter::highlight('$data = Http::get($url);');
+
+        expect($html)->toContain('<span class="fae-code-call">get</span>')
+            ->and($html)->not->toContain('<span class="fae-code-call">Http</span>');
+    });
+
+    test('marks up the credential interpolated into a string', function () {
+        $html = PhpHighlighter::highlight('$headers = ["Authorization" => "Bearer $token"];');
+
+        expect($html)->toContain('<span class="fae-code-variable">$token</span>');
+    });
+
+    test('draws true, false and null like the words they are', function () {
+        $html = PhpHighlighter::highlight('$flags = [true, false, null];');
+
+        expect(substr_count($html, '<span class="fae-code-literal">'))->toBe(3);
+    });
+
+    test('escapes the sample it marks up', function () {
+        $html = PhpHighlighter::highlight("\$note = '<script>alert(1)</script>';");
+
+        expect($html)->not->toContain('<script>')
+            ->and($html)->toContain('&lt;script&gt;');
+    });
+
+    test('leaves an empty sample empty', function () {
+        expect(PhpHighlighter::highlight(''))->toBe('');
+    });
+});
+
+// ------------------------------------------------------------
+// JavaScriptHighlighter - highlight
+// ------------------------------------------------------------
+
+describe('JavaScriptHighlighter - highlight', function () {
+
+    test('marks up keywords, calls and object keys', function () {
+        $html = JavaScriptHighlighter::highlight("const response = await fetch(url, {\n    headers: { Accept: 'application/json' },\n})");
+
+        expect($html)->toContain('<span class="fae-code-keyword">const</span>')
+            ->and($html)->toContain('<span class="fae-code-keyword">await</span>')
+            ->and($html)->toContain('<span class="fae-code-call">fetch</span>')
+            ->and($html)->toContain('<span class="fae-code-property">headers</span>')
+            ->and($html)->toContain('<span class="fae-code-string">&#039;application/json&#039;</span>');
+    });
+
+    test('reads a quoted key as a key', function () {
+        // A header name with a hyphen has to be quoted to be a valid key, and it
+        // is still a key rather than a string.
+        $html = JavaScriptHighlighter::highlight("{ 'X-Ability': 'orders:read' }");
+
+        expect($html)->toContain('<span class="fae-code-property">&#039;X-Ability&#039;</span>')
+            ->and($html)->toContain('<span class="fae-code-string">&#039;orders:read&#039;</span>');
+    });
+
+    test('marks up the credential interpolated into a template literal', function () {
+        $html = JavaScriptHighlighter::highlight('Authorization: `Bearer ${token}`,');
+
+        expect($html)->toContain(
+            '<span class="fae-code-template">`Bearer <span class="fae-code-variable">${token}</span>`</span>'
+        );
+    });
+
+    test('marks up a comment', function () {
+        expect(JavaScriptHighlighter::highlight('// the token is yours'))
+            ->toContain('<span class="fae-code-comment">// the token is yours</span>');
+    });
+});
+
+// ------------------------------------------------------------
+// SnippetHighlighter - highlight
+// ------------------------------------------------------------
+
+describe('SnippetHighlighter - highlight', function () {
+
+    test('reads a curl sample as a shell command', function () {
+        expect(SnippetHighlighter::highlight('curl -X POST', SnippetLanguage::Curl))
+            ->toContain('<span class="fae-code-keyword">-X</span>');
+    });
+
+    test('reads a PHP sample as PHP', function () {
+        expect(SnippetHighlighter::highlight('$response = Http::get($url);', SnippetLanguage::Php))
+            ->toContain('<span class="fae-code-variable">$response</span>');
+    });
+
+    test('reads a JavaScript sample as JavaScript', function () {
+        expect(SnippetHighlighter::highlight('const response = await fetch(url)', SnippetLanguage::JavaScript))
+            ->toContain('<span class="fae-code-keyword">const</span>');
+    });
+});

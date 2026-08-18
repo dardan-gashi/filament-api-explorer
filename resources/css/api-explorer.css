@@ -29,10 +29,13 @@
 	--fae-violet: #6d28d9;
 	--fae-violet-bg: rgb(124 58 237 / 0.12);
 
-	--fae-json-key: #0f172a;
-	--fae-json-string: #b45309;
-	--fae-json-number: #1d4ed8;
-	--fae-json-literal: #7c3aed;
+	--fae-code-property: #0f172a;
+	--fae-code-string: #b45309;
+	--fae-code-number: #1d4ed8;
+	--fae-code-keyword: #7c3aed;
+	--fae-code-call: #be185d;
+	--fae-code-variable: #0f766e;
+	--fae-code-comment: #64748b;
 
 	--fae-mono: var(--mono-font-family, ui-monospace), SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
@@ -73,10 +76,13 @@
 	--fae-violet: #c4b5fd;
 	--fae-violet-bg: rgb(167 139 250 / 0.14);
 
-	--fae-json-key: #e5e5e5;
-	--fae-json-string: #fbbf24;
-	--fae-json-number: #7dd3fc;
-	--fae-json-literal: #c4b5fd;
+	--fae-code-property: #e5e5e5;
+	--fae-code-string: #fbbf24;
+	--fae-code-number: #7dd3fc;
+	--fae-code-keyword: #c4b5fd;
+	--fae-code-call: #f9a8d4;
+	--fae-code-variable: #5eead4;
+	--fae-code-comment: #8f8f8f;
 }
 
 /* ---------------------------------------------------------------- layout */
@@ -829,20 +835,47 @@
 	white-space: pre-wrap;
 }
 
-.fae-json-key {
-	color: var(--fae-json-key);
+/*
+ | One set of token colours for every language on the page: a string is the same
+ | colour in a curl line, in a PHP sample and in a response body, because it is
+ | the same thing.
+ */
+.fae-code-property {
+	color: var(--fae-code-property);
 }
 
-.fae-json-string {
-	color: var(--fae-json-string);
+.fae-code-string,
+.fae-code-template {
+	color: var(--fae-code-string);
 }
 
-.fae-json-number {
-	color: var(--fae-json-number);
+.fae-code-number {
+	color: var(--fae-code-number);
 }
 
-.fae-json-literal {
-	color: var(--fae-json-literal);
+/*
+ | `true` and `null` are words of the language like `const` and `use`, so they are
+ | drawn like them.
+ */
+.fae-code-keyword,
+.fae-code-literal {
+	color: var(--fae-code-keyword);
+}
+
+.fae-code-call {
+	color: var(--fae-code-call);
+}
+
+/*
+ | The one token the reader has to act on: the credential a sample cannot know.
+ */
+.fae-code-variable {
+	color: var(--fae-code-variable);
+}
+
+.fae-code-comment {
+	color: var(--fae-code-comment);
+	font-style: italic;
 }
 
 .fae-button {

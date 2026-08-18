@@ -8,7 +8,6 @@ use DardanGashi\FilamentApiExplorer\Support\GroupLabel;
 use DardanGashi\FilamentApiExplorer\Support\HttpStatus;
 use DardanGashi\FilamentApiExplorer\Support\InlineMarkdown;
 use DardanGashi\FilamentApiExplorer\Support\InputKey;
-use DardanGashi\FilamentApiExplorer\Support\JsonHighlighter;
 use DardanGashi\FilamentApiExplorer\Support\PathParts;
 use DardanGashi\FilamentApiExplorer\Support\SecretHeaders;
 
@@ -16,8 +15,7 @@ use DardanGashi\FilamentApiExplorer\Support\SecretHeaders;
 // Support Helpers Test Suite
 // Sections: Documents::entries, Documents::string, GroupLabel::for, HttpStatus::color,
 //           InputKey::for, EndpointMeta::caption, EndpointMeta::icon,
-//           PathParts::sharedPrefix, PathParts::within,
-//           JsonHighlighter::highlight, InlineMarkdown::toHtml,
+//           PathParts::sharedPrefix, PathParts::within, InlineMarkdown::toHtml,
 //           SecretHeaders::isSecret, SecretHeaders::redact
 // ----------------------------------------------------------------------------------
 
@@ -226,37 +224,6 @@ describe('PathParts - within', function () {
 
     test('takes the path as it is when nothing is stated elsewhere', function () {
         expect(PathParts::within('/health', ''))->toBe('/health');
-    });
-});
-
-// ------------------------------------------------------------
-// JsonHighlighter - highlight
-// ------------------------------------------------------------
-
-describe('JsonHighlighter - highlight', function () {
-
-    test('marks up keys, strings, numbers and literals', function () {
-        $html = JsonHighlighter::highlight('{"code": "SUMMER10", "total": 42, "is_active": true}');
-
-        expect($html)->toContain('<span class="fae-json-key">&quot;code&quot;</span>')
-            ->and($html)->toContain('<span class="fae-json-string">&quot;SUMMER10&quot;</span>')
-            ->and($html)->toContain('<span class="fae-json-number">42</span>')
-            ->and($html)->toContain('<span class="fae-json-literal">true</span>');
-    });
-
-    test('escapes the payload it marks up', function () {
-        $html = JsonHighlighter::highlight('{"note": "<script>alert(1)</script>"}');
-
-        expect($html)->not->toContain('<script>')
-            ->and($html)->toContain('&lt;script&gt;');
-    });
-
-    test('escapes a payload it recognises nothing in', function () {
-        expect(JsonHighlighter::highlight('<b>plain</b>'))->toBe('&lt;b&gt;plain&lt;/b&gt;');
-    });
-
-    test('leaves an empty payload empty', function () {
-        expect(JsonHighlighter::highlight(''))->toBe('');
     });
 });
 
