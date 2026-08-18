@@ -189,6 +189,40 @@ describe('SpecParser - parseDocument', function () {
             ->toBe(['200', '304', '401', '422']);
     });
 
+    test('reads a description that is only a name as the name', function () {
+        // Scramble describes a response as `OrderDetailResource`, where OpenAPI wants
+        // a sentence. Left in the description it would be set as prose beside the
+        // `Not found` of the next response; as a name it lands where every other
+        // response carries its schema name.
+        $document = fixtureDocument();
+        $document['paths']['/courses']['get']['responses']['200'] = [
+            'description' => '`CourseListResource`',
+            'content' => ['application/json' => ['schema' => ['type' => 'object']]],
+        ];
+
+        $response = parser()->parseDocument('v2', $document)
+            ->find(Endpoint::keyFor(HttpMethod::Get, '/courses'))
+            ?->response('200');
+
+        expect($response?->schemaName)->toBe('CourseListResource')
+            ->and($response?->description)->toBeNull();
+    });
+
+    test('leaves a description that says something alone', function () {
+        $document = fixtureDocument();
+        $document['paths']['/courses']['get']['responses']['200'] = [
+            'description' => 'One page of `CourseResource` items.',
+            'content' => ['application/json' => ['schema' => ['type' => 'object']]],
+        ];
+
+        $response = parser()->parseDocument('v2', $document)
+            ->find(Endpoint::keyFor(HttpMethod::Get, '/courses'))
+            ?->response('200');
+
+        expect($response?->description)->toBe('One page of `CourseResource` items.')
+            ->and($response?->schemaName)->toBeNull();
+    });
+
     test('reads the schema name, media type and fields of a response', function () {
         $response = parser()->parseDocument('v2', fixtureDocument())
             ->find(Endpoint::keyFor(HttpMethod::Get, '/vouchers'))

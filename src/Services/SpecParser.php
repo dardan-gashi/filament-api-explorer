@@ -321,11 +321,23 @@ final class SpecParser
             [$mediaType, $content] = $this->preferredContent(Documents::map($response, 'content'));
             $schema = Documents::map($content, 'schema');
 
+            $schemaName = ReferenceResolver::nameOf($schema);
+            $description = Documents::string($response, 'description');
+
+            // A description that is nothing but a name is a name. Generators write
+            // one where OpenAPI wants a sentence — Scramble describes a response as
+            // `OrderDetailResource` — and it belongs in the slot every other
+            // response puts its schema name in, not in the one holding `Not found`.
+            if ($schemaName === null && $description !== null && preg_match('/^`([^`]+)`$/', $description, $matches) === 1) {
+                $schemaName = $matches[1];
+                $description = null;
+            }
+
             $definitions[] = new ResponseDefinition(
                 status: $status,
-                description: Documents::string($response, 'description'),
+                description: $description,
                 mediaType: $mediaType,
-                schemaName: ReferenceResolver::nameOf($schema),
+                schemaName: $schemaName,
                 fields: $schema === [] ? [] : $this->fields->rootFields($schema, $references),
                 headers: $this->responseHeaders(Documents::map($response, 'headers'), $references),
                 example: $content === [] ? null : $this->examples->forMediaType($content, $references),
