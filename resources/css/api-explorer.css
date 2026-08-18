@@ -126,20 +126,7 @@
 	padding-bottom: 0.375rem;
 }
 
-.fae-section-head .fae-meta-item {
-	align-items: center;
-	display: inline-flex;
-	gap: 0.25rem;
-}
-
-.fae-meta-icon {
-	color: var(--fae-text-faint);
-	flex-shrink: 0;
-	height: 0.875rem;
-	width: 0.875rem;
-}
-
-.fae-section-title {
+.fae-section-head .fae-section-title {
 	border-bottom: 0;
 	margin: 0;
 	padding-bottom: 0;
@@ -407,6 +394,21 @@
 	font-size: var(--fae-font-xs);
 	gap: 0.75rem;
 	margin-top: 0.5rem;
+}
+
+/* Icon and value read as one caption: the panel's reset draws an svg as a block,
+   so an inline row has to be laid out and cannot be left to the default. */
+.fae-meta-item {
+	align-items: center;
+	display: inline-flex;
+	gap: 0.25rem;
+}
+
+.fae-meta-icon {
+	color: var(--fae-text-faint);
+	flex-shrink: 0;
+	height: 0.875rem;
+	width: 0.875rem;
 }
 
 .fae-section-title {

@@ -24,6 +24,7 @@ final class EndpointMeta
         'handler' => 'heroicon-o-document-text',
         'rate-limit' => 'heroicon-o-clock',
         'since' => 'heroicon-o-bolt',
+        'abilities' => 'heroicon-o-key',
     ];
 
     public static function caption(string $key, string $value): string

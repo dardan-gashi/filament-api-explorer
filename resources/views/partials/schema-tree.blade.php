@@ -9,7 +9,7 @@
     $showRequired ??= false;
 @endphp
 
-<ul @class(['fae-tree', 'fae-tree-root' => $depth === 0])>
+<ul class="fae-tree">
     @foreach ($fields as $field)
         <li class="fae-field" @if ($field->hasChildren()) x-data="{ open: true }" @endif>
             <div class="fae-field-head">

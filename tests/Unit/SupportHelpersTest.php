@@ -153,7 +153,8 @@ describe('EndpointMeta - icon', function () {
     test('names an icon for the extensions it knows', function () {
         expect(EndpointMeta::icon('rate-limit'))->toBe('heroicon-o-clock')
             ->and(EndpointMeta::icon('handler'))->toBe('heroicon-o-document-text')
-            ->and(EndpointMeta::icon('since'))->toBe('heroicon-o-bolt');
+            ->and(EndpointMeta::icon('since'))->toBe('heroicon-o-bolt')
+            ->and(EndpointMeta::icon('abilities'))->toBe('heroicon-o-key');
     });
 
     test('leaves an extension it does not know without one', function () {
