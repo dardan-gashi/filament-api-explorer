@@ -143,6 +143,16 @@ describe('Stylesheet - Selectors', function () {
             ->toBe(['fae-response']);
     });
 
+    test('sets the row the keyboard is on apart from the surface it sits on', function () {
+        // It used to be one token away from the panel colour, which is a highlight
+        // nobody can see — and then the arrow keys look broken while they work.
+        preg_match('/\.fae-palette-result-active \{([^}]*)\}/', stylesheet(), $rule);
+
+        expect($rule[1] ?? '')->toContain('var(--fae-select)')
+            ->and($rule[1] ?? '')->toContain('var(--fae-accent)')
+            ->and($rule[1] ?? '')->not->toContain('var(--fae-panel');
+    });
+
     test('colours every token the highlighters emit', function () {
         // A token class with no rule behind it is drawn in the body colour, which
         // reads as a highlighter that failed to recognise it. The count pins the

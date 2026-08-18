@@ -205,6 +205,20 @@ describe('ApiExplorerPage - Render', function () {
             ->assertSee('lists vouchers with cursor pagination. vouchers');
     });
 
+    test('drives the palette from the keyboard', function () {
+        // What the keys do cannot be tested without a browser; that they are bound
+        // at all can. They sit on the dialog rather than on the input, because
+        // hovering a row moves the focus off the input and the arrows have to keep
+        // working when it has.
+        livewire(ApiExplorerPage::class)
+            ->assertSee('x-on:keydown.down.prevent="move(1)"', escape: false)
+            ->assertSee('x-on:keydown.up.prevent="move(-1)"', escape: false)
+            ->assertSee('x-on:keydown.enter.prevent="enter()"', escape: false)
+            ->assertSee('x-on:keydown.left="term === \'\' && out()"', escape: false)
+            ->assertSee('x-on:keydown.right="term === \'\' && deeper()"', escape: false)
+            ->assertSee('x-bind:data-active="index === active"', escape: false);
+    });
+
     test('marks an endpoint on its way out wherever it is listed', function () {
         // The question "which of these should I not build against" is asked of the
         // list, not of the endpoint somebody has already opened.

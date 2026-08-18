@@ -62,6 +62,17 @@
             const last = this.items.length - 1;
 
             this.active = Math.min(Math.max(this.active + by, 0), Math.max(last, 0));
+            this.reveal();
+        },
+
+        /**
+         * The box scrolls at 70vh, so the row the arrows moved to is regularly
+         * below the fold. Marking it is not enough — it has to be brought up.
+         */
+        reveal() {
+            this.$nextTick(() => this.$refs.results
+                ?.querySelector('[data-active="true"]')
+                ?.scrollIntoView({ block: 'nearest' }));
         },
 
         enter() {
@@ -84,6 +95,13 @@
             this.resource = group;
             this.active = 0;
             this.term = '';
+        },
+
+        /** One step in, and only where there is a level to go into. */
+        deeper() {
+            if (this.items[this.active]?.kind === 'resource') {
+                this.enter();
+            }
         },
 
         /** One step out: from a term to no term, from a resource to the resources. */
@@ -120,6 +138,13 @@
         x-cloak
         x-on:click.self="open = false"
         x-on:keydown.escape="open = false"
+        {{-- On the dialog rather than on the field: hovering a row moves the focus
+             off the input, and the arrows have to keep working when it has. --}}
+        x-on:keydown.down.prevent="move(1)"
+        x-on:keydown.up.prevent="move(-1)"
+        x-on:keydown.enter.prevent="enter()"
+        x-on:keydown.left="term === '' && out()"
+        x-on:keydown.right="term === '' && deeper()"
         role="dialog"
         aria-modal="true"
         aria-label="{{ __('filament-api-explorer::explorer.palette.trigger') }}"
@@ -141,19 +166,17 @@
                     class="fae-input fae-palette-input"
                     x-ref="term"
                     x-model="term"
-                    x-on:keydown.down.prevent="move(1)"
-                    x-on:keydown.up.prevent="move(-1)"
-                    x-on:keydown.enter.prevent="enter()"
-                    x-on:keydown.left="term === '' && out()"
+                    {{-- A narrower list can no longer hold the row that was active. --}}
+                    x-on:input="active = 0"
                     placeholder="{{ __('filament-api-explorer::explorer.palette.placeholder') }}"
                     aria-label="{{ __('filament-api-explorer::explorer.palette.placeholder') }}"
                     autocomplete="off"
                 >
             </div>
 
-            <ul class="fae-palette-results" role="listbox">
+            <ul class="fae-palette-results" role="listbox" x-ref="results">
                 <template x-for="(item, index) in items" x-bind:key="item.kind + (item.resource?.group ?? item.endpoint.key)">
-                    <li>
+                    <li x-bind:data-active="index === active">
                         {{-- A resource: its name, the path below it and how many
                              endpoints hang off it. --}}
                         <button

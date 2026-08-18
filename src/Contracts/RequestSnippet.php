@@ -12,7 +12,13 @@ use DardanGashi\FilamentApiExplorer\Enums\SnippetLanguage;
  */
 interface RequestSnippet
 {
+    /**
+     * The language this snippet renders in.
+     */
     public function language(): SnippetLanguage;
 
+    /**
+     * Render the request as source code.
+     */
     public function render(RequestBlueprint $blueprint): string;
 }
