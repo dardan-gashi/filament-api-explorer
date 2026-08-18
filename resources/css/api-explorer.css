@@ -505,7 +505,10 @@
 }
 
 .fae-chevron {
+	flex-shrink: 0;
 	height: 0.75rem;
+	max-height: 0.75rem;
+	max-width: 0.75rem;
 	transition: transform 120ms ease;
 	width: 0.75rem;
 }
@@ -536,9 +539,14 @@
 	font-size: 0.75rem;
 }
 
-.fae-field-description {
+/* Indented past the chevron slot, so the text lines up with the field name, and
+   set tight: a described field has to read as one row rather than as two. */
+.fae-field-description,
+.fae-field .fae-enum {
 	color: var(--fae-text-muted);
-	padding-left: 0.0625rem;
+	font-size: 0.75rem;
+	line-height: 1.35;
+	padding-left: 1.25rem;
 }
 
 /* ---------------------------------------------------------------- code */

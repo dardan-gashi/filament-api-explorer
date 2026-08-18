@@ -264,6 +264,14 @@ composer install
 composer check     # pint --test, phpstan level 8, pest
 ```
 
+Filament copies the stylesheet into the host application's `public/` directory, so
+after editing `resources/css/api-explorer.css` the copy has to be refreshed —
+otherwise the panel keeps serving the old one:
+
+```bash
+php artisan filament:assets
+```
+
 ## License
 
 MIT. See [LICENSE.md](LICENSE.md).
