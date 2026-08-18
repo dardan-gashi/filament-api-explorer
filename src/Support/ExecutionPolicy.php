@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace DardanGashi\FilamentApiExplorer\Support;
 
-use Illuminate\Support\Str;
 use DardanGashi\FilamentApiExplorer\Data\RequestBlueprint;
 use DardanGashi\FilamentApiExplorer\Exceptions\RequestNotAllowed;
+use Illuminate\Support\Str;
 
 /**
  * Decides whether the explorer may send a request.

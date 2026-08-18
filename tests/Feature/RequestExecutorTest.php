@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Http\Client\Factory as HttpFactory;
-use Illuminate\Http\Client\Request;
-use Illuminate\Support\Facades\Http;
 use DardanGashi\FilamentApiExplorer\Data\RequestBlueprint;
 use DardanGashi\FilamentApiExplorer\Enums\HttpMethod;
 use DardanGashi\FilamentApiExplorer\Exceptions\RequestNotAllowed;
 use DardanGashi\FilamentApiExplorer\Services\RequestExecutor;
 use DardanGashi\FilamentApiExplorer\Support\ExecutionPolicy;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Factory as HttpFactory;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
 
 // ----------------------------------------------------------------------------------
 // RequestExecutor Test Suite

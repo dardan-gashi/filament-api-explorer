@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace DardanGashi\FilamentApiExplorer\Services;
 
 use Carbon\CarbonImmutable;
-use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use DardanGashi\FilamentApiExplorer\Data\ApiSpec;
 use DardanGashi\FilamentApiExplorer\Exceptions\SpecUnavailable;
 use DardanGashi\FilamentApiExplorer\Sources\SpecSourceManager;
+use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use Throwable;
 
 /**

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace DardanGashi\FilamentApiExplorer\Services;
 
 use Carbon\CarbonImmutable;
-use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use DardanGashi\FilamentApiExplorer\Data\ExecutedRequest;
 use DardanGashi\FilamentApiExplorer\Data\ResponseSample;
 use DardanGashi\FilamentApiExplorer\Support\Documents;
+use Illuminate\Contracts\Cache\Factory as CacheFactory;
 
 /**
  * Keeps the responses the explorer has actually seen, so a real payload can

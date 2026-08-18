@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace DardanGashi\FilamentApiExplorer;
 
-use Illuminate\Contracts\Cache\Factory as CacheFactory;
-use Illuminate\Http\Client\Factory as HttpFactory;
-use Spatie\LaravelPackageTools\Package;
-use Spatie\LaravelPackageTools\PackageServiceProvider;
 use DardanGashi\FilamentApiExplorer\Services\EndpointNavigator;
 use DardanGashi\FilamentApiExplorer\Services\ExampleFactory;
 use DardanGashi\FilamentApiExplorer\Services\RequestBlueprintFactory;
@@ -25,6 +21,10 @@ use DardanGashi\FilamentApiExplorer\Snippets\PythonSnippet;
 use DardanGashi\FilamentApiExplorer\Sources\SpecSourceManager;
 use DardanGashi\FilamentApiExplorer\Support\Documents;
 use DardanGashi\FilamentApiExplorer\Support\ExecutionPolicy;
+use Illuminate\Contracts\Cache\Factory as CacheFactory;
+use Illuminate\Http\Client\Factory as HttpFactory;
+use Spatie\LaravelPackageTools\Package;
+use Spatie\LaravelPackageTools\PackageServiceProvider;
 
 final class ApiExplorerServiceProvider extends PackageServiceProvider
 {

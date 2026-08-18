@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace DardanGashi\FilamentApiExplorer\Data;
 
-use Livewire\Wireable;
 use DardanGashi\FilamentApiExplorer\Support\Documents;
 use DardanGashi\FilamentApiExplorer\Support\HttpStatus;
+use Livewire\Wireable;
 
 /**
  * The outcome of a live request sent from the explorer.

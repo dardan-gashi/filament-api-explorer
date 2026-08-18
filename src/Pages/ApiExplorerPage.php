@@ -4,13 +4,6 @@ declare(strict_types=1);
 
 namespace DardanGashi\FilamentApiExplorer\Pages;
 
-use Filament\Notifications\Notification;
-use Filament\Pages\Page;
-use Filament\Pages\PageConfiguration;
-use Filament\Support\Enums\Width;
-use Illuminate\Contracts\Support\Htmlable;
-use Illuminate\Support\Str;
-use Livewire\Attributes\Url;
 use DardanGashi\FilamentApiExplorer\ApiExplorerPlugin;
 use DardanGashi\FilamentApiExplorer\Data\ApiSpec;
 use DardanGashi\FilamentApiExplorer\Data\Endpoint;
@@ -30,6 +23,13 @@ use DardanGashi\FilamentApiExplorer\Services\SpecRepository;
 use DardanGashi\FilamentApiExplorer\Support\GroupLabel;
 use DardanGashi\FilamentApiExplorer\Support\InputKey;
 use DardanGashi\FilamentApiExplorer\Support\PathParts;
+use Filament\Notifications\Notification;
+use Filament\Pages\Page;
+use Filament\Pages\PageConfiguration;
+use Filament\Support\Enums\Width;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\Str;
+use Livewire\Attributes\Url;
 
 class ApiExplorerPage extends Page
 {

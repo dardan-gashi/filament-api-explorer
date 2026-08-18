@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace DardanGashi\FilamentApiExplorer\Services;
 
-use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Http\Client\Factory as HttpFactory;
 use DardanGashi\FilamentApiExplorer\Data\ExecutedRequest;
 use DardanGashi\FilamentApiExplorer\Data\RequestBlueprint;
 use DardanGashi\FilamentApiExplorer\Exceptions\RequestNotAllowed;
 use DardanGashi\FilamentApiExplorer\Support\ExecutionPolicy;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Factory as HttpFactory;
 
 /**
  * Sends a request the explorer built and reports what came back.

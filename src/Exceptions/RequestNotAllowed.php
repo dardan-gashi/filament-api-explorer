@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace DardanGashi\FilamentApiExplorer\Exceptions;
 
-use RuntimeException;
 use DardanGashi\FilamentApiExplorer\Enums\HttpMethod;
+use RuntimeException;
 
 /**
  * Thrown when the explorer refuses to send a request. Sending is deliberately

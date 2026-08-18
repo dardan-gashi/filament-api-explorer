@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace DardanGashi\FilamentApiExplorer\Tests\Fixtures;
 
+use DardanGashi\FilamentApiExplorer\ApiExplorerPlugin;
 use Filament\Panel;
 use Filament\PanelProvider;
-use DardanGashi\FilamentApiExplorer\ApiExplorerPlugin;
 
 final class TestPanelProvider extends PanelProvider
 {

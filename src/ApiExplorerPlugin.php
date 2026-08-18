@@ -6,12 +6,12 @@ namespace DardanGashi\FilamentApiExplorer;
 
 use BackedEnum;
 use Closure;
+use DardanGashi\FilamentApiExplorer\Pages\ApiExplorerPage;
 use Filament\Contracts\Plugin;
 use Filament\Facades\Filament;
 use Filament\Panel;
 use Filament\Support\Assets\Css;
 use Illuminate\Contracts\Support\Htmlable;
-use DardanGashi\FilamentApiExplorer\Pages\ApiExplorerPage;
 use Throwable;
 use UnitEnum;
 

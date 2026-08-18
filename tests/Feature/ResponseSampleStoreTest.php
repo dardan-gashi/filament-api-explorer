@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use Carbon\CarbonImmutable;
-use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use DardanGashi\FilamentApiExplorer\Data\ExecutedRequest;
 use DardanGashi\FilamentApiExplorer\Services\ResponseSampleStore;
+use Illuminate\Contracts\Cache\Factory as CacheFactory;
 
 // ----------------------------------------------------------------------------------
 // ResponseSampleStore Test Suite

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace DardanGashi\FilamentApiExplorer\Data;
 
-use Illuminate\Support\Str;
 use DardanGashi\FilamentApiExplorer\Enums\DocumentationGap;
 use DardanGashi\FilamentApiExplorer\Enums\HttpMethod;
 use DardanGashi\FilamentApiExplorer\Enums\ParameterLocation;
+use Illuminate\Support\Str;
 
 /**
  * A single operation of the API: one HTTP method on one path.

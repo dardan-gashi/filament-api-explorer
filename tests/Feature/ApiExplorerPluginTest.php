@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
+use DardanGashi\FilamentApiExplorer\ApiExplorerPlugin;
+use DardanGashi\FilamentApiExplorer\Pages\ApiExplorerPage;
 use Filament\Facades\Filament;
 use Filament\Pages\PageConfiguration;
 use Filament\Panel;
 use Filament\Support\Enums\Width;
 use Filament\Support\Facades\FilamentAsset;
-use DardanGashi\FilamentApiExplorer\ApiExplorerPlugin;
-use DardanGashi\FilamentApiExplorer\Pages\ApiExplorerPage;
 
 use function Pest\Livewire\livewire;
 

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-use Illuminate\Support\Facades\File;
 use DardanGashi\FilamentApiExplorer\Highlighting\HttpHighlighter;
 use DardanGashi\FilamentApiExplorer\Highlighting\JavaScriptHighlighter;
 use DardanGashi\FilamentApiExplorer\Highlighting\JsonHighlighter;
 use DardanGashi\FilamentApiExplorer\Highlighting\PhpHighlighter;
 use DardanGashi\FilamentApiExplorer\Highlighting\PythonHighlighter;
 use DardanGashi\FilamentApiExplorer\Highlighting\ShellHighlighter;
+use Illuminate\Support\Facades\File;
 use Symfony\Component\Finder\SplFileInfo;
 
 // ----------------------------------------------------------------------------------

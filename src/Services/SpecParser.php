@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace DardanGashi\FilamentApiExplorer\Services;
 
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Str;
 use DardanGashi\FilamentApiExplorer\Contracts\SpecSource;
 use DardanGashi\FilamentApiExplorer\Data\ApiSpec;
 use DardanGashi\FilamentApiExplorer\Data\Endpoint;
@@ -16,6 +15,7 @@ use DardanGashi\FilamentApiExplorer\Enums\HttpMethod;
 use DardanGashi\FilamentApiExplorer\Enums\ParameterLocation;
 use DardanGashi\FilamentApiExplorer\Support\Documents;
 use DardanGashi\FilamentApiExplorer\Support\ReferenceResolver;
+use Illuminate\Support\Str;
 
 /**
  * Turns a raw OpenAPI document into the value objects the explorer renders.

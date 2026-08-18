@@ -6,6 +6,8 @@ namespace DardanGashi\FilamentApiExplorer\Tests;
 
 use BladeUI\Heroicons\BladeHeroiconsServiceProvider;
 use BladeUI\Icons\BladeIconsServiceProvider;
+use DardanGashi\FilamentApiExplorer\ApiExplorerServiceProvider;
+use DardanGashi\FilamentApiExplorer\Tests\Fixtures\TestPanelProvider;
 use Filament\Actions\ActionsServiceProvider;
 use Filament\FilamentServiceProvider;
 use Filament\Forms\FormsServiceProvider;
@@ -19,8 +21,6 @@ use Illuminate\Foundation\Application;
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 use RyanChandler\BladeCaptureDirective\BladeCaptureDirectiveServiceProvider;
-use DardanGashi\FilamentApiExplorer\ApiExplorerServiceProvider;
-use DardanGashi\FilamentApiExplorer\Tests\Fixtures\TestPanelProvider;
 
 abstract class TestCase extends Orchestra
 {
