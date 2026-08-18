@@ -1,5 +1,5 @@
-<div class="fae-panel">
-    <div class="fae-code-head">
+<section class="fae-section">
+    <div class="fae-section-head">
         <div class="fae-tabs fae-tabs-inline" role="tablist">
             @foreach ($snippetLanguages as $language)
                 <button
@@ -18,4 +18,4 @@
     </div>
 
     <pre class="fae-code">{{ $snippet }}</pre>
-</div>
+</section>

@@ -1,14 +1,18 @@
 # Filament API Explorer
 
 An OpenAPI-driven API reference inside a Filament panel: browse endpoints grouped
-by tag, read response schemas as a searchable tree, copy a request sample in
-curl, PHP or JavaScript — and send a `GET` request to see the live response next
-to the documented one.
+by tag, read request and response schemas as a searchable tree, copy a request
+sample in curl, PHP or JavaScript — and send a `GET` request to see the live
+response next to the documented one.
+
+Responses you fetch are kept and shown as the endpoint's example, because a real
+payload documents an API and a skeleton built from its schema does not.
 
 The page also tells you what is *not* documented: every endpoint is checked for
-a missing explanation, a missing response, a response without a schema and
-parameters without a description. The header shows the documented share of the
-API, and the sidebar can be narrowed to the gaps.
+a missing explanation, a missing response, a response without a schema, a body
+it takes without documenting, and parameters without a description. The header
+shows the documented share of the API, and the sidebar can be narrowed to the
+gaps.
 
 ## Requirements
 
@@ -157,7 +161,6 @@ ApiExplorerPlugin::make()
     ->navigationSort(100)
     ->navigationBadge('coverage')          // count | coverage | version | null
     ->title('API Documentation')
-    ->description('Browse and try the available endpoints.')
     ->source('v2')                         // which source the page opens with
     ->fullWidth()
     ->requestSending()                     // allow live GET requests
@@ -196,6 +199,32 @@ Sending runs server-side, and it is restricted on purpose:
 Set `enabled` to `false`, or call `->requestSending(false)`, to make the page a
 pure reference.
 
+## Recorded examples
+
+An example built from a schema is correct and worthless: it says `"status":
+"string"` where the API says `"status": "paid"`. So every response the explorer
+receives is kept and shown in place of that skeleton, one sample per status —
+the `200` of an endpoint and its `422` describe different shapes and both are
+worth reading. A sample can be discarded from the page, and the next live
+request replaces it.
+
+Samples live in the cache, so a lost one costs nothing. What they hold is real
+response data, shown to everyone who can open the page, so switch capturing off
+where that is not acceptable:
+
+```php
+'examples' => [
+    'capture' => true,
+    'store' => null,      // cache store, null for the default
+    'ttl' => 86400,
+    'max_bytes' => 65536, // larger payloads are not kept
+],
+```
+
+An example the document declares itself is used when nothing has been recorded;
+a skeleton built from the schema comes last and arrives collapsed, labelled as
+the structure it is.
+
 ## Vendor extensions
 
 Any scalar `x-*` field on an operation is shown as a caption under the endpoint
@@ -224,10 +253,9 @@ picked up without anybody clearing a cache:
 
 ## Not yet included
 
-- **Request bodies.** `POST`, `PUT`, `PATCH` and `DELETE` endpoints are listed
-  and their parameters and responses are documented, but a request body schema is
-  not rendered yet, and those methods are never sent.
 - **Cookies** are documented but get no input in the request panel.
+- **Sending a body.** A request body is documented and rendered for every
+  method, but only safe methods are ever sent, so there is nothing to fill in.
 
 ## Development
 

@@ -236,7 +236,58 @@ describe('SpecParser - parseDocument', function () {
             ->toBe([DocumentationGap::Description, DocumentationGap::Responses])
             ->and($spec->find(Endpoint::keyFor(HttpMethod::Get, '/courses'))?->gaps())
             ->toBe([DocumentationGap::ResponseSchema, DocumentationGap::Parameters])
-            ->and($spec->coverage()->percentage())->toBe(71);
+            ->and($spec->coverage()->percentage())->toBe(57);
+    });
+
+    test('reads the body an operation expects', function () {
+        $body = parser()->parseDocument('v2', fixtureDocument())
+            ->find(Endpoint::keyFor(HttpMethod::Post, '/vouchers'))
+            ?->requestBody;
+
+        expect($body?->mediaType)->toBe('application/json')
+            ->and($body?->required)->toBeTrue()
+            ->and($body?->description)->toBe('The voucher to create.')
+            ->and(array_map(fn ($field): string => $field->name, $body?->fields ?? []))
+            ->toBe(['code', 'value', 'expires_at']);
+    });
+
+    test('reports a method that takes a body without documenting one', function () {
+        // The fixture's PATCH documents everything but what it expects to be sent,
+        // which is the one gap the coverage figure used to be blind to.
+        $spec = parser()->parseDocument('v2', fixtureDocument());
+
+        expect($spec->find(Endpoint::keyFor(HttpMethod::Patch, '/participants/{participant}'))?->gaps())
+            ->toBe([DocumentationGap::RequestBody])
+            ->and($spec->find(Endpoint::keyFor(HttpMethod::Delete, '/participants/{participant}'))?->gaps())
+            ->toBe([]);
+    });
+
+    test('marks a body example it had to build itself', function () {
+        $body = parser()->parseDocument('v2', fixtureDocument())
+            ->find(Endpoint::keyFor(HttpMethod::Post, '/vouchers'))
+            ?->requestBody;
+
+        expect($body?->exampleSynthesised)->toBeTrue()
+            ->and($body?->example)->toContain('"code": "string"');
+    });
+
+    test('separates a declared response example from one it synthesised', function () {
+        $endpoint = parser()->parseDocument('v2', fixtureDocument())
+            ->find(Endpoint::keyFor(HttpMethod::Get, '/vouchers'));
+
+        expect($endpoint?->response('200')?->exampleSynthesised)->toBeFalse()
+            ->and($endpoint?->response('401')?->exampleSynthesised)->toBeTrue();
+    });
+
+    test('names a security scheme after the mechanism, not after its own type', function () {
+        $document = fixtureDocument();
+        $document['components']['securitySchemes']['http'] = ['type' => 'http', 'scheme' => 'bearer'];
+
+        $spec = parser()->parseDocument('v2', $document);
+
+        expect($spec->securityLabel('sanctum'))->toBe('sanctum')
+            ->and($spec->securityLabel('http'))->toBe('bearer')
+            ->and($spec->securityLabel('unknown'))->toBe('unknown');
     });
 
     test('reads a deprecated operation', function () {

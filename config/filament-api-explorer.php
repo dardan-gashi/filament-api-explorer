@@ -44,6 +44,28 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Recorded response examples
+    |--------------------------------------------------------------------------
+    |
+    | An example built from a schema says "status": "string" where the API says
+    | "status": "paid" — correct, and of no use to anyone. So the explorer keeps
+    | the responses it actually receives and shows those instead, one per status.
+    |
+    | Be aware of what that means: a recorded sample is real response data, held
+    | in the cache and shown to everyone who can open the page. Set "capture" to
+    | false where that is not acceptable.
+    |
+    */
+
+    'examples' => [
+        'capture' => true,
+        'store' => null,
+        'ttl' => 86400,
+        'max_bytes' => 65536,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Schema rendering
     |--------------------------------------------------------------------------
     |
@@ -61,16 +83,15 @@ return [
     | Page
     |--------------------------------------------------------------------------
     |
-    | Leave "title" and "description" empty to fall back to the values in the
-    | document's info object. The page is kept out of production panels by
-    | default, because an API reference is usually an internal tool.
+    | Leave "title" empty to fall back to the title in the document's info
+    | object. The page is kept out of production panels by default, because an
+    | API reference is usually an internal tool.
     |
     */
 
     'page' => [
         'slug' => 'api-explorer',
         'title' => null,
-        'description' => null,
         'full_width' => true,
         'enabled_in_production' => false,
     ],

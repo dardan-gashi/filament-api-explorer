@@ -15,6 +15,8 @@ final readonly class ResponseDefinition
     /**
      * @param  list<SchemaField>  $fields
      * @param  list<Parameter>  $headers
+     * @param  bool  $exampleSynthesised  Whether the example was built from the schema
+     *                                    rather than declared by the document.
      */
     public function __construct(
         public string $status,
@@ -24,6 +26,7 @@ final readonly class ResponseDefinition
         public array $fields = [],
         public array $headers = [],
         public ?string $example = null,
+        public bool $exampleSynthesised = false,
     ) {}
 
     public function isSuccessful(): bool

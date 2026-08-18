@@ -1,19 +1,62 @@
-@foreach ($endpoint->responses as $response)
-    @continue (blank($response->example))
+@php
+    $hasCaptured = collect($exampleSections)->contains(fn (array $section): bool => $section['captured']);
+@endphp
 
-    <div class="fae-panel">
-        <div class="fae-code-head">
-            <div class="fae-response-title">
-                <span class="fae-badge fae-badge-{{ $response->color() }}">{{ $response->status }}</span>
+@foreach ($exampleSections as $section)
+    <section class="fae-section" wire:key="example-{{ $section['key'] }}" x-data="{ open: {{ $section['collapsed'] ? 'false' : 'true' }} }">
+        <div class="fae-section-head">
+            <button
+                type="button"
+                class="fae-section-toggle"
+                x-on:click="open = ! open"
+                x-bind:aria-expanded="open ? 'true' : 'false'"
+            >
+                <svg
+                    class="fae-chevron"
+                    x-bind:class="{ 'fae-chevron-open': open }"
+                    viewBox="0 0 12 12"
+                    aria-hidden="true"
+                >
+                    <path
+                        d="M4.25 2.5 7.75 6l-3.5 3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.6"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    />
+                </svg>
 
-                @if ($response->mediaType)
-                    <span class="fae-media-type">{{ $response->mediaType }}</span>
+                @if ($section['status'])
+                    <span class="fae-badge fae-badge-{{ $section['color'] }}">{{ $section['status'] }}</span>
                 @endif
-            </div>
 
-            @include('filament-api-explorer::partials.copy-button', ['value' => $response->example])
+                <span @class(['fae-example-origin', 'fae-example-origin-live' => $section['captured']])>
+                    {{ $section['origin'] }}
+                </span>
+            </button>
+
+            <div class="fae-section-actions">
+                @if ($section['captured'])
+                    <button
+                        type="button"
+                        class="fae-button fae-button-quiet"
+                        wire:click="discardSample(@js($section['status']))"
+                    >
+                        {{ __('filament-api-explorer::explorer.labels.discard_sample') }}
+                    </button>
+                @endif
+
+                @include('filament-api-explorer::partials.copy-button', ['value' => $section['body']])
+            </div>
         </div>
 
-        <pre class="fae-code">{!! \DardanGashi\FilamentApiExplorer\Support\JsonHighlighter::highlight($response->example) !!}</pre>
-    </div>
+        <pre class="fae-code" x-show="open">{!! \DardanGashi\FilamentApiExplorer\Support\JsonHighlighter::highlight($section['body']) !!}</pre>
+    </section>
 @endforeach
+
+@if ($captureEnabled && $canSend && ! $hasCaptured)
+    <section class="fae-section">
+        <p class="fae-note">{{ __('filament-api-explorer::explorer.notes.capture') }}</p>
+    </section>
+@endif

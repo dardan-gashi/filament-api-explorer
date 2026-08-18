@@ -3,14 +3,17 @@
 declare(strict_types=1);
 
 use DardanGashi\FilamentApiExplorer\Support\Documents;
+use DardanGashi\FilamentApiExplorer\Support\GroupLabel;
 use DardanGashi\FilamentApiExplorer\Support\HttpStatus;
 use DardanGashi\FilamentApiExplorer\Support\InputKey;
 use DardanGashi\FilamentApiExplorer\Support\JsonHighlighter;
+use DardanGashi\FilamentApiExplorer\Support\PathParts;
 use DardanGashi\FilamentApiExplorer\Support\SecretHeaders;
 
 // ----------------------------------------------------------------------------------
 // Support Helpers Test Suite
-// Sections: Documents::entries, Documents::string, HttpStatus::color, InputKey::for,
+// Sections: Documents::entries, Documents::string, GroupLabel::for, HttpStatus::color,
+//           InputKey::for, PathParts::split,
 //           JsonHighlighter::highlight, SecretHeaders::isSecret, SecretHeaders::redact
 // ----------------------------------------------------------------------------------
 
@@ -49,6 +52,30 @@ describe('Documents - string', function () {
         expect(Documents::string(['title' => ''], 'title'))->toBeNull()
             ->and(Documents::string([], 'title'))->toBeNull()
             ->and(Documents::string(['title' => ['nested']], 'title'))->toBeNull();
+    });
+});
+
+// ------------------------------------------------------------
+// GroupLabel - for
+// ------------------------------------------------------------
+
+describe('GroupLabel - for', function () {
+
+    test('reads a tag as a heading rather than as a class name', function (string $tag, string $expected) {
+        expect(GroupLabel::for($tag))->toBe($expected);
+    })->with([
+        // Generators tag operations with whatever handles them.
+        ['BookApi', 'Book Catalog'],
+        ['VoucherController', 'Voucher'],
+        ['OrderApiResource', 'Order Api'],
+        ['participants', 'Participants'],
+        ['shipping-zones', 'Shipping Zones'],
+        ['Vouchers', 'Vouchers'],
+    ]);
+
+    test('keeps a tag that is nothing but a suffix', function () {
+        expect(GroupLabel::for('API'))->toBe('API')
+            ->and(GroupLabel::for('Api'))->toBe('Api');
     });
 });
 
@@ -98,6 +125,26 @@ describe('InputKey - for', function () {
 
     test('still produces a key for a name made only of punctuation', function () {
         expect(InputKey::for('[]'))->toStartWith('value_');
+    });
+});
+
+// ------------------------------------------------------------
+// PathParts - split
+// ------------------------------------------------------------
+
+describe('PathParts - split', function () {
+
+    test('keeps the last segment out of the part that may be shortened', function () {
+        expect(PathParts::split('/physical-products/{physicalProduct}/variants'))
+            ->toBe(['head' => '/physical-products/{physicalProduct}/', 'tail' => 'variants']);
+    });
+
+    test('handles a single segment', function () {
+        expect(PathParts::split('/orders'))->toBe(['head' => '/', 'tail' => 'orders']);
+    });
+
+    test('handles a path with no separator at all', function () {
+        expect(PathParts::split('orders'))->toBe(['head' => '', 'tail' => 'orders']);
     });
 });
 

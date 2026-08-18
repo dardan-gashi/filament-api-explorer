@@ -1,8 +1,41 @@
-{{-- Renders one level of a schema and recurses into the children of each field. --}}
-<ul class="fae-tree">
+{{-- One level of a schema. Recurses into the children of each field, and draws
+     the connectors that say which field belongs to which. --}}
+@php
+    $depth ??= 0;
+@endphp
+
+<ul @class(['fae-tree', 'fae-tree-root' => $depth === 0])>
     @foreach ($fields as $field)
-        <li class="fae-field">
+        <li class="fae-field" @if ($field->hasChildren()) x-data="{ open: true }" @endif>
             <div class="fae-field-head">
+                @if ($field->hasChildren())
+                    <button
+                        type="button"
+                        class="fae-toggle"
+                        x-on:click="open = ! open"
+                        x-bind:aria-expanded="open ? 'true' : 'false'"
+                        aria-label="{{ __('filament-api-explorer::explorer.labels.toggle') }}"
+                    >
+                        <svg
+                            class="fae-chevron"
+                            x-bind:class="{ 'fae-chevron-open': open }"
+                            viewBox="0 0 12 12"
+                            aria-hidden="true"
+                        >
+                            <path
+                                d="M4.25 2.5 7.75 6l-3.5 3.5"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1.6"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            />
+                        </svg>
+                    </button>
+                @else
+                    <span class="fae-toggle fae-toggle-leaf" aria-hidden="true"></span>
+                @endif
+
                 <span @class(['fae-field-name', 'fae-field-name-deprecated' => $field->deprecated])>
                     {{ $field->name }}
                 </span>
@@ -15,14 +48,16 @@
                     <span class="fae-field-reference">{{ $field->reference }}</span>
                 @endif
 
+                {{-- Grey on purpose: nearly every field is required, so a coloured
+                     badge on each one turns the column into the thing you read. --}}
                 @if ($field->required)
-                    <span class="fae-badge fae-badge-info">
+                    <span class="fae-badge fae-badge-gray">
                         {{ __('filament-api-explorer::explorer.labels.required') }}
                     </span>
                 @endif
 
                 @if ($field->nullable)
-                    <span class="fae-badge fae-badge-gray">
+                    <span class="fae-badge fae-badge-info">
                         {{ __('filament-api-explorer::explorer.labels.nullable') }}
                     </span>
                 @endif
@@ -43,7 +78,12 @@
             @endif
 
             @if ($field->hasChildren())
-                @include('filament-api-explorer::partials.schema-tree', ['fields' => $field->children])
+                <div x-show="open">
+                    @include('filament-api-explorer::partials.schema-tree', [
+                        'fields' => $field->children,
+                        'depth' => $depth + 1,
+                    ])
+                </div>
             @endif
         </li>
     @endforeach

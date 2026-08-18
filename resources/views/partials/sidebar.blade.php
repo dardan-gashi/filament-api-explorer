@@ -1,8 +1,11 @@
 @php
+    use DardanGashi\FilamentApiExplorer\Support\GroupLabel;
+    use DardanGashi\FilamentApiExplorer\Support\PathParts;
+
     $pathPrefix = $spec->commonPathPrefix();
 @endphp
 
-<div class="fae-panel">
+<div class="fae-surface">
     <div class="fae-sidebar-search">
         <input
             type="search"
@@ -39,23 +42,30 @@
     </div>
 
     @forelse ($groups as $group => $groupEndpoints)
-        <div class="fae-group-label">{{ $group }}</div>
+        <div class="fae-group-label">{{ GroupLabel::for($group) }}</div>
 
         <ul class="fae-endpoint-list">
             @foreach ($groupEndpoints as $groupEndpoint)
+                @php
+                    $path = PathParts::split(\Illuminate\Support\Str::after($groupEndpoint->path, $pathPrefix));
+                @endphp
+
                 <li>
                     <button
                         type="button"
                         class="fae-endpoint-link"
                         aria-current="{{ $endpoint?->key === $groupEndpoint->key ? 'true' : 'false' }}"
+                        title="{{ $groupEndpoint->path }}"
                         wire:click="selectEndpoint(@js($groupEndpoint->key))"
                     >
                         <span class="fae-badge fae-badge-{{ $groupEndpoint->method->color() }} fae-method">
                             {{ $groupEndpoint->method->label() }}
                         </span>
 
+                        {{-- The head gives way, the last segment never does: that is
+                             where one endpoint differs from the next. --}}
                         <span class="fae-endpoint-path">
-                            {{ \Illuminate\Support\Str::after($groupEndpoint->path, $pathPrefix) }}
+                            <span class="fae-path-head">{{ $path['head'] }}</span><span class="fae-path-tail">{{ $path['tail'] }}</span>
                         </span>
 
                         @unless ($groupEndpoint->isDocumented())

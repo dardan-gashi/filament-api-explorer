@@ -29,6 +29,7 @@ final readonly class Endpoint
         public string $group = 'General',
         public array $security = [],
         public array $parameters = [],
+        public ?RequestBodyDefinition $requestBody = null,
         public array $responses = [],
         public bool $deprecated = false,
         public array $meta = [],
@@ -97,6 +98,17 @@ final readonly class Endpoint
     }
 
     /**
+     * The statuses this endpoint documents, which is what the sample store is
+     * asked for.
+     *
+     * @return list<string>
+     */
+    public function responseStatuses(): array
+    {
+        return array_map(fn (ResponseDefinition $response): string => $response->status, $this->responses);
+    }
+
+    /**
      * @return list<DocumentationGap>
      */
     public function gaps(): array
@@ -115,6 +127,10 @@ final readonly class Endpoint
 
         if ($this->hasUndescribedParameter()) {
             $gaps[] = DocumentationGap::Parameters;
+        }
+
+        if ($this->hasUndocumentedRequestBody()) {
+            $gaps[] = DocumentationGap::RequestBody;
         }
 
         return $gaps;
@@ -175,6 +191,20 @@ final readonly class Endpoint
      * read off a security scheme is not part of the document, so a missing
      * description on it says nothing about how well the API is documented.
      */
+    /**
+     * A method that carries a body has to document one, with a schema. Without
+     * this check the coverage figure would call a `POST` fully documented while
+     * saying nothing at all about what it expects to be sent.
+     */
+    private function hasUndocumentedRequestBody(): bool
+    {
+        if (! $this->method->carriesBody()) {
+            return false;
+        }
+
+        return $this->requestBody === null || ! $this->requestBody->hasFields();
+    }
+
     private function hasUndescribedParameter(): bool
     {
         foreach ($this->parameters as $parameter) {

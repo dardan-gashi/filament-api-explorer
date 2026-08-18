@@ -367,6 +367,38 @@
           "Vouchers"
         ],
         "summary": "Creates a voucher.",
+        "requestBody": {
+          "required": true,
+          "description": "The voucher to create.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "code",
+                  "value"
+                ],
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "description": "The code customers redeem.",
+                    "maxLength": 32
+                  },
+                  "value": {
+                    "type": "integer",
+                    "description": "The discount in cents."
+                  },
+                  "expires_at": {
+                    "type": "string",
+                    "format": "date",
+                    "nullable": true,
+                    "description": "When the voucher stops working."
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "The created voucher.",

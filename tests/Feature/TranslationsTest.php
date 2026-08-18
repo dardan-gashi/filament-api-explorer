@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use DardanGashi\FilamentApiExplorer\Data\Endpoint;
+use DardanGashi\FilamentApiExplorer\Enums\HttpMethod;
 use DardanGashi\FilamentApiExplorer\Pages\ApiExplorerPage;
 
 use function Pest\Livewire\livewire;
@@ -59,8 +61,17 @@ describe('Translations - Page', function () {
             ->assertSee('Query-Parameter')
             ->assertSee('Antworten')
             ->assertSee('Feld suchen')
-            ->assertSee('71 % dokumentiert')
+            ->assertSee('57 % dokumentiert')
             ->assertSee('Snapshot vom');
+    });
+
+    test('names the origin of an example in the panel locale', function () {
+        app()->setLocale('de');
+
+        livewire(ApiExplorerPage::class)
+            ->assertSee('Beispiel aus der Spezifikation')
+            ->assertSee('Nur die Struktur, keine echten Werte')
+            ->assertSee('Einmal senden');
     });
 
     test('names the gaps in the panel locale', function () {
@@ -69,7 +80,11 @@ describe('Translations - Page', function () {
         livewire(ApiExplorerPage::class)
             ->call('filterGaps', true)
             ->assertSee('Keine Zusammenfassung oder Beschreibung')
-            ->assertSee('Keine Antwort dokumentiert');
+            ->assertSee('Keine Antwort dokumentiert')
+            // A gap is named on the endpoint that has it, so the body gap needs the
+            // endpoint that takes a body without documenting one.
+            ->call('selectEndpoint', Endpoint::keyFor(HttpMethod::Patch, '/participants/{participant}'))
+            ->assertSee('Kein Anfrage-Body dokumentiert');
     });
 
     test('falls back to english for a locale it does not ship', function () {

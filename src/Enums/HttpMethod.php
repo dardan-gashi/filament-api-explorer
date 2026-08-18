@@ -54,6 +54,19 @@ enum HttpMethod: string
     }
 
     /**
+     * Whether a request of this method is expected to carry a body. This is what
+     * decides if a missing request body counts as a documentation gap: a `GET`
+     * without one is normal, a `POST` without one is undocumented.
+     */
+    public function carriesBody(): bool
+    {
+        return match ($this) {
+            self::Post, self::Put, self::Patch => true,
+            default => false,
+        };
+    }
+
+    /**
      * Resolve a method from any casing, e.g. an OpenAPI operation key or the
      * `GET` spelling used in a route listing.
      */

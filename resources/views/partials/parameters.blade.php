@@ -5,7 +5,7 @@
             <span class="fae-param-type">{{ $parameter->type }}</span>
 
             @if ($parameter->required)
-                <span class="fae-badge fae-badge-info">
+                <span class="fae-badge fae-badge-gray">
                     {{ __('filament-api-explorer::explorer.labels.required') }}
                 </span>
             @endif

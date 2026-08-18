@@ -12,6 +12,7 @@ use DardanGashi\FilamentApiExplorer\Services\EndpointNavigator;
 use DardanGashi\FilamentApiExplorer\Services\ExampleFactory;
 use DardanGashi\FilamentApiExplorer\Services\RequestBlueprintFactory;
 use DardanGashi\FilamentApiExplorer\Services\RequestExecutor;
+use DardanGashi\FilamentApiExplorer\Services\ResponseSampleStore;
 use DardanGashi\FilamentApiExplorer\Services\SchemaFieldFactory;
 use DardanGashi\FilamentApiExplorer\Services\SnippetRenderer;
 use DardanGashi\FilamentApiExplorer\Services\SpecParser;
@@ -83,6 +84,14 @@ final class ApiExplorerServiceProvider extends PackageServiceProvider
             http: $this->app->make(HttpFactory::class),
             policy: $this->app->make(ExecutionPolicy::class),
             timeout: $this->intConfig('execution.timeout', 10),
+        ));
+
+        $this->app->singleton(ResponseSampleStore::class, fn (): ResponseSampleStore => new ResponseSampleStore(
+            cache: $this->app->make(CacheFactory::class),
+            enabled: (bool) config('filament-api-explorer.examples.capture', true),
+            store: $this->stringConfig('examples.store'),
+            ttl: $this->intConfig('examples.ttl', 86400),
+            maxBytes: $this->intConfig('examples.max_bytes', 65536),
         ));
     }
 

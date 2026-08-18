@@ -104,7 +104,7 @@ describe('ApiExplorerPlugin - Navigation', function () {
     test('badges the documented share', function () {
         ApiExplorerPlugin::current()?->navigationBadge('coverage');
 
-        expect(ApiExplorerPage::getNavigationBadge())->toBe('71%');
+        expect(ApiExplorerPage::getNavigationBadge())->toBe('57%');
     });
 
     test('badges the api version', function () {
@@ -136,20 +136,21 @@ describe('ApiExplorerPlugin - Navigation', function () {
 
 describe('ApiExplorerPlugin - Page Options', function () {
 
-    test('falls back to the title and description of the document', function () {
-        livewire(ApiExplorerPage::class)
-            ->assertSee('Bookshop API')
-            ->assertSee('A catalogue and order API.');
+    test('falls back to the title of the document', function () {
+        livewire(ApiExplorerPage::class)->assertSee('Bookshop API');
     });
 
-    test('takes the title and description a panel sets', function () {
-        ApiExplorerPlugin::current()
-            ?->title('API Documentation')
-            ->description('Browse and try the available endpoints.');
+    test('takes the title a panel sets', function () {
+        ApiExplorerPlugin::current()?->title('API Documentation');
 
+        livewire(ApiExplorerPage::class)->assertSee('API Documentation');
+    });
+
+    test('explains nothing above the fold', function () {
+        // The document's own description used to be rendered as a subheading. On a
+        // page opened daily, two lines of prose are only ever in the way.
         livewire(ApiExplorerPage::class)
-            ->assertSee('API Documentation')
-            ->assertSee('Browse and try the available endpoints.');
+            ->assertDontSee('A catalogue and order API.');
     });
 
     test('uses the full page width by default and gives it up on request', function () {

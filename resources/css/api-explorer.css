@@ -87,46 +87,73 @@
 	}
 }
 
-.fae-panel {
+.fae-surface {
 	background: var(--fae-panel);
 	border: 1px solid var(--fae-border);
 	border-radius: 0.5rem;
 	overflow: hidden;
 }
 
-.fae-panel + .fae-panel {
-	margin-top: 0.75rem;
-}
-
-.fae-panel-body {
+/*
+ | One surface per column, and inside it nothing but sections: a label, the rule
+ | under it, the content. Boxing each section again would stack a container in a
+ | container for no information gained.
+ */
+.fae-section {
 	padding: 0.75rem 0.875rem;
 }
 
-.fae-stack > * + * {
-	margin-top: 0.75rem;
+.fae-section-head {
+	align-items: center;
+	border-bottom: 1px solid var(--fae-border);
+	display: flex;
+	gap: 0.5rem;
+	justify-content: space-between;
+	margin-bottom: 0.5rem;
+	padding-bottom: 0.375rem;
+}
+
+.fae-section-head .fae-section-title {
+	border-bottom: 0;
+	margin: 0;
+	padding-bottom: 0;
+}
+
+.fae-section-actions {
+	align-items: center;
+	display: flex;
+	flex-shrink: 0;
+	gap: 0.375rem;
+}
+
+.fae-section-toggle {
+	align-items: center;
+	background: transparent;
+	border: 0;
+	color: inherit;
+	cursor: pointer;
+	display: flex;
+	gap: 0.5rem;
+	min-width: 0;
+	padding: 0;
+	text-align: left;
 }
 
 /* ---------------------------------------------------------------- toolbar */
 
 .fae-toolbar {
+	align-items: center;
 	display: flex;
 	flex-wrap: wrap;
-	align-items: center;
-	justify-content: space-between;
 	gap: 0.5rem;
-	margin-bottom: 0.75rem;
+	justify-content: flex-end;
+	margin-bottom: 0.5rem;
 }
 
 .fae-toolbar-meta {
 	color: var(--fae-text-muted);
 	font-family: var(--fae-mono);
 	font-size: 0.75rem;
-}
-
-.fae-toolbar-actions {
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
 }
 
 .fae-select,
@@ -240,9 +267,14 @@
 .fae-group-label {
 	color: var(--fae-text-faint);
 	font-size: 0.6875rem;
-	letter-spacing: 0.04em;
+	font-weight: 600;
+	letter-spacing: 0.02em;
 	padding: 0.75rem 0.75rem 0.25rem;
-	text-transform: uppercase;
+}
+
+.fae-group-label-flush {
+	padding-left: 0;
+	padding-right: 0;
 }
 
 .fae-endpoint-list {
@@ -278,9 +310,19 @@
 }
 
 .fae-endpoint-path {
+	display: flex;
+	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.fae-path-head {
 	overflow: hidden;
 	text-overflow: ellipsis;
-	white-space: nowrap;
+}
+
+.fae-path-tail {
+	flex-shrink: 0;
 }
 
 .fae-gap-dot {
@@ -394,14 +436,43 @@
 	padding: 0;
 }
 
+/*
+ | Children hang off their parent on a drawn trunk, with a tee into every row and
+ | an elbow into the last one, so a wrapped row cannot be mistaken for a sibling.
+ */
 .fae-tree ul {
-	border-left: 1px solid var(--fae-border-strong);
-	margin-left: 0.5rem;
-	padding-left: 0.75rem;
+	margin-left: 0.4375rem;
+	padding-left: 0.875rem;
 }
 
 .fae-field {
 	padding: 0.1875rem 0;
+	position: relative;
+}
+
+.fae-tree ul > .fae-field::before,
+.fae-tree ul > .fae-field::after {
+	border-color: var(--fae-border-strong);
+	content: "";
+	position: absolute;
+	left: -0.875rem;
+}
+
+.fae-tree ul > .fae-field::before {
+	border-top: 1px solid var(--fae-border-strong);
+	top: 0.9em;
+	width: 0.5625rem;
+}
+
+.fae-tree ul > .fae-field::after {
+	border-left: 1px solid var(--fae-border-strong);
+	bottom: 0;
+	top: 0;
+}
+
+.fae-tree ul > .fae-field:last-child::after {
+	bottom: auto;
+	height: 0.9em;
 }
 
 .fae-field-head {
@@ -409,6 +480,38 @@
 	display: flex;
 	flex-wrap: wrap;
 	gap: 0.375rem;
+}
+
+.fae-toggle {
+	align-items: center;
+	background: transparent;
+	border: 0;
+	color: var(--fae-text-faint);
+	cursor: pointer;
+	display: inline-flex;
+	flex-shrink: 0;
+	height: 0.875rem;
+	justify-content: center;
+	padding: 0;
+	width: 0.875rem;
+}
+
+.fae-toggle:hover {
+	color: var(--fae-text);
+}
+
+.fae-toggle-leaf {
+	cursor: default;
+}
+
+.fae-chevron {
+	height: 0.75rem;
+	transition: transform 120ms ease;
+	width: 0.75rem;
+}
+
+.fae-chevron-open {
+	transform: rotate(90deg);
 }
 
 .fae-field-name {
@@ -440,25 +543,21 @@
 
 /* ---------------------------------------------------------------- code */
 
-.fae-code-head {
-	align-items: center;
-	background: var(--fae-panel-strong);
-	border-bottom: 1px solid var(--fae-border);
-	display: flex;
-	gap: 0.375rem;
-	justify-content: space-between;
-	padding: 0.375rem 0.5rem;
-}
-
+/*
+ | Samples wrap rather than scroll: a horizontal scrollbar hides the end of every
+ | line it appears on, and the end of a line is where a URL or a token sits.
+ */
 .fae-code {
+	background: var(--fae-bg);
+	border-radius: 0.375rem;
 	font-family: var(--fae-mono);
 	font-size: 0.75rem;
 	line-height: 1.55;
 	margin: 0;
-	overflow-x: auto;
-	padding: 0.75rem;
+	overflow-wrap: anywhere;
+	padding: 0.625rem 0.75rem;
 	tab-size: 2;
-	white-space: pre;
+	white-space: pre-wrap;
 }
 
 .fae-json-key {
@@ -517,12 +616,18 @@
 
 /* ---------------------------------------------------------------- responses */
 
+.fae-response + .fae-response {
+	border-top: 1px solid var(--fae-border);
+	margin-top: 0.5rem;
+	padding-top: 0.5rem;
+}
+
 .fae-response-head {
 	align-items: center;
 	display: flex;
 	gap: 0.5rem;
 	justify-content: space-between;
-	padding: 0.375rem 0;
+	padding: 0 0 0.25rem;
 }
 
 .fae-response-title {
@@ -599,6 +704,33 @@
 
 .fae-tabs-inline {
 	padding: 0;
+}
+
+.fae-example-origin {
+	color: var(--fae-text-muted);
+	font-size: 0.75rem;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* A recorded response is the real payload, so it is the one worth pointing at. */
+.fae-example-origin-live {
+	color: var(--fae-green);
+	font-weight: 600;
+}
+
+.fae-button-quiet {
+	border-color: transparent;
+}
+
+.fae-button-quiet:hover {
+	border-color: var(--fae-border-strong);
+}
+
+.fae-input-inline {
+	max-width: 11rem;
+	width: auto;
 }
 
 [x-cloak] {

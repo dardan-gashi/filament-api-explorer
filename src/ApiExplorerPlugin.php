@@ -42,8 +42,6 @@ final class ApiExplorerPlugin implements Plugin
 
     private ?string $title = null;
 
-    private ?string $description = null;
-
     private ?string $source = null;
 
     private ?bool $enabledInProduction = null;
@@ -149,13 +147,6 @@ final class ApiExplorerPlugin implements Plugin
         return $this;
     }
 
-    public function description(?string $description): static
-    {
-        $this->description = $description;
-
-        return $this;
-    }
-
     /**
      * Which configured source the page opens with.
      */
@@ -243,11 +234,6 @@ final class ApiExplorerPlugin implements Plugin
     public function getTitle(): ?string
     {
         return $this->title ?? $this->configString('page.title');
-    }
-
-    public function getDescription(): ?string
-    {
-        return $this->description ?? $this->configString('page.description');
     }
 
     public function getSource(): ?string

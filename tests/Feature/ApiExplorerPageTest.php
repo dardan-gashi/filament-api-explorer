@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use DardanGashi\FilamentApiExplorer\Data\Endpoint;
 use DardanGashi\FilamentApiExplorer\Enums\HttpMethod;
@@ -12,7 +13,7 @@ use function Pest\Livewire\livewire;
 
 // ----------------------------------------------------------------------------------
 // ApiExplorerPage Test Suite
-// Sections: Render, Endpoint Selection, Search, Gap Filter, Snippets, Sending
+// Sections: Render, Endpoint Selection, Search, Gap Filter, Snippets, Sending, Examples
 // ----------------------------------------------------------------------------------
 
 // ------------------------------------------------------------
@@ -37,8 +38,8 @@ describe('ApiExplorerPage - Render', function () {
     });
 
     test('shows the documented share of the api', function () {
-        // Five of the seven fixture endpoints are fully documented.
-        livewire(ApiExplorerPage::class)->assertSee('71 %');
+        // Four of the seven fixture endpoints are fully documented.
+        livewire(ApiExplorerPage::class)->assertSee('57 %');
     });
 
     test('renders the response schema of the selected endpoint', function () {
@@ -46,6 +47,37 @@ describe('ApiExplorerPage - Render', function () {
             ->assertSee('VoucherListResource')
             ->assertSee('next_cursor')
             ->assertSee('array&lt;object&gt;', escape: false);
+    });
+
+    test('renders the body an endpoint expects', function () {
+        livewire(ApiExplorerPage::class)
+            ->call('selectEndpoint', Endpoint::keyFor(HttpMethod::Post, '/vouchers'))
+            ->assertSee('Request body')
+            ->assertSee('The voucher to create.')
+            ->assertSee('The code customers redeem.');
+    });
+
+    test('reads a group heading as a heading, not as a class name', function () {
+        // The fixture tags with plain nouns; a generator would hand over
+        // `VoucherApi`, which must not reach the sidebar as it stands.
+        $document = fixtureDocument();
+        $document['paths']['/courses']['get']['tags'] = ['CourseApi'];
+
+        config()->set('filament-api-explorer.sources', [
+            'v2' => ['driver' => 'array', 'document' => $document],
+        ]);
+
+        livewire(ApiExplorerPage::class)
+            ->assertSee('Course')
+            ->assertDontSee('CourseApi');
+    });
+
+    test('names the security scheme the endpoint needs', function () {
+        livewire(ApiExplorerPage::class)->assertSee('sanctum');
+    });
+
+    test('offers a chevron on every field that has children', function () {
+        livewire(ApiExplorerPage::class)->assertSee('fae-chevron', escape: false);
     });
 
     test('renders the documented request headers and query parameters', function () {
@@ -200,6 +232,84 @@ describe('ApiExplorerPage - Snippets', function () {
         livewire(ApiExplorerPage::class)
             ->call('setSnippetLanguage', 'cobol')
             ->assertSet('snippetLanguage', 'curl');
+    });
+});
+
+// ------------------------------------------------------------
+// ApiExplorerPage - Examples
+// ------------------------------------------------------------
+
+describe('ApiExplorerPage - Examples', function () {
+
+    test('shows the example the document declares as such', function () {
+        livewire(ApiExplorerPage::class)
+            ->assertSee('Example from the specification')
+            ->assertSee('SUMMER10');
+    });
+
+    test('says when an example is only a shape it built itself', function () {
+        // The fixture's 401 carries a schema and no example, so the explorer has
+        // to admit that "message": "string" is not an example of anything.
+        livewire(ApiExplorerPage::class)->assertSee('Structure only, no real values');
+    });
+
+    test('replaces the example of that status with the response it received', function () {
+        Http::fake([
+            'api.bookshop.test/*' => Http::response(['data' => [['code' => 'REALCODE']]], 200),
+        ]);
+
+        // The 200 the fixture declares an example for gives way; the 422 keeps its
+        // own, because nothing has been recorded for it.
+        livewire(ApiExplorerPage::class)
+            ->call('send')
+            ->assertSee('Real response')
+            ->assertSee('REALCODE')
+            ->assertDontSee('9b4e2c1f-0000-4000-8000-000000000000')
+            ->assertSee('Invalid sort key.');
+    });
+
+    test('offers to drop a recorded response again', function () {
+        Http::fake(['api.bookshop.test/*' => Http::response(['data' => [['code' => 'REALCODE']]], 200)]);
+
+        livewire(ApiExplorerPage::class)
+            ->call('send')
+            ->assertSee('Real response')
+            ->call('discardSample', '200')
+            ->assertDontSee('Real response')
+            ->assertSee('9b4e2c1f-0000-4000-8000-000000000000');
+    });
+
+    test('records nothing when a request never arrives', function () {
+        Http::fake(['api.bookshop.test/*' => fn () => throw new ConnectionException('Connection refused.')]);
+
+        livewire(ApiExplorerPage::class)
+            ->call('send')
+            ->assertDontSee('Real response');
+    });
+
+    test('keeps recorded responses apart per endpoint', function () {
+        Http::fake(['api.bookshop.test/*' => Http::response(['data' => [['code' => 'REALCODE']]], 200)]);
+
+        livewire(ApiExplorerPage::class)
+            ->call('send')
+            ->call('selectEndpoint', Endpoint::keyFor(HttpMethod::Get, '/courses'))
+            ->assertDontSee('REALCODE');
+    });
+
+    test('records nothing while capturing is switched off', function () {
+        config()->set('filament-api-explorer.examples.capture', false);
+        Http::fake(['api.bookshop.test/*' => Http::response(['data' => [['code' => 'REALCODE']]], 200)]);
+
+        livewire(ApiExplorerPage::class)
+            ->call('send')
+            ->assertDontSee('Real response');
+    });
+
+    test('invites the first request while nothing has been recorded', function () {
+        livewire(ApiExplorerPage::class)
+            ->assertSee('Send it once')
+            ->call('selectEndpoint', Endpoint::keyFor(HttpMethod::Delete, '/participants/{participant}'))
+            ->assertDontSee('Send it once');
     });
 });
 

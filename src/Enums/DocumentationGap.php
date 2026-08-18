@@ -23,6 +23,9 @@ enum DocumentationGap: string
     /** At least one parameter is undescribed. */
     case Parameters = 'parameters';
 
+    /** The endpoint takes a body, but none is documented — or it has no schema. */
+    case RequestBody = 'request_body';
+
     public function translationKey(): string
     {
         return "filament-api-explorer::explorer.gaps.{$this->value}";

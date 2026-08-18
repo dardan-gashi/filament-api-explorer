@@ -29,6 +29,7 @@ return [
         'query' => 'Query-Parameter',
         'cookie' => 'Cookies',
         'request' => 'Anfrage',
+        'request_body' => 'Anfrage-Body',
         'responses' => 'Antworten',
         'response_headers' => 'Antwort-Header',
         'sender' => 'Anfrage senden',
@@ -50,6 +51,8 @@ return [
         'reset' => 'Zurücksetzen',
         'duration' => ':duration ms',
         'value' => 'Wert',
+        'toggle' => 'Ein- oder ausklappen',
+        'discard_sample' => 'Verwerfen',
     ],
 
     'gaps' => [
@@ -57,12 +60,13 @@ return [
         'responses' => 'Keine Antwort dokumentiert',
         'response_schema' => 'Erfolgsantwort ohne Schema',
         'parameters' => 'Parameter ohne Beschreibung',
+        'request_body' => 'Kein Anfrage-Body dokumentiert',
     ],
 
     'notes' => [
         'unsafe_method' => 'Der Explorer sendet nur GET-Anfragen, dieser Endpunkt ist daher nur lesbar.',
         'sending_disabled' => 'Das Senden von Anfragen ist für dieses Panel deaktiviert.',
-        'request_body' => 'Anfrage-Bodies sind noch nicht dokumentiert.',
+        'capture' => 'Einmal senden — die echte Antwort ersetzt hier das Struktur-Beispiel.',
     ],
 
     'empty' => [
@@ -72,6 +76,13 @@ return [
         'field_match' => 'Kein Feld passt.',
         'body' => 'Kein Body dokumentiert.',
         'parameters' => 'Keine Parameter dokumentiert.',
+    ],
+
+    'examples' => [
+        'captured' => 'Echte Antwort · :time',
+        'documented' => 'Beispiel aus der Spezifikation',
+        'synthesised' => 'Nur die Struktur, keine echten Werte',
+        'request' => 'Anfrage-Body',
     ],
 
     'notifications' => [

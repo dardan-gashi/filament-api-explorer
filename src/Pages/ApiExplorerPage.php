@@ -23,6 +23,7 @@ use DardanGashi\FilamentApiExplorer\Exceptions\SpecUnavailable;
 use DardanGashi\FilamentApiExplorer\Services\EndpointNavigator;
 use DardanGashi\FilamentApiExplorer\Services\RequestBlueprintFactory;
 use DardanGashi\FilamentApiExplorer\Services\RequestExecutor;
+use DardanGashi\FilamentApiExplorer\Services\ResponseSampleStore;
 use DardanGashi\FilamentApiExplorer\Services\SnippetRenderer;
 use DardanGashi\FilamentApiExplorer\Services\SpecRepository;
 use DardanGashi\FilamentApiExplorer\Support\InputKey;
@@ -101,12 +102,6 @@ class ApiExplorerPage extends Page
     {
         return $this->plugin()?->getTitle()
             ?? $this->spec()->title;
-    }
-
-    public function getSubheading(): string|Htmlable|null
-    {
-        return $this->plugin()?->getDescription()
-            ?? $this->spec()->description;
     }
 
     public function getMaxContentWidth(): Width|string|null
@@ -235,6 +230,23 @@ class ApiExplorerPage extends Page
                 ->title(__('filament-api-explorer::explorer.notifications.failed'))
                 ->body($this->result->error)
                 ->send();
+
+            return;
+        }
+
+        $this->samples()->remember($this->source ?? '', $endpoint->key, $this->result);
+    }
+
+    /**
+     * Drop a recorded response, which puts the documented or synthesised example
+     * back in its place.
+     */
+    public function discardSample(string $status): void
+    {
+        $endpoint = $this->currentEndpoint();
+
+        if ($endpoint !== null) {
+            $this->samples()->forget($this->source ?? '', $endpoint->key, $status);
         }
     }
 
@@ -287,6 +299,8 @@ class ApiExplorerPage extends Page
             'senderSections' => $endpoint === null ? [] : $this->senderSections($endpoint),
             'snippet' => $endpoint === null ? '' : $this->snippet($endpoint),
             'snippetLanguages' => app(SnippetRenderer::class)->languages(),
+            'exampleSections' => $endpoint === null ? [] : $this->exampleSections($endpoint),
+            'captureEnabled' => $this->samples()->isEnabled(),
             'canSend' => $this->canSend(),
             'sendingEnabled' => $this->plugin()?->allowsRequestSending() ?? true,
             'specError' => $this->specError,
@@ -361,6 +375,79 @@ class ApiExplorerPage extends Page
         }
 
         return $values;
+    }
+
+    /**
+     * The payloads shown beside an endpoint, best first.
+     *
+     * A response the explorer has actually seen beats one the document declares,
+     * and both beat a skeleton built from the schema — which says `"status":
+     * "string"` where the API says `"status": "paid"`. That skeleton is worth
+     * having as a shape reference and worth nothing as an example, so it arrives
+     * collapsed.
+     *
+     * @return list<array{key: string, status: string|null, color: string, origin: string, body: string, captured: bool, collapsed: bool}>
+     */
+    private function exampleSections(Endpoint $endpoint): array
+    {
+        $samples = $this->samples()->findMany(
+            $this->source ?? '',
+            $endpoint->key,
+            $endpoint->responseStatuses(),
+        );
+
+        $sections = [];
+        $body = $endpoint->requestBody;
+
+        if ($body !== null && $body->example !== null) {
+            $sections[] = [
+                'key' => 'request',
+                'status' => null,
+                'color' => 'gray',
+                'origin' => (string) __('filament-api-explorer::explorer.examples.request'),
+                'body' => $body->example,
+                'captured' => false,
+                'collapsed' => $body->exampleSynthesised,
+            ];
+        }
+
+        foreach ($endpoint->responses as $response) {
+            $sample = $samples[$response->status] ?? null;
+
+            if ($sample !== null) {
+                $sections[] = [
+                    'key' => $response->status,
+                    'status' => $response->status,
+                    'color' => $response->color(),
+                    'origin' => (string) __('filament-api-explorer::explorer.examples.captured', [
+                        'time' => $sample->capturedAt->diffForHumans(),
+                    ]),
+                    'body' => $sample->body,
+                    'captured' => true,
+                    'collapsed' => false,
+                ];
+
+                continue;
+            }
+
+            if ($response->example === null) {
+                continue;
+            }
+
+            $sections[] = [
+                'key' => $response->status,
+                'status' => $response->status,
+                'color' => $response->color(),
+                'origin' => (string) __($response->exampleSynthesised
+                    ? 'filament-api-explorer::explorer.examples.synthesised'
+                    : 'filament-api-explorer::explorer.examples.documented'),
+                'body' => $response->example,
+                'captured' => false,
+                'collapsed' => $response->exampleSynthesised,
+            ];
+        }
+
+        return $sections;
     }
 
     /**
@@ -503,6 +590,11 @@ class ApiExplorerPage extends Page
     private function plugin(): ?ApiExplorerPlugin
     {
         return ApiExplorerPlugin::current();
+    }
+
+    private function samples(): ResponseSampleStore
+    {
+        return app(ResponseSampleStore::class);
     }
 
     private function specs(): SpecRepository

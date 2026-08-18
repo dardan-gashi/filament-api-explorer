@@ -56,6 +56,24 @@ final class ExampleFactory
     }
 
     /**
+     * Whether the document declares an example itself, as opposed to leaving the
+     * factory to build one from the schema. A synthesised example describes a
+     * shape and nothing more, so the page says which kind it is showing.
+     *
+     * @param  array<string, mixed>  $mediaType
+     */
+    public function hasDocumentedExample(array $mediaType): bool
+    {
+        if (array_key_exists('example', $mediaType)) {
+            return true;
+        }
+
+        $first = Documents::first(Documents::map($mediaType, 'examples'));
+
+        return is_array($first) && array_key_exists('value', $first);
+    }
+
+    /**
      * A value that satisfies the schema.
      *
      * @param  array<string, mixed>  $schema

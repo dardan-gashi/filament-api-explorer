@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use DardanGashi\FilamentApiExplorer\Data\Endpoint;
 use DardanGashi\FilamentApiExplorer\Data\Parameter;
+use DardanGashi\FilamentApiExplorer\Data\RequestBodyDefinition;
 use DardanGashi\FilamentApiExplorer\Data\ResponseDefinition;
+use DardanGashi\FilamentApiExplorer\Data\SchemaField;
 use DardanGashi\FilamentApiExplorer\Enums\HttpMethod;
 use DardanGashi\FilamentApiExplorer\Services\ExampleFactory;
 use DardanGashi\FilamentApiExplorer\Services\SchemaFieldFactory;
@@ -54,6 +56,7 @@ function endpoint(
     string $group = 'Vouchers',
     array $parameters = [],
     array $responses = [],
+    ?RequestBodyDefinition $requestBody = null,
 ): Endpoint {
     return new Endpoint(
         key: Endpoint::keyFor($method, $path),
@@ -62,6 +65,20 @@ function endpoint(
         summary: $summary,
         group: $group,
         parameters: $parameters,
+        requestBody: $requestBody,
         responses: $responses,
+    );
+}
+
+/**
+ * A documented request body, for the methods that need one to count as
+ * documented at all.
+ */
+function requestBody(): RequestBodyDefinition
+{
+    return new RequestBodyDefinition(
+        mediaType: 'application/json',
+        fields: [new SchemaField(name: 'code', type: 'string')],
+        required: true,
     );
 }

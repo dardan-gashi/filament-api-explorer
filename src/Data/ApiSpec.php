@@ -15,6 +15,7 @@ final readonly class ApiSpec
      * @param  string  $name  The configured source key, e.g. `v2`.
      * @param  list<string>  $servers
      * @param  list<Endpoint>  $endpoints
+     * @param  array<string, string>  $securityLabels  Scheme name to the caption worth showing for it.
      * @param  CarbonImmutable|null  $generatedAt  When the document was written, shown as the snapshot time.
      */
     public function __construct(
@@ -24,6 +25,7 @@ final readonly class ApiSpec
         public ?string $description = null,
         public array $servers = [],
         public array $endpoints = [],
+        public array $securityLabels = [],
         public ?CarbonImmutable $generatedAt = null,
     ) {}
 
@@ -65,6 +67,16 @@ final readonly class ApiSpec
     public function defaultServer(): ?string
     {
         return $this->servers[0] ?? null;
+    }
+
+    /**
+     * What to call a security scheme on screen. Generators like to name a scheme
+     * after its own type — a scheme keyed `http` tells a reader nothing — so the
+     * parser works out a caption and this falls back to the key.
+     */
+    public function securityLabel(string $name): string
+    {
+        return $this->securityLabels[$name] ?? $name;
     }
 
     /**

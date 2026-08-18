@@ -10,6 +10,7 @@ use DardanGashi\FilamentApiExplorer\Contracts\SpecSource;
 use DardanGashi\FilamentApiExplorer\Data\ApiSpec;
 use DardanGashi\FilamentApiExplorer\Data\Endpoint;
 use DardanGashi\FilamentApiExplorer\Data\Parameter;
+use DardanGashi\FilamentApiExplorer\Data\RequestBodyDefinition;
 use DardanGashi\FilamentApiExplorer\Data\ResponseDefinition;
 use DardanGashi\FilamentApiExplorer\Enums\HttpMethod;
 use DardanGashi\FilamentApiExplorer\Enums\ParameterLocation;
@@ -53,6 +54,7 @@ final class SpecParser
             description: Documents::string($info, 'description'),
             servers: $this->servers($document),
             endpoints: $this->endpoints($document, $references),
+            securityLabels: $this->securityLabels($document),
             generatedAt: $generatedAt,
         );
     }
@@ -169,6 +171,7 @@ final class SpecParser
             group: $this->group($operation),
             security: $security,
             parameters: [...$this->authParameters($security, $schemes, $parameters), ...$parameters],
+            requestBody: $this->requestBody(Documents::map($operation, 'requestBody'), $references),
             responses: $this->responses(Documents::map($operation, 'responses'), $references),
             deprecated: Documents::isTrue($operation, 'deprecated'),
             meta: $this->meta($operation),
@@ -326,10 +329,66 @@ final class SpecParser
                 fields: $schema === [] ? [] : $this->fields->rootFields($schema, $references),
                 headers: $this->responseHeaders(Documents::map($response, 'headers'), $references),
                 example: $content === [] ? null : $this->examples->forMediaType($content, $references),
+                exampleSynthesised: $content !== [] && ! $this->examples->hasDocumentedExample($content),
             );
         }
 
         return $definitions;
+    }
+
+    /**
+     * The body an operation expects. Absent for the methods that take none, and
+     * for the ones that should take one but do not say so — which is what the
+     * request-body gap reports.
+     *
+     * @param  array<string, mixed>  $requestBody
+     */
+    private function requestBody(array $requestBody, ReferenceResolver $references): ?RequestBodyDefinition
+    {
+        if ($requestBody === []) {
+            return null;
+        }
+
+        $body = $references->resolve($requestBody);
+        [$mediaType, $content] = $this->preferredContent(Documents::map($body, 'content'));
+        $schema = Documents::map($content, 'schema');
+
+        return new RequestBodyDefinition(
+            mediaType: $mediaType,
+            schemaName: ReferenceResolver::nameOf($schema),
+            fields: $schema === [] ? [] : $this->fields->rootFields($schema, $references),
+            required: Documents::isTrue($body, 'required'),
+            description: Documents::string($body, 'description'),
+            example: $content === [] ? null : $this->examples->forMediaType($content, $references),
+            exampleSynthesised: $content !== [] && ! $this->examples->hasDocumentedExample($content),
+        );
+    }
+
+    /**
+     * A caption per security scheme. The key of a scheme is what a document uses
+     * to refer to it, and a good one names the mechanism — `sanctum`. Generators
+     * often key a scheme after its own type instead, and `http` is no caption at
+     * all, so in that case the scheme (`bearer`) or the header of an API key is
+     * the more useful label.
+     *
+     * @param  array<string, mixed>  $document
+     * @return array<string, string>
+     */
+    private function securityLabels(array $document): array
+    {
+        $schemes = Documents::map(Documents::map($document, 'components'), 'securitySchemes');
+        $labels = [];
+
+        foreach (Documents::entries($schemes) as [$name, $entry]) {
+            $scheme = Documents::toMap($entry);
+            $type = Documents::string($scheme, 'type') ?? '';
+
+            $labels[$name] = strcasecmp($name, $type) === 0
+                ? Documents::string($scheme, 'scheme') ?? Documents::string($scheme, 'name') ?? $name
+                : $name;
+        }
+
+        return $labels;
     }
 
     /**

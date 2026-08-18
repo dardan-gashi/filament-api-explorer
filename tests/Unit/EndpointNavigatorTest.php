@@ -27,7 +27,7 @@ function navigable(): ApiSpec
         title: 'Bookshop API',
         endpoints: [
             endpoint(path: '/vouchers', summary: 'Lists vouchers', group: 'Vouchers', responses: $documented),
-            endpoint(method: HttpMethod::Post, path: '/vouchers', summary: 'Creates a voucher', group: 'Vouchers', responses: $documented),
+            endpoint(method: HttpMethod::Post, path: '/vouchers', summary: 'Creates a voucher', group: 'Vouchers', responses: $documented, requestBody: requestBody()),
             endpoint(path: '/participants', summary: null, group: 'Participants'),
             endpoint(path: '/courses', summary: 'Lists courses', group: 'Courses', responses: $documented),
         ],

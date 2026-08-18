@@ -29,6 +29,7 @@ return [
         'query' => 'Query parameters',
         'cookie' => 'Cookies',
         'request' => 'Request',
+        'request_body' => 'Request body',
         'responses' => 'Responses',
         'response_headers' => 'Response headers',
         'sender' => 'Send request',
@@ -50,6 +51,8 @@ return [
         'reset' => 'Reset',
         'duration' => ':duration ms',
         'value' => 'Value',
+        'toggle' => 'Expand or collapse',
+        'discard_sample' => 'Discard',
     ],
 
     'gaps' => [
@@ -57,12 +60,13 @@ return [
         'responses' => 'No response documented',
         'response_schema' => 'Successful response without a schema',
         'parameters' => 'Parameters without a description',
+        'request_body' => 'No request body documented',
     ],
 
     'notes' => [
         'unsafe_method' => 'The explorer only sends GET requests, so this endpoint can be read but not tried.',
         'sending_disabled' => 'Sending requests is disabled for this panel.',
-        'request_body' => 'Request bodies are not documented yet.',
+        'capture' => 'Send it once — the real response replaces the structure example here.',
     ],
 
     'empty' => [
@@ -72,6 +76,13 @@ return [
         'field_match' => 'No field matches.',
         'body' => 'No body documented.',
         'parameters' => 'No parameters documented.',
+    ],
+
+    'examples' => [
+        'captured' => 'Real response · :time',
+        'documented' => 'Example from the specification',
+        'synthesised' => 'Structure only, no real values',
+        'request' => 'Request body',
     ],
 
     'notifications' => [
