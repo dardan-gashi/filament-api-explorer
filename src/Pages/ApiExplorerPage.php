@@ -306,6 +306,7 @@ class ApiExplorerPage extends Page
             'resources' => $resources = $this->resources($spec),
             // The resource the palette opens on: the one the reader is looking at.
             'openResource' => $endpoint?->group,
+            'paletteKey' => $this->paletteKey($endpoint),
             'siblings' => $endpoint === null ? [] : $this->siblings($resources, $endpoint),
             'resourceCaption' => $endpoint === null ? '' : $this->resourceCaption($resources, $endpoint),
             'endpoint' => $endpoint,
@@ -323,6 +324,25 @@ class ApiExplorerPage extends Page
             'sendingEnabled' => $this->plugin()?->allowsRequestSending() ?? true,
             'specError' => $this->specError,
         ];
+    }
+
+    /**
+     * The identity of the palette's copy of the navigation.
+     *
+     * The palette reads the whole structure once, when Alpine initialises it, and
+     * an attribute that changes afterwards is never read again — so a filtered
+     * structure would never reach a palette that is already on the page. A changed
+     * key is how Livewire is told that this is a different element, which makes it
+     * a new one, initialised from what the server sent this time.
+     */
+    private function paletteKey(?Endpoint $endpoint): string
+    {
+        return substr(md5(implode('|', [
+            $this->search,
+            (int) $this->onlyGaps,
+            // `??` covers the null itself, which makes a nullsafe arrow redundant.
+            $endpoint->group ?? '',
+        ])), 0, 8);
     }
 
     /**

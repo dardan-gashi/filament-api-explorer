@@ -281,6 +281,38 @@ describe('ApiExplorerPage - Endpoint Selection', function () {
             ->assertSee('The voucher code.');
     });
 
+    test('leaves the palette out of the diffing that would strip its rows', function () {
+        // The rows are written by Alpine from the structure it was handed, so they
+        // are in nobody's HTML. Livewire's diffing removes what the server did not
+        // send, and a list whose rows were removed under it stops answering clicks
+        // without anything failing anywhere. The dialog around them is left out for
+        // the same reason: the style that hides it is Alpine's, not the server's.
+        expect(livewire(ApiExplorerPage::class)->html())
+            ->toMatch('/<div[^>]*fae-palette-overlay[^>]*wire:ignore/');
+    });
+
+    test('hands the palette a new identity when the structure changes', function () {
+        // An attribute Alpine has already read is never read again, so a filtered
+        // structure only reaches the palette as a different element.
+        $arrival = livewire(ApiExplorerPage::class)->viewData('paletteKey');
+
+        $sameResource = livewire(ApiExplorerPage::class)
+            ->call('selectEndpoint', Endpoint::keyFor(HttpMethod::Get, '/vouchers/{code}'))
+            ->viewData('paletteKey');
+
+        $otherResource = livewire(ApiExplorerPage::class)
+            ->call('selectEndpoint', Endpoint::keyFor(HttpMethod::Get, '/courses'))
+            ->viewData('paletteKey');
+
+        $filtered = livewire(ApiExplorerPage::class)
+            ->call('filterGaps', true)
+            ->viewData('paletteKey');
+
+        expect($sameResource)->toBe($arrival)
+            ->and($otherResource)->not->toBe($arrival)
+            ->and($filtered)->not->toBe($arrival);
+    });
+
     test('ignores an endpoint that is not in the specification', function () {
         livewire(ApiExplorerPage::class)
             ->call('selectEndpoint', 'get-nope')

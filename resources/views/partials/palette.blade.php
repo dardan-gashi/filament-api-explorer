@@ -8,6 +8,9 @@
      from anywhere on the page. --}}
 <div
     class="fae-palette-root"
+    {{-- A new key means a new element, which is the only way a structure filtered
+         on the server reaches a palette that is already on the page. --}}
+    wire:key="palette-{{ $paletteKey }}"
     x-data="{
         open: false,
         term: '',
@@ -119,11 +122,12 @@
             this.active = 0;
         },
 
+        /**
+         * Which resource the palette stands in afterwards is the server's answer,
+         * not this one's: the page it renders next says which endpoint is open.
+         */
         choose(endpoint) {
             this.open = false;
-            this.resource = this.resources.find(
-                (resource) => resource.endpoints.some((candidate) => candidate.key === endpoint.key),
-            )?.group ?? null;
 
             $wire.selectEndpoint(endpoint.key);
         },
@@ -136,8 +140,16 @@
         <kbd class="fae-kbd">{{ __('filament-api-explorer::explorer.palette.shortcut') }}</kbd>
     </button>
 
+    {{-- Nothing in here is ever updated by the server: the structure arrives in
+         `x-data` and the captions are fixed, so a changed structure comes back as a
+         new element by the key above. What Livewire's diffing would do instead is
+         take out the rows Alpine wrote — they are in nobody's HTML, so they look
+         like leftovers — and hand back a list that answers no clicks while nothing
+         fails anywhere. The same diffing drops the inline style behind `x-show`,
+         which opens a closed dialog on an unrelated request. --}}
     <div
         class="fae-palette-overlay"
+        wire:ignore
         x-show="open"
         x-cloak
         x-on:click.self="open = false"
