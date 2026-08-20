@@ -22,7 +22,7 @@ pest()->extend(TestCase::class)->in('Feature', 'Unit');
  */
 function parser(int $maxDepth = 6): SpecParser
 {
-    return new SpecParser(new SchemaFieldFactory($maxDepth), new ExampleFactory($maxDepth));
+	return new SpecParser(new SchemaFieldFactory($maxDepth), new ExampleFactory($maxDepth));
 }
 
 /**
@@ -30,7 +30,7 @@ function parser(int $maxDepth = 6): SpecParser
  */
 function references(array $document = []): ReferenceResolver
 {
-    return new ReferenceResolver($document);
+	return new ReferenceResolver($document);
 }
 
 /**
@@ -41,8 +41,8 @@ function references(array $document = []): ReferenceResolver
  */
 function fixtureDocument(): array
 {
-    /** @var array<string, mixed> */
-    return json_decode((string) file_get_contents(__DIR__.'/Fixtures/openapi.json'), associative: true);
+	/** @var array<string, mixed> */
+	return json_decode((string) file_get_contents(__DIR__.'/Fixtures/openapi.json'), associative: true);
 }
 
 /**
@@ -50,24 +50,24 @@ function fixtureDocument(): array
  * @param  list<ResponseDefinition>  $responses
  */
 function endpoint(
-    HttpMethod $method = HttpMethod::Get,
-    string $path = '/api/v2/vouchers',
-    ?string $summary = 'Lists vouchers',
-    string $group = 'Vouchers',
-    array $parameters = [],
-    array $responses = [],
-    ?RequestBodyDefinition $requestBody = null,
+	HttpMethod $method = HttpMethod::Get,
+	string $path = '/api/v2/vouchers',
+	?string $summary = 'Lists vouchers',
+	string $group = 'Vouchers',
+	array $parameters = [],
+	array $responses = [],
+	?RequestBodyDefinition $requestBody = null,
 ): Endpoint {
-    return new Endpoint(
-        key: Endpoint::keyFor($method, $path),
-        method: $method,
-        path: $path,
-        summary: $summary,
-        group: $group,
-        parameters: $parameters,
-        requestBody: $requestBody,
-        responses: $responses,
-    );
+	return new Endpoint(
+		key: Endpoint::keyFor($method, $path),
+		method: $method,
+		path: $path,
+		summary: $summary,
+		group: $group,
+		parameters: $parameters,
+		requestBody: $requestBody,
+		responses: $responses,
+	);
 }
 
 /**
@@ -76,9 +76,9 @@ function endpoint(
  */
 function requestBody(): RequestBodyDefinition
 {
-    return new RequestBodyDefinition(
-        mediaType: 'application/json',
-        fields: [new SchemaField(name: 'code', type: 'string')],
-        required: true,
-    );
+	return new RequestBodyDefinition(
+		mediaType: 'application/json',
+		fields: [new SchemaField(name: 'code', type: 'string')],
+		required: true,
+	);
 }

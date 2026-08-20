@@ -19,65 +19,65 @@ namespace DardanGashi\FilamentApiExplorer\Highlighting;
  */
 final class Highlighter
 {
-    /**
-     * @param  string  $pattern  A pattern whose named groups are token classes.
-     * @param  array<string, string>  $inner  A pattern to mark up *inside* a token
-     *                                        of the named class. A shell expands a
-     *                                        variable inside double quotes, and
-     *                                        that is exactly where a sample carries
-     *                                        the credential the reader must replace.
-     */
-    public static function markUp(string $code, string $pattern, array $inner = []): string
-    {
-        if ($code === '') {
-            return '';
-        }
+	/**
+	 * @param  string  $pattern  A pattern whose named groups are token classes.
+	 * @param  array<string, string>  $inner  A pattern to mark up *inside* a token
+	 *                                        of the named class. A shell expands a
+	 *                                        variable inside double quotes, and
+	 *                                        that is exactly where a sample carries
+	 *                                        the credential the reader must replace.
+	 */
+	public static function markUp(string $code, string $pattern, array $inner = []): string
+	{
+		if ($code === '') {
+			return '';
+		}
 
-        $matched = preg_match_all($pattern, $code, $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER);
+		$matched = preg_match_all($pattern, $code, $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER);
 
-        if ($matched === false || $matched === 0) {
-            return e($code);
-        }
+		if ($matched === false || $matched === 0) {
+			return e($code);
+		}
 
-        $html = '';
-        $offset = 0;
+		$html = '';
+		$offset = 0;
 
-        foreach ($matches as $match) {
-            [$token, $position] = $match[0];
-            $class = self::classOf($match);
+		foreach ($matches as $match) {
+			[$token, $position] = $match[0];
+			$class = self::classOf($match);
 
-            $html .= e(substr($code, $offset, $position - $offset));
-            $html .= $class === null
-                ? e($token)
-                : self::span($class, $token, $inner[$class] ?? null);
+			$html .= e(substr($code, $offset, $position - $offset));
+			$html .= $class === null
+				? e($token)
+				: self::span($class, $token, $inner[$class] ?? null);
 
-            $offset = $position + strlen($token);
-        }
+			$offset = $position + strlen($token);
+		}
 
-        return $html.e(substr($code, $offset));
-    }
+		return $html.e(substr($code, $offset));
+	}
 
-    /**
-     * The named group that matched, which is the name of the token class. A
-     * group that did not take part reports an offset of -1.
-     *
-     * @param  array<array-key, array{0: string|null, 1: int}>  $match
-     */
-    private static function classOf(array $match): ?string
-    {
-        foreach ($match as $name => $capture) {
-            if (is_string($name) && $capture[1] !== -1) {
-                return $name;
-            }
-        }
+	/**
+	 * The named group that matched, which is the name of the token class. A
+	 * group that did not take part reports an offset of -1.
+	 *
+	 * @param  array<array-key, array{0: string|null, 1: int}>  $match
+	 */
+	private static function classOf(array $match): ?string
+	{
+		foreach ($match as $name => $capture) {
+			if (is_string($name) && $capture[1] !== -1) {
+				return $name;
+			}
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    private static function span(string $class, string $token, ?string $inner): string
-    {
-        $content = $inner === null ? e($token) : self::markUp($token, $inner);
+	private static function span(string $class, string $token, ?string $inner): string
+	{
+		$content = $inner === null ? e($token) : self::markUp($token, $inner);
 
-        return '<span class="fae-code-'.$class.'">'.$content.'</span>';
-    }
+		return '<span class="fae-code-'.$class.'">'.$content.'</span>';
+	}
 }

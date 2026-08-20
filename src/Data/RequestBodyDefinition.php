@@ -13,31 +13,31 @@ namespace DardanGashi\FilamentApiExplorer\Data;
  */
 final readonly class RequestBodyDefinition
 {
-    /**
-     * @param  list<SchemaField>  $fields
-     */
-    public function __construct(
-        public ?string $mediaType = null,
-        public ?string $schemaName = null,
-        public array $fields = [],
-        public bool $required = false,
-        public ?string $description = null,
-        public ?string $example = null,
-        public bool $exampleSynthesised = false,
-    ) {}
+	/**
+	 * @param  list<SchemaField>  $fields
+	 */
+	public function __construct(
+		public ?string $mediaType = null,
+		public ?string $schemaName = null,
+		public array $fields = [],
+		public bool $required = false,
+		public ?string $description = null,
+		public ?string $example = null,
+		public bool $exampleSynthesised = false,
+	) {}
 
-    public function hasFields(): bool
-    {
-        return $this->fields !== [];
-    }
+	public function hasFields(): bool
+	{
+		return $this->fields !== [];
+	}
 
-    /**
-     * The body fields narrowed to a search term.
-     *
-     * @return list<SchemaField>
-     */
-    public function filteredFields(?string $term): array
-    {
-        return SchemaField::filterAll($this->fields, $term);
-    }
+	/**
+	 * The body fields narrowed to a search term.
+	 *
+	 * @return list<SchemaField>
+	 */
+	public function filteredFields(?string $term): array
+	{
+		return SchemaField::filterAll($this->fields, $term);
+	}
 }

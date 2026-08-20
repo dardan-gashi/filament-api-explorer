@@ -15,34 +15,34 @@ use Illuminate\Support\Str;
  */
 final class GroupLabel
 {
-    /**
-     * Suffixes that name the implementation rather than the subject.
-     */
-    private const NOISE = ['Api', 'API', 'Controller', 'Resource'];
+	/**
+	 * Suffixes that name the implementation rather than the subject.
+	 */
+	private const NOISE = ['Api', 'API', 'Controller', 'Resource'];
 
-    public static function for(string $tag): string
-    {
-        $tag = trim($tag);
-        $subject = self::withoutNoise($tag);
+	public static function for(string $tag): string
+	{
+		$tag = trim($tag);
+		$subject = self::withoutNoise($tag);
 
-        // A tag that is *only* a suffix — a plain `API` — is already the best
-        // caption it has, and running an acronym through a headline would spell
-        // it out letter by letter.
-        return $subject === null ? $tag : Str::headline($subject);
-    }
+		// A tag that is *only* a suffix — a plain `API` — is already the best
+		// caption it has, and running an acronym through a headline would spell
+		// it out letter by letter.
+		return $subject === null ? $tag : Str::headline($subject);
+	}
 
-    private static function withoutNoise(string $tag): ?string
-    {
-        foreach (self::NOISE as $suffix) {
-            if (! str_ends_with($tag, $suffix)) {
-                continue;
-            }
+	private static function withoutNoise(string $tag): ?string
+	{
+		foreach (self::NOISE as $suffix) {
+			if (!str_ends_with($tag, $suffix)) {
+				continue;
+			}
 
-            $trimmed = rtrim(substr($tag, 0, -strlen($suffix)), '-_ ');
+			$trimmed = rtrim(substr($tag, 0, -strlen($suffix)), '-_ ');
 
-            return $trimmed === '' ? null : $trimmed;
-        }
+			return $trimmed === '' ? null : $trimmed;
+		}
 
-        return $tag;
-    }
+		return $tag;
+	}
 }

@@ -18,20 +18,20 @@ use function Pest\Livewire\livewire;
  */
 function translationKeys(string $locale): array
 {
-    /** @var array<string, mixed> $translations */
-    $translations = require __DIR__."/../../resources/lang/{$locale}/explorer.php";
+	/** @var array<string, mixed> $translations */
+	$translations = require __DIR__."/../../resources/lang/{$locale}/explorer.php";
 
-    $keys = [];
+	$keys = [];
 
-    foreach ($translations as $group => $entries) {
-        foreach (array_keys((array) $entries) as $key) {
-            $keys[] = "{$group}.{$key}";
-        }
-    }
+	foreach ($translations as $group => $entries) {
+		foreach (array_keys((array) $entries) as $key) {
+			$keys[] = "{$group}.{$key}";
+		}
+	}
 
-    sort($keys);
+	sort($keys);
 
-    return $keys;
+	return $keys;
 }
 
 // ------------------------------------------------------------
@@ -40,9 +40,9 @@ function translationKeys(string $locale): array
 
 describe('Translations - Locales', function () {
 
-    test('ships the same keys in every locale', function () {
-        expect(translationKeys('de'))->toBe(translationKeys('en'));
-    });
+	test('ships the same keys in every locale', function () {
+		expect(translationKeys('de'))->toBe(translationKeys('en'));
+	});
 });
 
 // ------------------------------------------------------------
@@ -51,49 +51,49 @@ describe('Translations - Locales', function () {
 
 describe('Translations - Page', function () {
 
-    test('renders the interface in the panel locale', function () {
-        app()->setLocale('de');
+	test('renders the interface in the panel locale', function () {
+		app()->setLocale('de');
 
-        livewire(ApiExplorerPage::class)
-            ->assertSee('Endpunkt suchen')
-            ->assertSee('Lücken')
-            ->assertSee('Anfrage-Header')
-            ->assertSee('Query-Parameter')
-            ->assertSee('Antworten')
-            ->assertSee('Feld suchen')
-            // A key in the wrong group resolves to nothing and renders as itself,
-            // which no assertion on the markup around it would notice.
-            ->assertSee('Blättern')
-            ->assertSee('Zurück')
-            ->assertSee('57 % dokumentiert')
-            ->assertSee('Snapshot vom');
-    });
+		livewire(ApiExplorerPage::class)
+			->assertSee('Endpunkt suchen')
+			->assertSee('Lücken')
+			->assertSee('Anfrage-Header')
+			->assertSee('Query-Parameter')
+			->assertSee('Antworten')
+			->assertSee('Feld suchen')
+			// A key in the wrong group resolves to nothing and renders as itself,
+			// which no assertion on the markup around it would notice.
+			->assertSee('Blättern')
+			->assertSee('Zurück')
+			->assertSee('57 % dokumentiert')
+			->assertSee('Snapshot vom');
+	});
 
-    test('names the origin of an example in the panel locale', function () {
-        app()->setLocale('de');
+	test('names the origin of an example in the panel locale', function () {
+		app()->setLocale('de');
 
-        livewire(ApiExplorerPage::class)
-            ->assertSee('Beispiel aus der Spezifikation')
-            ->assertSee('Nur die Struktur, keine echten Werte')
-            ->assertSee('Einmal senden');
-    });
+		livewire(ApiExplorerPage::class)
+			->assertSee('Beispiel aus der Spezifikation')
+			->assertSee('Nur die Struktur, keine echten Werte')
+			->assertSee('Einmal senden');
+	});
 
-    test('names the gaps in the panel locale', function () {
-        app()->setLocale('de');
+	test('names the gaps in the panel locale', function () {
+		app()->setLocale('de');
 
-        livewire(ApiExplorerPage::class)
-            ->call('filterGaps', true)
-            ->assertSee('Keine Zusammenfassung oder Beschreibung')
-            ->assertSee('Keine Antwort dokumentiert')
-            // A gap is named on the endpoint that has it, so the body gap needs the
-            // endpoint that takes a body without documenting one.
-            ->call('selectEndpoint', Endpoint::keyFor(HttpMethod::Patch, '/participants/{participant}'))
-            ->assertSee('Kein Anfrage-Body dokumentiert');
-    });
+		livewire(ApiExplorerPage::class)
+			->call('filterGaps', true)
+			->assertSee('Keine Zusammenfassung oder Beschreibung')
+			->assertSee('Keine Antwort dokumentiert')
+			// A gap is named on the endpoint that has it, so the body gap needs the
+			// endpoint that takes a body without documenting one.
+			->call('selectEndpoint', Endpoint::keyFor(HttpMethod::Patch, '/participants/{participant}'))
+			->assertSee('Kein Anfrage-Body dokumentiert');
+	});
 
-    test('falls back to english for a locale it does not ship', function () {
-        app()->setLocale('fr');
+	test('falls back to english for a locale it does not ship', function () {
+		app()->setLocale('fr');
 
-        livewire(ApiExplorerPage::class)->assertSee('Endpoint');
-    });
+		livewire(ApiExplorerPage::class)->assertSee('Endpoint');
+	});
 });

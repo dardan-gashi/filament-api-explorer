@@ -17,12 +17,12 @@ namespace DardanGashi\FilamentApiExplorer\Support;
  */
 final class InlineMarkdown
 {
-    public static function toHtml(?string $text): string
-    {
-        return (string) preg_replace(
-            '/`([^`]+)`/',
-            '<code class="fae-inline-code">$1</code>',
-            e((string) $text),
-        );
-    }
+	public static function toHtml(?string $text): string
+	{
+		return (string) preg_replace(
+			'/`([^`]+)`/',
+			'<code class="fae-inline-code">$1</code>',
+			e((string) $text),
+		);
+	}
 }

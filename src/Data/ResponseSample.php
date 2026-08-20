@@ -17,40 +17,40 @@ use DardanGashi\FilamentApiExplorer\Support\Documents;
  */
 final readonly class ResponseSample
 {
-    public function __construct(
-        public int $status,
-        public string $body,
-        public CarbonImmutable $capturedAt,
-    ) {}
+	public function __construct(
+		public int $status,
+		public string $body,
+		public CarbonImmutable $capturedAt,
+	) {}
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function toArray(): array
-    {
-        return [
-            'status' => $this->status,
-            'body' => $this->body,
-            'captured_at' => $this->capturedAt->toIso8601String(),
-        ];
-    }
+	/**
+	 * @return array<string, mixed>
+	 */
+	public function toArray(): array
+	{
+		return [
+			'status' => $this->status,
+			'body' => $this->body,
+			'captured_at' => $this->capturedAt->toIso8601String(),
+		];
+	}
 
-    /**
-     * @param  array<string, mixed>  $state
-     */
-    public static function fromArray(array $state): ?self
-    {
-        $body = Documents::string($state, 'body');
-        $capturedAt = Documents::string($state, 'captured_at');
+	/**
+	 * @param  array<string, mixed>  $state
+	 */
+	public static function fromArray(array $state): ?self
+	{
+		$body = Documents::string($state, 'body');
+		$capturedAt = Documents::string($state, 'captured_at');
 
-        if ($body === null || $capturedAt === null) {
-            return null;
-        }
+		if ($body === null || $capturedAt === null) {
+			return null;
+		}
 
-        return new self(
-            status: (int) (Documents::scalar($state, 'status') ?? 0),
-            body: $body,
-            capturedAt: CarbonImmutable::parse($capturedAt),
-        );
-    }
+		return new self(
+			status: (int) (Documents::scalar($state, 'status') ?? 0),
+			body: $body,
+			capturedAt: CarbonImmutable::parse($capturedAt),
+		);
+	}
 }

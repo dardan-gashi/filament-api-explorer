@@ -29,14 +29,14 @@ use DardanGashi\FilamentApiExplorer\Services\SnippetRenderer;
  */
 final class SnippetHighlighter
 {
-    public static function highlight(string $code, SnippetLanguage $language): string
-    {
-        return match ($language) {
-            SnippetLanguage::Curl => ShellHighlighter::highlight($code),
-            SnippetLanguage::Http => HttpHighlighter::highlight($code),
-            SnippetLanguage::Php => PhpHighlighter::highlight($code),
-            SnippetLanguage::JavaScript => JavaScriptHighlighter::highlight($code),
-            SnippetLanguage::Python => PythonHighlighter::highlight($code),
-        };
-    }
+	public static function highlight(string $code, SnippetLanguage $language): string
+	{
+		return match ($language) {
+			SnippetLanguage::Curl => ShellHighlighter::highlight($code),
+			SnippetLanguage::Http => HttpHighlighter::highlight($code),
+			SnippetLanguage::Php => PhpHighlighter::highlight($code),
+			SnippetLanguage::JavaScript => JavaScriptHighlighter::highlight($code),
+			SnippetLanguage::Python => PythonHighlighter::highlight($code),
+		};
+	}
 }

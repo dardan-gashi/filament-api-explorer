@@ -9,26 +9,26 @@ namespace DardanGashi\FilamentApiExplorer\Highlighting;
  */
 final class JsonHighlighter
 {
-    /**
-     * A string a colon follows is a key rather than a value.
-     */
-    private const PROPERTY = '(?P<property>"(?:\\\\.|[^"\\\\])*")(?=\s*:)';
+	/**
+	 * A string a colon follows is a key rather than a value.
+	 */
+	private const PROPERTY = '(?P<property>"(?:\\\\.|[^"\\\\])*")(?=\s*:)';
 
-    private const STRING = '(?P<string>"(?:\\\\.|[^"\\\\])*")';
+	private const STRING = '(?P<string>"(?:\\\\.|[^"\\\\])*")';
 
-    private const LITERAL = '(?P<literal>\b(?:true|false|null)\b)';
+	private const LITERAL = '(?P<literal>\b(?:true|false|null)\b)';
 
-    private const NUMBER = '(?P<number>-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)';
+	private const NUMBER = '(?P<number>-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)';
 
-    /**
-     * Anything the pattern does not name is punctuation or whitespace and is
-     * emitted unchanged. Strings come before numbers and literals, so a digit
-     * inside a string stays part of the string.
-     */
-    private const TOKENS = '/'.self::PROPERTY.'|'.self::STRING.'|'.self::LITERAL.'|'.self::NUMBER.'/';
+	/**
+	 * Anything the pattern does not name is punctuation or whitespace and is
+	 * emitted unchanged. Strings come before numbers and literals, so a digit
+	 * inside a string stays part of the string.
+	 */
+	private const TOKENS = '/'.self::PROPERTY.'|'.self::STRING.'|'.self::LITERAL.'|'.self::NUMBER.'/';
 
-    public static function highlight(string $json): string
-    {
-        return Highlighter::markUp($json, self::TOKENS);
-    }
+	public static function highlight(string $json): string
+	{
+		return Highlighter::markUp($json, self::TOKENS);
+	}
 }

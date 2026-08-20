@@ -13,62 +13,62 @@ use DardanGashi\FilamentApiExplorer\Enums\SnippetLanguage;
  */
 final class SnippetRenderer
 {
-    /**
-     * @var array<string, RequestSnippet>
-     */
-    private array $snippets = [];
+	/**
+	 * @var array<string, RequestSnippet>
+	 */
+	private array $snippets = [];
 
-    /**
-     * @param  iterable<RequestSnippet>  $snippets
-     */
-    public function __construct(iterable $snippets = [])
-    {
-        foreach ($snippets as $snippet) {
-            $this->register($snippet);
-        }
-    }
+	/**
+	 * @param  iterable<RequestSnippet>  $snippets
+	 */
+	public function __construct(iterable $snippets = [])
+	{
+		foreach ($snippets as $snippet) {
+			$this->register($snippet);
+		}
+	}
 
-    public function register(RequestSnippet $snippet): self
-    {
-        $this->snippets[$snippet->language()->value] = $snippet;
+	public function register(RequestSnippet $snippet): self
+	{
+		$this->snippets[$snippet->language()->value] = $snippet;
 
-        return $this;
-    }
+		return $this;
+	}
 
-    /**
-     * The languages available, in registration order.
-     *
-     * @return list<SnippetLanguage>
-     */
-    public function languages(): array
-    {
-        return array_values(array_map(
-            fn (RequestSnippet $snippet): SnippetLanguage => $snippet->language(),
-            $this->snippets,
-        ));
-    }
+	/**
+	 * The languages available, in registration order.
+	 *
+	 * @return list<SnippetLanguage>
+	 */
+	public function languages(): array
+	{
+		return array_values(array_map(
+			fn (RequestSnippet $snippet): SnippetLanguage => $snippet->language(),
+			$this->snippets,
+		));
+	}
 
-    public function supports(SnippetLanguage $language): bool
-    {
-        return isset($this->snippets[$language->value]);
-    }
+	public function supports(SnippetLanguage $language): bool
+	{
+		return isset($this->snippets[$language->value]);
+	}
 
-    public function render(SnippetLanguage $language, RequestBlueprint $blueprint): string
-    {
-        return ($this->snippets[$language->value] ?? null)?->render($blueprint) ?? '';
-    }
+	public function render(SnippetLanguage $language, RequestBlueprint $blueprint): string
+	{
+		return ($this->snippets[$language->value] ?? null)?->render($blueprint) ?? '';
+	}
 
-    /**
-     * @return array<string, string>
-     */
-    public function renderAll(RequestBlueprint $blueprint): array
-    {
-        $rendered = [];
+	/**
+	 * @return array<string, string>
+	 */
+	public function renderAll(RequestBlueprint $blueprint): array
+	{
+		$rendered = [];
 
-        foreach ($this->snippets as $key => $snippet) {
-            $rendered[$key] = $snippet->render($blueprint);
-        }
+		foreach ($this->snippets as $key => $snippet) {
+			$rendered[$key] = $snippet->render($blueprint);
+		}
 
-        return $rendered;
-    }
+		return $rendered;
+	}
 }

@@ -15,66 +15,66 @@ use Illuminate\Support\Str;
  */
 final class SecretHeaders
 {
-    /**
-     * @var list<string>
-     */
-    private const NAME_HINTS = [
-        'authorization',
-        'cookie',
-        'key',
-        'password',
-        'secret',
-        'signature',
-        'token',
-    ];
+	/**
+	 * @var list<string>
+	 */
+	private const NAME_HINTS = [
+		'authorization',
+		'cookie',
+		'key',
+		'password',
+		'secret',
+		'signature',
+		'token',
+	];
 
-    /**
-     * @var list<string>
-     */
-    private const AUTH_SCHEMES = ['Bearer', 'Basic', 'Digest'];
+	/**
+	 * @var list<string>
+	 */
+	private const AUTH_SCHEMES = ['Bearer', 'Basic', 'Digest'];
 
-    public static function isSecret(string $name): bool
-    {
-        $name = strtolower($name);
+	public static function isSecret(string $name): bool
+	{
+		$name = strtolower($name);
 
-        foreach (self::NAME_HINTS as $hint) {
-            if (str_contains($name, $hint)) {
-                return true;
-            }
-        }
+		foreach (self::NAME_HINTS as $hint) {
+			if (str_contains($name, $hint)) {
+				return true;
+			}
+		}
 
-        return false;
-    }
+		return false;
+	}
 
-    /**
-     * Swap the credential for a placeholder, keeping the auth scheme so the
-     * sample still shows the expected header shape.
-     */
-    public static function redact(string $value, string $placeholder): string
-    {
-        foreach (self::AUTH_SCHEMES as $scheme) {
-            if (Str::startsWith($value, $scheme.' ')) {
-                return $scheme.' '.$placeholder;
-            }
-        }
+	/**
+	 * Swap the credential for a placeholder, keeping the auth scheme so the
+	 * sample still shows the expected header shape.
+	 */
+	public static function redact(string $value, string $placeholder): string
+	{
+		foreach (self::AUTH_SCHEMES as $scheme) {
+			if (Str::startsWith($value, $scheme.' ')) {
+				return $scheme.' '.$placeholder;
+			}
+		}
 
-        return $placeholder;
-    }
+		return $placeholder;
+	}
 
-    /**
-     * @param  array<string, string>  $headers
-     * @return array<string, string>
-     */
-    public static function redactAll(array $headers, string $placeholder): array
-    {
-        $redacted = [];
+	/**
+	 * @param  array<string, string>  $headers
+	 * @return array<string, string>
+	 */
+	public static function redactAll(array $headers, string $placeholder): array
+	{
+		$redacted = [];
 
-        foreach ($headers as $name => $value) {
-            $redacted[$name] = self::isSecret($name)
-                ? self::redact($value, $placeholder)
-                : $value;
-        }
+		foreach ($headers as $name => $value) {
+			$redacted[$name] = self::isSecret($name)
+				? self::redact($value, $placeholder)
+				: $value;
+		}
 
-        return $redacted;
-    }
+		return $redacted;
+	}
 }

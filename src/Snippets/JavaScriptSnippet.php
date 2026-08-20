@@ -13,63 +13,63 @@ use DardanGashi\FilamentApiExplorer\Enums\SnippetLanguage;
  */
 final class JavaScriptSnippet extends Snippet
 {
-    public function language(): SnippetLanguage
-    {
-        return SnippetLanguage::JavaScript;
-    }
+	public function language(): SnippetLanguage
+	{
+		return SnippetLanguage::JavaScript;
+	}
 
-    protected function secretPlaceholder(): string
-    {
-        return '${token}';
-    }
+	protected function secretPlaceholder(): string
+	{
+		return '${token}';
+	}
 
-    protected function build(RequestBlueprint $blueprint): string
-    {
-        $lines = ['const url = new URL('.$this->quote($blueprint->url).')'];
+	protected function build(RequestBlueprint $blueprint): string
+	{
+		$lines = ['const url = new URL('.$this->quote($blueprint->url).')'];
 
-        if ($blueprint->query !== []) {
-            $lines[] = '';
-            $lines[] = 'url.search = new URLSearchParams({';
+		if ($blueprint->query !== []) {
+			$lines[] = '';
+			$lines[] = 'url.search = new URLSearchParams({';
 
-            foreach ($blueprint->query as $name => $value) {
-                $lines[] = '    '.$this->key($name).': '.$this->quote($value).',';
-            }
+			foreach ($blueprint->query as $name => $value) {
+				$lines[] = '    '.$this->key($name).': '.$this->quote($value).',';
+			}
 
-            $lines[] = '}).toString()';
-        }
+			$lines[] = '}).toString()';
+		}
 
-        $headers = $this->headerEntries($blueprint);
-        $lines[] = '';
+		$headers = $this->headerEntries($blueprint);
+		$lines[] = '';
 
-        if ($headers === []) {
-            $lines[] = 'const response = await fetch(url)';
-        } else {
-            $lines[] = 'const response = await fetch(url, {';
-            $lines[] = '    headers: {';
+		if ($headers === []) {
+			$lines[] = 'const response = await fetch(url)';
+		} else {
+			$lines[] = 'const response = await fetch(url, {';
+			$lines[] = '    headers: {';
 
-            foreach ($headers as $header) {
-                $value = $header['secret']
-                    ? '`'.$header['value'].'`'
-                    : $this->quote($header['value']);
+			foreach ($headers as $header) {
+				$value = $header['secret']
+					? '`'.$header['value'].'`'
+					: $this->quote($header['value']);
 
-                $lines[] = '        '.$this->key($header['name']).': '.$value.',';
-            }
+				$lines[] = '        '.$this->key($header['name']).': '.$value.',';
+			}
 
-            $lines[] = '    },';
-            $lines[] = '})';
-        }
+			$lines[] = '    },';
+			$lines[] = '})';
+		}
 
-        return $this->lines([...$lines, '', 'const data = await response.json()']);
-    }
+		return $this->lines([...$lines, '', 'const data = await response.json()']);
+	}
 
-    /**
-     * Object keys stay unquoted while they are valid identifiers, which is how
-     * the sample reads in idiomatic JavaScript.
-     */
-    private function key(string $name): string
-    {
-        return preg_match('/^[A-Za-z_$][A-Za-z0-9_$]*$/', $name) === 1
-            ? $name
-            : $this->quote($name);
-    }
+	/**
+	 * Object keys stay unquoted while they are valid identifiers, which is how
+	 * the sample reads in idiomatic JavaScript.
+	 */
+	private function key(string $name): string
+	{
+		return preg_match('/^[A-Za-z_$][A-Za-z0-9_$]*$/', $name) === 1
+			? $name
+			: $this->quote($name);
+	}
 }

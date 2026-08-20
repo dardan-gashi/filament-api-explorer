@@ -1,7 +1,5 @@
 <x-filament-panels::page>
 	<div class="fae">
-		{{-- Without a document there is nothing to search, nothing to filter and no
-		     share to report, so the toolbar keeps only the way to another source. --}}
 		@if (! $specError || count($sourceNames) > 1)
 			<div class="fae-toolbar">
 				@unless ($specError)
@@ -61,8 +59,6 @@
 		@endif
 
 		@if ($specError)
-			{{-- One state, saying what is missing, why, and what to do about it.
-			     Asking somebody to pick an endpoint is not one of those things. --}}
 			<div class="fae-surface">
 				<div class="fae-state">
 					@include('filament-api-explorer::partials.icon', [
@@ -77,8 +73,6 @@
 						{{ __('filament-api-explorer::explorer.empty.spec_source', ['name' => $spec->name]) }}
 					</p>
 
-					{{-- The reason as the machine put it. It names the path, and the path
-					     is what the reader has to go and look at. --}}
 					<pre class="fae-code fae-state-reason">{{ $specError }}</pre>
 
 					<p class="fae-state-text">{{ __('filament-api-explorer::explorer.empty.spec_hint') }}</p>

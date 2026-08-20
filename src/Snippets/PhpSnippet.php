@@ -13,49 +13,49 @@ use DardanGashi\FilamentApiExplorer\Enums\SnippetLanguage;
  */
 final class PhpSnippet extends Snippet
 {
-    public function language(): SnippetLanguage
-    {
-        return SnippetLanguage::Php;
-    }
+	public function language(): SnippetLanguage
+	{
+		return SnippetLanguage::Php;
+	}
 
-    protected function secretPlaceholder(): string
-    {
-        return '$token';
-    }
+	protected function secretPlaceholder(): string
+	{
+		return '$token';
+	}
 
-    protected function build(RequestBlueprint $blueprint): string
-    {
-        $lines = ['use Illuminate\Support\Facades\Http;', ''];
-        $headers = $this->headerEntries($blueprint);
+	protected function build(RequestBlueprint $blueprint): string
+	{
+		$lines = ['use Illuminate\Support\Facades\Http;', ''];
+		$headers = $this->headerEntries($blueprint);
 
-        if ($headers === []) {
-            $lines[] = '$response = Http::'.$blueprint->method->value.'(';
-        } else {
-            $lines[] = '$response = Http::withHeaders([';
+		if ($headers === []) {
+			$lines[] = '$response = Http::'.$blueprint->method->value.'(';
+		} else {
+			$lines[] = '$response = Http::withHeaders([';
 
-            foreach ($headers as $header) {
-                $value = $header['secret']
-                    ? '"'.$header['value'].'"'
-                    : $this->quote($header['value']);
+			foreach ($headers as $header) {
+				$value = $header['secret']
+					? '"'.$header['value'].'"'
+					: $this->quote($header['value']);
 
-                $lines[] = '    '.$this->quote($header['name']).' => '.$value.',';
-            }
+				$lines[] = '    '.$this->quote($header['name']).' => '.$value.',';
+			}
 
-            $lines[] = '])->'.$blueprint->method->value.'(';
-        }
+			$lines[] = '])->'.$blueprint->method->value.'(';
+		}
 
-        $lines[] = '    '.$this->quote($blueprint->url).($blueprint->query === [] ? ',' : ', [');
+		$lines[] = '    '.$this->quote($blueprint->url).($blueprint->query === [] ? ',' : ', [');
 
-        foreach ($blueprint->query as $name => $value) {
-            $lines[] = '        '.$this->quote($name).' => '.$this->quote($value).',';
-        }
+		foreach ($blueprint->query as $name => $value) {
+			$lines[] = '        '.$this->quote($name).' => '.$this->quote($value).',';
+		}
 
-        if ($blueprint->query !== []) {
-            $lines[] = '    ],';
-        }
+		if ($blueprint->query !== []) {
+			$lines[] = '    ],';
+		}
 
-        $lines[] = ');';
+		$lines[] = ');';
 
-        return $this->lines([...$lines, '', '$data = $response->json();']);
-    }
+		return $this->lines([...$lines, '', '$data = $response->json();']);
+	}
 }

@@ -14,10 +14,10 @@ namespace DardanGashi\FilamentApiExplorer\Support;
  */
 final class InputKey
 {
-    public static function for(string $name): string
-    {
-        $flattened = trim((string) preg_replace('/[^A-Za-z0-9_]+/', '_', $name), '_');
+	public static function for(string $name): string
+	{
+		$flattened = trim((string) preg_replace('/[^A-Za-z0-9_]+/', '_', $name), '_');
 
-        return ($flattened === '' ? 'value' : $flattened).'_'.substr(md5($name), 0, 6);
-    }
+		return ($flattened === '' ? 'value' : $flattened).'_'.substr(md5($name), 0, 6);
+	}
 }

@@ -13,128 +13,128 @@ namespace DardanGashi\FilamentApiExplorer\Support;
  */
 final class Documents
 {
-    /**
-     * @return array<string, mixed>
-     */
-    public static function toMap(mixed $value): array
-    {
-        if (! is_array($value)) {
-            return [];
-        }
+	/**
+	 * @return array<string, mixed>
+	 */
+	public static function toMap(mixed $value): array
+	{
+		if (!is_array($value)) {
+			return [];
+		}
 
-        $map = [];
+		$map = [];
 
-        foreach ($value as $key => $item) {
-            $map[(string) $key] = $item;
-        }
+		foreach ($value as $key => $item) {
+			$map[(string) $key] = $item;
+		}
 
-        return $map;
-    }
+		return $map;
+	}
 
-    /**
-     * @return list<mixed>
-     */
-    public static function toList(mixed $value): array
-    {
-        return is_array($value) ? array_values($value) : [];
-    }
+	/**
+	 * @return list<mixed>
+	 */
+	public static function toList(mixed $value): array
+	{
+		return is_array($value) ? array_values($value) : [];
+	}
 
-    /**
-     * The map stored under a key, e.g. the `info` object of a document.
-     *
-     * @param  array<string, mixed>  $source
-     * @return array<string, mixed>
-     */
-    public static function map(array $source, string $key): array
-    {
-        return self::toMap($source[$key] ?? null);
-    }
+	/**
+	 * The map stored under a key, e.g. the `info` object of a document.
+	 *
+	 * @param  array<string, mixed>  $source
+	 * @return array<string, mixed>
+	 */
+	public static function map(array $source, string $key): array
+	{
+		return self::toMap($source[$key] ?? null);
+	}
 
-    /**
-     * @param  array<string, mixed>  $source
-     * @return list<mixed>
-     */
-    public static function list(array $source, string $key): array
-    {
-        return self::toList($source[$key] ?? null);
-    }
+	/**
+	 * @param  array<string, mixed>  $source
+	 * @return list<mixed>
+	 */
+	public static function list(array $source, string $key): array
+	{
+		return self::toList($source[$key] ?? null);
+	}
 
-    /**
-     * A non-empty string value, with numbers accepted because YAML happily
-     * turns an unquoted version like `2.4` into a float.
-     *
-     * @param  array<string, mixed>  $source
-     */
-    public static function string(array $source, string $key): ?string
-    {
-        $value = $source[$key] ?? null;
+	/**
+	 * A non-empty string value, with numbers accepted because YAML happily
+	 * turns an unquoted version like `2.4` into a float.
+	 *
+	 * @param  array<string, mixed>  $source
+	 */
+	public static function string(array $source, string $key): ?string
+	{
+		$value = $source[$key] ?? null;
 
-        if (is_string($value)) {
-            return $value === '' ? null : $value;
-        }
+		if (is_string($value)) {
+			return $value === '' ? null : $value;
+		}
 
-        return is_int($value) || is_float($value) ? (string) $value : null;
-    }
+		return is_int($value) || is_float($value) ? (string) $value : null;
+	}
 
-    /**
-     * @param  array<string, mixed>  $source
-     */
-    public static function scalar(array $source, string $key): string|int|float|bool|null
-    {
-        $value = $source[$key] ?? null;
+	/**
+	 * @param  array<string, mixed>  $source
+	 */
+	public static function scalar(array $source, string $key): string|int|float|bool|null
+	{
+		$value = $source[$key] ?? null;
 
-        return is_scalar($value) ? $value : null;
-    }
+		return is_scalar($value) ? $value : null;
+	}
 
-    /**
-     * @param  array<string, mixed>  $source
-     */
-    public static function isTrue(array $source, string $key): bool
-    {
-        return ($source[$key] ?? false) === true;
-    }
+	/**
+	 * @param  array<string, mixed>  $source
+	 */
+	public static function isTrue(array $source, string $key): bool
+	{
+		return ($source[$key] ?? false) === true;
+	}
 
-    /**
-     * A map's entries with every key as a string.
-     *
-     * PHP stores a numeric string key as an integer, so iterating a document
-     * hands back `200` where the specification wrote `"200"`. Iterating through
-     * this helper keeps keys the strings they are meant to be.
-     *
-     * @param  array<string, mixed>  $map
-     * @return list<array{0: string, 1: mixed}>
-     */
-    public static function entries(array $map): array
-    {
-        $entries = [];
+	/**
+	 * A map's entries with every key as a string.
+	 *
+	 * PHP stores a numeric string key as an integer, so iterating a document
+	 * hands back `200` where the specification wrote `"200"`. Iterating through
+	 * this helper keeps keys the strings they are meant to be.
+	 *
+	 * @param  array<string, mixed>  $map
+	 * @return list<array{0: string, 1: mixed}>
+	 */
+	public static function entries(array $map): array
+	{
+		$entries = [];
 
-        foreach ($map as $key => $value) {
-            $entries[] = [(string) $key, $value];
-        }
+		foreach ($map as $key => $value) {
+			$entries[] = [(string) $key, $value];
+		}
 
-        return $entries;
-    }
+		return $entries;
+	}
 
-    /**
-     * The keys of a map, as strings.
-     *
-     * @param  array<string, mixed>  $map
-     * @return list<string>
-     */
-    public static function keys(array $map): array
-    {
-        return array_map(strval(...), array_keys($map));
-    }
+	/**
+	 * The keys of a map, as strings.
+	 *
+	 * @param  array<string, mixed>  $map
+	 * @return list<string>
+	 */
+	public static function keys(array $map): array
+	{
+		return array_map(strval(...), array_keys($map));
+	}
 
-    /**
-     * The first entry of a map or list, or `null` when it is empty.
-     *
-     * @param  array<array-key, mixed>  $values
-     */
-    public static function first(array $values): mixed
-    {
-        $key = array_key_first($values);
+	/**
+	 * The first entry of a map or list, or `null` when it is empty.
+	 *
+	 * @param  array<array-key, mixed>  $values
+	 */
+	public static function first(array $values): mixed
+	{
+		$key = array_key_first($values);
 
-        return $key === null ? null : $values[$key];
-    }
+		return $key === null ? null : $values[$key];
+	}
 }

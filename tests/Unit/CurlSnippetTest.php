@@ -17,9 +17,9 @@ use DardanGashi\FilamentApiExplorer\Snippets\CurlSnippet;
 
 describe('CurlSnippet - language', function () {
 
-    test('renders the curl tab', function () {
-        expect((new CurlSnippet)->language()->value)->toBe('curl');
-    });
+	test('renders the curl tab', function () {
+		expect((new CurlSnippet)->language()->value)->toBe('curl');
+	});
 });
 
 // ------------------------------------------------------------
@@ -28,75 +28,75 @@ describe('CurlSnippet - language', function () {
 
 describe('CurlSnippet - render', function () {
 
-    test('sends the parameters as a query string on a get request', function () {
-        $snippet = (new CurlSnippet)->render(new RequestBlueprint(
-            method: HttpMethod::Get,
-            url: 'https://api.bookshop.test/api/v2/vouchers',
-            query: ['sort' => '-created_at', 'per_page' => '25'],
-        ));
+	test('sends the parameters as a query string on a get request', function () {
+		$snippet = (new CurlSnippet)->render(new RequestBlueprint(
+			method: HttpMethod::Get,
+			url: 'https://api.bookshop.test/api/v2/vouchers',
+			query: ['sort' => '-created_at', 'per_page' => '25'],
+		));
 
-        expect($snippet)->toBe(implode("\n", [
-            'curl -G \\',
-            '  "https://api.bookshop.test/api/v2/vouchers" \\',
-            '  -d "sort=-created_at" \\',
-            '  -d "per_page=25"',
-        ]));
-    });
+		expect($snippet)->toBe(implode("\n", [
+			'curl -G \\',
+			'  "https://api.bookshop.test/api/v2/vouchers" \\',
+			'  -d "sort=-created_at" \\',
+			'  -d "per_page=25"',
+		]));
+	});
 
-    test('leaves out the query flag when there is no query', function () {
-        $snippet = (new CurlSnippet)->render(new RequestBlueprint(
-            method: HttpMethod::Get,
-            url: 'https://api.bookshop.test/api/v2/vouchers',
-        ));
+	test('leaves out the query flag when there is no query', function () {
+		$snippet = (new CurlSnippet)->render(new RequestBlueprint(
+			method: HttpMethod::Get,
+			url: 'https://api.bookshop.test/api/v2/vouchers',
+		));
 
-        expect($snippet)->toBe(implode("\n", [
-            'curl \\',
-            '  "https://api.bookshop.test/api/v2/vouchers"',
-        ]));
-    });
+		expect($snippet)->toBe(implode("\n", [
+			'curl \\',
+			'  "https://api.bookshop.test/api/v2/vouchers"',
+		]));
+	});
 
-    test('names the method when it is not a get', function () {
-        $snippet = (new CurlSnippet)->render(new RequestBlueprint(
-            method: HttpMethod::Delete,
-            url: 'https://api.bookshop.test/api/v2/participants/1',
-        ));
+	test('names the method when it is not a get', function () {
+		$snippet = (new CurlSnippet)->render(new RequestBlueprint(
+			method: HttpMethod::Delete,
+			url: 'https://api.bookshop.test/api/v2/participants/1',
+		));
 
-        expect($snippet)->toStartWith('curl -X DELETE');
-    });
+		expect($snippet)->toStartWith('curl -X DELETE');
+	});
 
-    test('replaces a credential with a shell variable', function () {
-        $snippet = (new CurlSnippet)->render(new RequestBlueprint(
-            method: HttpMethod::Get,
-            url: 'https://api.bookshop.test/api/v2/vouchers',
-            headers: ['Authorization' => 'Bearer real-token', 'Accept-Language' => 'de'],
-        ));
+	test('replaces a credential with a shell variable', function () {
+		$snippet = (new CurlSnippet)->render(new RequestBlueprint(
+			method: HttpMethod::Get,
+			url: 'https://api.bookshop.test/api/v2/vouchers',
+			headers: ['Authorization' => 'Bearer real-token', 'Accept-Language' => 'de'],
+		));
 
-        expect($snippet)->toContain('-H "Authorization: Bearer $TOKEN"')
-            ->and($snippet)->toContain('-H "Accept-Language: de"')
-            ->and($snippet)->not->toContain('real-token');
-    });
+		expect($snippet)->toContain('-H "Authorization: Bearer $TOKEN"')
+			->and($snippet)->toContain('-H "Accept-Language: de"')
+			->and($snippet)->not->toContain('real-token');
+	});
 
-    test('drops the entries the user left blank', function () {
-        $snippet = (new CurlSnippet)->render(new RequestBlueprint(
-            method: HttpMethod::Get,
-            url: 'https://api.bookshop.test/api/v2/vouchers',
-            query: ['sort' => '', 'per_page' => '25'],
-            headers: ['If-None-Match' => ''],
-        ));
+	test('drops the entries the user left blank', function () {
+		$snippet = (new CurlSnippet)->render(new RequestBlueprint(
+			method: HttpMethod::Get,
+			url: 'https://api.bookshop.test/api/v2/vouchers',
+			query: ['sort' => '', 'per_page' => '25'],
+			headers: ['If-None-Match' => ''],
+		));
 
-        expect($snippet)->not->toContain('sort')
-            ->and($snippet)->not->toContain('If-None-Match')
-            ->and($snippet)->toContain('per_page=25');
-    });
+		expect($snippet)->not->toContain('sort')
+			->and($snippet)->not->toContain('If-None-Match')
+			->and($snippet)->toContain('per_page=25');
+	});
 
-    test('neutralises a value that would otherwise run as a command', function () {
-        $snippet = (new CurlSnippet)->render(new RequestBlueprint(
-            method: HttpMethod::Get,
-            url: 'https://api.bookshop.test/api/v2/vouchers',
-            query: ['filter[code]' => '$(whoami)"; rm -rf /'],
-        ));
+	test('neutralises a value that would otherwise run as a command', function () {
+		$snippet = (new CurlSnippet)->render(new RequestBlueprint(
+			method: HttpMethod::Get,
+			url: 'https://api.bookshop.test/api/v2/vouchers',
+			query: ['filter[code]' => '$(whoami)"; rm -rf /'],
+		));
 
-        expect($snippet)->toContain('\\$(whoami)')
-            ->and($snippet)->toContain('\\"; rm -rf /');
-    });
+		expect($snippet)->toContain('\\$(whoami)')
+			->and($snippet)->toContain('\\"; rm -rf /');
+	});
 });

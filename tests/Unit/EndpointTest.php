@@ -17,12 +17,12 @@ use DardanGashi\FilamentApiExplorer\Enums\ParameterLocation;
 
 function documentedResponse(string $status = '200'): ResponseDefinition
 {
-    return new ResponseDefinition(
-        status: $status,
-        description: 'A page of vouchers.',
-        mediaType: 'application/json',
-        fields: [new SchemaField(name: 'data', type: 'array<object>')],
-    );
+	return new ResponseDefinition(
+		status: $status,
+		description: 'A page of vouchers.',
+		mediaType: 'application/json',
+		fields: [new SchemaField(name: 'data', type: 'array<object>')],
+	);
 }
 
 // ------------------------------------------------------------
@@ -31,15 +31,15 @@ function documentedResponse(string $status = '200'): ResponseDefinition
 
 describe('Endpoint - keyFor', function () {
 
-    test('builds a key that is safe to put in a url', function () {
-        expect(Endpoint::keyFor(HttpMethod::Get, '/api/v2/vouchers/{code}'))
-            ->toBe('get-api-v2-vouchers-code');
-    });
+	test('builds a key that is safe to put in a url', function () {
+		expect(Endpoint::keyFor(HttpMethod::Get, '/api/v2/vouchers/{code}'))
+			->toBe('get-api-v2-vouchers-code');
+	});
 
-    test('separates the methods of one path', function () {
-        expect(Endpoint::keyFor(HttpMethod::Get, '/vouchers'))
-            ->not->toBe(Endpoint::keyFor(HttpMethod::Post, '/vouchers'));
-    });
+	test('separates the methods of one path', function () {
+		expect(Endpoint::keyFor(HttpMethod::Get, '/vouchers'))
+			->not->toBe(Endpoint::keyFor(HttpMethod::Post, '/vouchers'));
+	});
 });
 
 // ------------------------------------------------------------
@@ -48,13 +48,13 @@ describe('Endpoint - keyFor', function () {
 
 describe('Endpoint - label', function () {
 
-    test('prefers the summary', function () {
-        expect(endpoint(summary: 'Lists vouchers')->label())->toBe('Lists vouchers');
-    });
+	test('prefers the summary', function () {
+		expect(endpoint(summary: 'Lists vouchers')->label())->toBe('Lists vouchers');
+	});
 
-    test('falls back to the path', function () {
-        expect(endpoint(summary: null, path: '/vouchers')->label())->toBe('/vouchers');
-    });
+	test('falls back to the path', function () {
+		expect(endpoint(summary: null, path: '/vouchers')->label())->toBe('/vouchers');
+	});
 });
 
 // ------------------------------------------------------------
@@ -63,24 +63,24 @@ describe('Endpoint - label', function () {
 
 describe('Endpoint - parametersIn', function () {
 
-    test('returns only the parameters of the given location', function () {
-        $subject = endpoint(parameters: [
-            new Parameter(name: 'Authorization', in: ParameterLocation::Header),
-            new Parameter(name: 'sort', in: ParameterLocation::Query),
-            new Parameter(name: 'cursor', in: ParameterLocation::Query),
-        ]);
+	test('returns only the parameters of the given location', function () {
+		$subject = endpoint(parameters: [
+			new Parameter(name: 'Authorization', in: ParameterLocation::Header),
+			new Parameter(name: 'sort', in: ParameterLocation::Query),
+			new Parameter(name: 'cursor', in: ParameterLocation::Query),
+		]);
 
-        expect($subject->parametersIn(ParameterLocation::Query))->toHaveCount(2)
-            ->and($subject->parametersIn(ParameterLocation::Header))->toHaveCount(1)
-            ->and($subject->parametersIn(ParameterLocation::Path))->toBe([]);
-    });
+		expect($subject->parametersIn(ParameterLocation::Query))->toHaveCount(2)
+			->and($subject->parametersIn(ParameterLocation::Header))->toHaveCount(1)
+			->and($subject->parametersIn(ParameterLocation::Path))->toBe([]);
+	});
 
-    test('reports whether a location is used at all', function () {
-        $subject = endpoint(parameters: [new Parameter(name: 'sort', in: ParameterLocation::Query)]);
+	test('reports whether a location is used at all', function () {
+		$subject = endpoint(parameters: [new Parameter(name: 'sort', in: ParameterLocation::Query)]);
 
-        expect($subject->hasParametersIn(ParameterLocation::Query))->toBeTrue()
-            ->and($subject->hasParametersIn(ParameterLocation::Cookie))->toBeFalse();
-    });
+		expect($subject->hasParametersIn(ParameterLocation::Query))->toBeTrue()
+			->and($subject->hasParametersIn(ParameterLocation::Cookie))->toBeFalse();
+	});
 });
 
 // ------------------------------------------------------------
@@ -89,15 +89,15 @@ describe('Endpoint - parametersIn', function () {
 
 describe('Endpoint - response', function () {
 
-    test('finds a response by its status', function () {
-        $subject = endpoint(responses: [documentedResponse('200'), documentedResponse('422')]);
+	test('finds a response by its status', function () {
+		$subject = endpoint(responses: [documentedResponse('200'), documentedResponse('422')]);
 
-        expect($subject->response('422')?->status)->toBe('422');
-    });
+		expect($subject->response('422')?->status)->toBe('422');
+	});
 
-    test('returns null for a status that is not documented', function () {
-        expect(endpoint(responses: [documentedResponse()])->response('500'))->toBeNull();
-    });
+	test('returns null for a status that is not documented', function () {
+		expect(endpoint(responses: [documentedResponse()])->response('500'))->toBeNull();
+	});
 });
 
 // ------------------------------------------------------------
@@ -106,24 +106,24 @@ describe('Endpoint - response', function () {
 
 describe('Endpoint - primaryResponse', function () {
 
-    test('prefers the first successful response', function () {
-        $subject = endpoint(responses: [
-            new ResponseDefinition(status: '401'),
-            documentedResponse('200'),
-        ]);
+	test('prefers the first successful response', function () {
+		$subject = endpoint(responses: [
+			new ResponseDefinition(status: '401'),
+			documentedResponse('200'),
+		]);
 
-        expect($subject->primaryResponse()?->status)->toBe('200');
-    });
+		expect($subject->primaryResponse()?->status)->toBe('200');
+	});
 
-    test('falls back to the first documented response', function () {
-        $subject = endpoint(responses: [new ResponseDefinition(status: '401'), new ResponseDefinition(status: '422')]);
+	test('falls back to the first documented response', function () {
+		$subject = endpoint(responses: [new ResponseDefinition(status: '401'), new ResponseDefinition(status: '422')]);
 
-        expect($subject->primaryResponse()?->status)->toBe('401');
-    });
+		expect($subject->primaryResponse()?->status)->toBe('401');
+	});
 
-    test('returns null when nothing is documented', function () {
-        expect(endpoint()->primaryResponse())->toBeNull();
-    });
+	test('returns null when nothing is documented', function () {
+		expect(endpoint()->primaryResponse())->toBeNull();
+	});
 });
 
 // ------------------------------------------------------------
@@ -132,81 +132,81 @@ describe('Endpoint - primaryResponse', function () {
 
 describe('Endpoint - gaps', function () {
 
-    test('reports nothing for a fully documented endpoint', function () {
-        $subject = endpoint(
-            parameters: [new Parameter(name: 'sort', in: ParameterLocation::Query, description: 'Sort key.')],
-            responses: [documentedResponse()],
-        );
+	test('reports nothing for a fully documented endpoint', function () {
+		$subject = endpoint(
+			parameters: [new Parameter(name: 'sort', in: ParameterLocation::Query, description: 'Sort key.')],
+			responses: [documentedResponse()],
+		);
 
-        expect($subject->gaps())->toBe([])
-            ->and($subject->isDocumented())->toBeTrue();
-    });
+		expect($subject->gaps())->toBe([])
+			->and($subject->isDocumented())->toBeTrue();
+	});
 
-    test('reports a missing explanation', function () {
-        $subject = new Endpoint(
-            key: 'get-vouchers',
-            method: HttpMethod::Get,
-            path: '/vouchers',
-            responses: [documentedResponse()],
-        );
+	test('reports a missing explanation', function () {
+		$subject = new Endpoint(
+			key: 'get-vouchers',
+			method: HttpMethod::Get,
+			path: '/vouchers',
+			responses: [documentedResponse()],
+		);
 
-        expect($subject->gaps())->toBe([DocumentationGap::Description]);
-    });
+		expect($subject->gaps())->toBe([DocumentationGap::Description]);
+	});
 
-    test('accepts a description in place of a summary', function () {
-        $subject = new Endpoint(
-            key: 'get-vouchers',
-            method: HttpMethod::Get,
-            path: '/vouchers',
-            description: 'Lists vouchers.',
-            responses: [documentedResponse()],
-        );
+	test('accepts a description in place of a summary', function () {
+		$subject = new Endpoint(
+			key: 'get-vouchers',
+			method: HttpMethod::Get,
+			path: '/vouchers',
+			description: 'Lists vouchers.',
+			responses: [documentedResponse()],
+		);
 
-        expect($subject->gaps())->toBe([]);
-    });
+		expect($subject->gaps())->toBe([]);
+	});
 
-    test('reports an endpoint with no documented response', function () {
-        expect(endpoint()->gaps())->toBe([DocumentationGap::Responses]);
-    });
+	test('reports an endpoint with no documented response', function () {
+		expect(endpoint()->gaps())->toBe([DocumentationGap::Responses]);
+	});
 
-    test('reports a successful response whose body has no schema', function () {
-        $subject = endpoint(responses: [
-            new ResponseDefinition(status: '200', mediaType: 'application/json'),
-        ]);
+	test('reports a successful response whose body has no schema', function () {
+		$subject = endpoint(responses: [
+			new ResponseDefinition(status: '200', mediaType: 'application/json'),
+		]);
 
-        expect($subject->gaps())->toBe([DocumentationGap::ResponseSchema]);
-    });
+		expect($subject->gaps())->toBe([DocumentationGap::ResponseSchema]);
+	});
 
-    test('accepts a successful response that carries no body', function () {
-        $subject = endpoint(responses: [new ResponseDefinition(status: '204', description: 'Removed.')]);
+	test('accepts a successful response that carries no body', function () {
+		$subject = endpoint(responses: [new ResponseDefinition(status: '204', description: 'Removed.')]);
 
-        expect($subject->gaps())->toBe([]);
-    });
+		expect($subject->gaps())->toBe([]);
+	});
 
-    test('reports a parameter without a description', function () {
-        $subject = endpoint(
-            parameters: [new Parameter(name: 'page', in: ParameterLocation::Query)],
-            responses: [documentedResponse()],
-        );
+	test('reports a parameter without a description', function () {
+		$subject = endpoint(
+			parameters: [new Parameter(name: 'page', in: ParameterLocation::Query)],
+			responses: [documentedResponse()],
+		);
 
-        expect($subject->gaps())->toBe([DocumentationGap::Parameters]);
-    });
+		expect($subject->gaps())->toBe([DocumentationGap::Parameters]);
+	});
 
-    test('ignores a parameter the explorer inferred itself', function () {
-        // The authentication header is read off a security scheme rather than
-        // documented, so a missing description on it is not the API's fault.
-        $subject = endpoint(
-            parameters: [new Parameter(
-                name: 'Authorization',
-                in: ParameterLocation::Header,
-                required: true,
-                inferred: true,
-            )],
-            responses: [documentedResponse()],
-        );
+	test('ignores a parameter the explorer inferred itself', function () {
+		// The authentication header is read off a security scheme rather than
+		// documented, so a missing description on it is not the API's fault.
+		$subject = endpoint(
+			parameters: [new Parameter(
+				name: 'Authorization',
+				in: ParameterLocation::Header,
+				required: true,
+				inferred: true,
+			)],
+			responses: [documentedResponse()],
+		);
 
-        expect($subject->gaps())->toBe([]);
-    });
+		expect($subject->gaps())->toBe([]);
+	});
 });
 
 // ------------------------------------------------------------
@@ -215,13 +215,13 @@ describe('Endpoint - gaps', function () {
 
 describe('Endpoint - isExecutable', function () {
 
-    test('allows a read-only endpoint to be sent', function () {
-        expect(endpoint(method: HttpMethod::Get)->isExecutable())->toBeTrue();
-    });
+	test('allows a read-only endpoint to be sent', function () {
+		expect(endpoint(method: HttpMethod::Get)->isExecutable())->toBeTrue();
+	});
 
-    test('refuses an endpoint with side effects', function () {
-        expect(endpoint(method: HttpMethod::Delete)->isExecutable())->toBeFalse();
-    });
+	test('refuses an endpoint with side effects', function () {
+		expect(endpoint(method: HttpMethod::Delete)->isExecutable())->toBeFalse();
+	});
 });
 
 // ------------------------------------------------------------
@@ -230,25 +230,25 @@ describe('Endpoint - isExecutable', function () {
 
 describe('Endpoint - matches', function () {
 
-    test('matches on the path, the summary, the group or the method', function (string $term) {
-        expect(endpoint()->matches($term))->toBeTrue();
-    })->with([
-        ['vouchers'],
-        ['Lists'],
-        ['Vouchers'],
-        ['GET'],
-    ]);
+	test('matches on the path, the summary, the group or the method', function (string $term) {
+		expect(endpoint()->matches($term))->toBeTrue();
+	})->with([
+		['vouchers'],
+		['Lists'],
+		['Vouchers'],
+		['GET'],
+	]);
 
-    test('ignores casing', function () {
-        expect(endpoint()->matches('VOUCHERS'))->toBeTrue();
-    });
+	test('ignores casing', function () {
+		expect(endpoint()->matches('VOUCHERS'))->toBeTrue();
+	});
 
-    test('matches everything for a blank term', function () {
-        expect(endpoint()->matches(null))->toBeTrue()
-            ->and(endpoint()->matches('  '))->toBeTrue();
-    });
+	test('matches everything for a blank term', function () {
+		expect(endpoint()->matches(null))->toBeTrue()
+			->and(endpoint()->matches('  '))->toBeTrue();
+	});
 
-    test('does not match an unrelated term', function () {
-        expect(endpoint()->matches('participants'))->toBeFalse();
-    });
+	test('does not match an unrelated term', function () {
+		expect(endpoint()->matches('participants'))->toBeFalse();
+	});
 });

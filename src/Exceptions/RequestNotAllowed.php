@@ -14,47 +14,47 @@ use RuntimeException;
  */
 final class RequestNotAllowed extends RuntimeException
 {
-    public static function disabled(): self
-    {
-        return new self('Sending requests from the API explorer is disabled.');
-    }
+	public static function disabled(): self
+	{
+		return new self('Sending requests from the API explorer is disabled.');
+	}
 
-    public static function unsafeMethod(HttpMethod $method): self
-    {
-        return new self("The API explorer only sends safe requests, so [{$method->label()}] was refused.");
-    }
+	public static function unsafeMethod(HttpMethod $method): self
+	{
+		return new self("The API explorer only sends safe requests, so [{$method->label()}] was refused.");
+	}
 
-    public static function hostNotAllowed(?string $host): self
-    {
-        return new self(sprintf('The host [%s] is not in the allowed hosts list.', $host ?? 'unknown'));
-    }
+	public static function hostNotAllowed(?string $host): self
+	{
+		return new self(sprintf('The host [%s] is not in the allowed hosts list.', $host ?? 'unknown'));
+	}
 
-    /**
-     * @param  list<string>  $names
-     */
-    public static function unresolvedPath(array $names): self
-    {
-        return new self(sprintf(
-            'Fill in the path %s [%s] before sending.',
-            count($names) === 1 ? 'parameter' : 'parameters',
-            implode('], [', $names),
-        ));
-    }
+	/**
+	 * @param  list<string>  $names
+	 */
+	public static function unresolvedPath(array $names): self
+	{
+		return new self(sprintf(
+			'Fill in the path %s [%s] before sending.',
+			count($names) === 1 ? 'parameter' : 'parameters',
+			implode('], [', $names),
+		));
+	}
 
-    /**
-     * @param  list<string>  $names
-     */
-    public static function placeholderHeader(array $names): self
-    {
-        return new self(sprintf(
-            'The %s [%s] still holds the example from the documentation. Replace it with a real value.',
-            count($names) === 1 ? 'header' : 'headers',
-            implode('], [', $names),
-        ));
-    }
+	/**
+	 * @param  list<string>  $names
+	 */
+	public static function placeholderHeader(array $names): self
+	{
+		return new self(sprintf(
+			'The %s [%s] still holds the example from the documentation. Replace it with a real value.',
+			count($names) === 1 ? 'header' : 'headers',
+			implode('], [', $names),
+		));
+	}
 
-    public static function insecureScheme(?string $scheme): self
-    {
-        return new self(sprintf('The scheme [%s] is not allowed.', $scheme ?? 'unknown'));
-    }
+	public static function insecureScheme(?string $scheme): self
+	{
+		return new self(sprintf('The scheme [%s] is not allowed.', $scheme ?? 'unknown'));
+	}
 }

@@ -16,185 +16,185 @@ use DardanGashi\FilamentApiExplorer\Support\ReferenceResolver;
  */
 final class ExampleFactory
 {
-    private const PLACEHOLDERS = [
-        'uuid' => '00000000-0000-0000-0000-000000000000',
-        'date' => '2026-01-01',
-        'date-time' => '2026-01-01T00:00:00+00:00',
-        'email' => 'user@example.com',
-        'uri' => 'https://example.com',
-        'url' => 'https://example.com',
-        'binary' => '<binary>',
-        'password' => '********',
-    ];
+	private const PLACEHOLDERS = [
+		'uuid' => '00000000-0000-0000-0000-000000000000',
+		'date' => '2026-01-01',
+		'date-time' => '2026-01-01T00:00:00+00:00',
+		'email' => 'user@example.com',
+		'uri' => 'https://example.com',
+		'url' => 'https://example.com',
+		'binary' => '<binary>',
+		'password' => '********',
+	];
 
-    public function __construct(private readonly int $maxDepth = 6) {}
+	public function __construct(private readonly int $maxDepth = 6) {}
 
-    /**
-     * The example for one media type entry of a request or response body.
-     *
-     * @param  array<string, mixed>  $mediaType
-     */
-    public function forMediaType(array $mediaType, ReferenceResolver $references): ?string
-    {
-        if (array_key_exists('example', $mediaType)) {
-            return $this->encode($mediaType['example']);
-        }
+	/**
+	 * The example for one media type entry of a request or response body.
+	 *
+	 * @param  array<string, mixed>  $mediaType
+	 */
+	public function forMediaType(array $mediaType, ReferenceResolver $references): ?string
+	{
+		if (array_key_exists('example', $mediaType)) {
+			return $this->encode($mediaType['example']);
+		}
 
-        $first = Documents::first(Documents::map($mediaType, 'examples'));
+		$first = Documents::first(Documents::map($mediaType, 'examples'));
 
-        if (is_array($first) && array_key_exists('value', $first)) {
-            return $this->encode($first['value']);
-        }
+		if (is_array($first) && array_key_exists('value', $first)) {
+			return $this->encode($first['value']);
+		}
 
-        $schema = Documents::map($mediaType, 'schema');
+		$schema = Documents::map($mediaType, 'schema');
 
-        if ($schema === []) {
-            return null;
-        }
+		if ($schema === []) {
+			return null;
+		}
 
-        return $this->encode($this->forSchema($schema, $references));
-    }
+		return $this->encode($this->forSchema($schema, $references));
+	}
 
-    /**
-     * Whether the document declares an example itself, as opposed to leaving the
-     * factory to build one from the schema. A synthesised example describes a
-     * shape and nothing more, so the page says which kind it is showing.
-     *
-     * @param  array<string, mixed>  $mediaType
-     */
-    public function hasDocumentedExample(array $mediaType): bool
-    {
-        if (array_key_exists('example', $mediaType)) {
-            return true;
-        }
+	/**
+	 * Whether the document declares an example itself, as opposed to leaving the
+	 * factory to build one from the schema. A synthesised example describes a
+	 * shape and nothing more, so the page says which kind it is showing.
+	 *
+	 * @param  array<string, mixed>  $mediaType
+	 */
+	public function hasDocumentedExample(array $mediaType): bool
+	{
+		if (array_key_exists('example', $mediaType)) {
+			return true;
+		}
 
-        $first = Documents::first(Documents::map($mediaType, 'examples'));
+		$first = Documents::first(Documents::map($mediaType, 'examples'));
 
-        return is_array($first) && array_key_exists('value', $first);
-    }
+		return is_array($first) && array_key_exists('value', $first);
+	}
 
-    /**
-     * A value that satisfies the schema.
-     *
-     * @param  array<string, mixed>  $schema
-     */
-    public function forSchema(array $schema, ReferenceResolver $references, int $depth = 1): mixed
-    {
-        $schema = $references->resolve($schema);
+	/**
+	 * A value that satisfies the schema.
+	 *
+	 * @param  array<string, mixed>  $schema
+	 */
+	public function forSchema(array $schema, ReferenceResolver $references, int $depth = 1): mixed
+	{
+		$schema = $references->resolve($schema);
 
-        foreach (['allOf', 'oneOf', 'anyOf'] as $keyword) {
-            $branch = Documents::first(Documents::list($schema, $keyword));
+		foreach (['allOf', 'oneOf', 'anyOf'] as $keyword) {
+			$branch = Documents::first(Documents::list($schema, $keyword));
 
-            if ($branch !== null) {
-                return $this->forSchema(Documents::toMap($branch), $references, $depth);
-            }
-        }
+			if ($branch !== null) {
+				return $this->forSchema(Documents::toMap($branch), $references, $depth);
+			}
+		}
 
-        if (array_key_exists('example', $schema)) {
-            return $schema['example'];
-        }
+		if (array_key_exists('example', $schema)) {
+			return $schema['example'];
+		}
 
-        if (array_key_exists('default', $schema)) {
-            return $schema['default'];
-        }
+		if (array_key_exists('default', $schema)) {
+			return $schema['default'];
+		}
 
-        $enum = Documents::list($schema, 'enum');
+		$enum = Documents::list($schema, 'enum');
 
-        if ($enum !== []) {
-            return $enum[0];
-        }
+		if ($enum !== []) {
+			return $enum[0];
+		}
 
-        return $this->forType($schema, $references, $depth);
-    }
+		return $this->forType($schema, $references, $depth);
+	}
 
-    /**
-     * @param  array<string, mixed>  $schema
-     */
-    private function forType(array $schema, ReferenceResolver $references, int $depth): mixed
-    {
-        $type = $schema['type'] ?? null;
+	/**
+	 * @param  array<string, mixed>  $schema
+	 */
+	private function forType(array $schema, ReferenceResolver $references, int $depth): mixed
+	{
+		$type = $schema['type'] ?? null;
 
-        if (is_array($type)) {
-            $named = array_values(array_filter($type, fn (mixed $candidate): bool => $candidate !== 'null'));
-            $type = $named[0] ?? 'null';
-        }
+		if (is_array($type)) {
+			$named = array_values(array_filter($type, fn (mixed $candidate): bool => $candidate !== 'null'));
+			$type = $named[0] ?? 'null';
+		}
 
-        if (! is_string($type)) {
-            $type = match (true) {
-                Documents::map($schema, 'properties') !== [] => 'object',
-                array_key_exists('items', $schema) => 'array',
-                default => 'string',
-            };
-        }
+		if (!is_string($type)) {
+			$type = match (true) {
+				Documents::map($schema, 'properties') !== [] => 'object',
+				array_key_exists('items', $schema) => 'array',
+				default => 'string',
+			};
+		}
 
-        return match ($type) {
-            'object' => $this->forObject($schema, $references, $depth),
-            'array' => $this->forArray($schema, $references, $depth),
-            'integer' => 0,
-            'number' => 0.0,
-            'boolean' => true,
-            'null' => null,
-            default => $this->forString($schema),
-        };
-    }
+		return match ($type) {
+			'object' => $this->forObject($schema, $references, $depth),
+			'array' => $this->forArray($schema, $references, $depth),
+			'integer' => 0,
+			'number' => 0.0,
+			'boolean' => true,
+			'null' => null,
+			default => $this->forString($schema),
+		};
+	}
 
-    /**
-     * @param  array<string, mixed>  $schema
-     * @return array<string, mixed>
-     */
-    private function forObject(array $schema, ReferenceResolver $references, int $depth): array
-    {
-        $properties = Documents::map($schema, 'properties');
+	/**
+	 * @param  array<string, mixed>  $schema
+	 * @return array<string, mixed>
+	 */
+	private function forObject(array $schema, ReferenceResolver $references, int $depth): array
+	{
+		$properties = Documents::map($schema, 'properties');
 
-        if ($depth >= $this->maxDepth || $properties === []) {
-            return [];
-        }
+		if ($depth >= $this->maxDepth || $properties === []) {
+			return [];
+		}
 
-        $example = [];
+		$example = [];
 
-        foreach (Documents::entries($properties) as [$name, $property]) {
-            $example[$name] = $this->forSchema(Documents::toMap($property), $references, $depth + 1);
-        }
+		foreach (Documents::entries($properties) as [$name, $property]) {
+			$example[$name] = $this->forSchema(Documents::toMap($property), $references, $depth + 1);
+		}
 
-        return $example;
-    }
+		return $example;
+	}
 
-    /**
-     * @param  array<string, mixed>  $schema
-     * @return list<mixed>
-     */
-    private function forArray(array $schema, ReferenceResolver $references, int $depth): array
-    {
-        $items = Documents::map($schema, 'items');
+	/**
+	 * @param  array<string, mixed>  $schema
+	 * @return list<mixed>
+	 */
+	private function forArray(array $schema, ReferenceResolver $references, int $depth): array
+	{
+		$items = Documents::map($schema, 'items');
 
-        if ($depth >= $this->maxDepth || $items === []) {
-            return [];
-        }
+		if ($depth >= $this->maxDepth || $items === []) {
+			return [];
+		}
 
-        return [$this->forSchema($items, $references, $depth + 1)];
-    }
+		return [$this->forSchema($items, $references, $depth + 1)];
+	}
 
-    /**
-     * @param  array<string, mixed>  $schema
-     */
-    private function forString(array $schema): string
-    {
-        $format = $schema['format'] ?? null;
+	/**
+	 * @param  array<string, mixed>  $schema
+	 */
+	private function forString(array $schema): string
+	{
+		$format = $schema['format'] ?? null;
 
-        if (is_string($format) && isset(self::PLACEHOLDERS[$format])) {
-            return self::PLACEHOLDERS[$format];
-        }
+		if (is_string($format) && isset(self::PLACEHOLDERS[$format])) {
+			return self::PLACEHOLDERS[$format];
+		}
 
-        return 'string';
-    }
+		return 'string';
+	}
 
-    private function encode(mixed $value): string
-    {
-        if (is_string($value)) {
-            return $value;
-        }
+	private function encode(mixed $value): string
+	{
+		if (is_string($value)) {
+			return $value;
+		}
 
-        return json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
-            ?: '';
-    }
+		return json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+			?: '';
+	}
 }

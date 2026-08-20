@@ -17,31 +17,31 @@ use Illuminate\Support\Facades\Lang;
  */
 final class EndpointMeta
 {
-    /**
-     * @var array<string, string>
-     */
-    private const ICONS = [
-        'handler' => 'heroicon-o-document-text',
-        'rate-limit' => 'heroicon-o-clock',
-        'since' => 'heroicon-o-bolt',
-        'abilities' => 'heroicon-o-key',
-    ];
+	/**
+	 * @var array<string, string>
+	 */
+	private const ICONS = [
+		'handler' => 'heroicon-o-document-text',
+		'rate-limit' => 'heroicon-o-clock',
+		'since' => 'heroicon-o-bolt',
+		'abilities' => 'heroicon-o-key',
+	];
 
-    public static function caption(string $key, string $value): string
-    {
-        $translation = "filament-api-explorer::explorer.meta.{$key}";
+	public static function caption(string $key, string $value): string
+	{
+		$translation = "filament-api-explorer::explorer.meta.{$key}";
 
-        return Lang::has($translation)
-            ? (string) __($translation, ['value' => $value])
-            : $value;
-    }
+		return Lang::has($translation)
+			? (string) __($translation, ['value' => $value])
+			: $value;
+	}
 
-    /**
-     * The icon for an extension this package knows, and nothing for one it does
-     * not: a wrong icon reads as a claim about the value beside it.
-     */
-    public static function icon(string $key): ?string
-    {
-        return self::ICONS[$key] ?? null;
-    }
+	/**
+	 * The icon for an extension this package knows, and nothing for one it does
+	 * not: a wrong icon reads as a claim about the value beside it.
+	 */
+	public static function icon(string $key): ?string
+	{
+		return self::ICONS[$key] ?? null;
+	}
 }

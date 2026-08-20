@@ -11,23 +11,23 @@ namespace DardanGashi\FilamentApiExplorer\Enums;
  */
 enum DocumentationGap: string
 {
-    /** Neither a summary nor a description explains what the endpoint does. */
-    case Description = 'description';
+	/** Neither a summary nor a description explains what the endpoint does. */
+	case Description = 'description';
 
-    /** The endpoint documents no response at all. */
-    case Responses = 'responses';
+	/** The endpoint documents no response at all. */
+	case Responses = 'responses';
 
-    /** A successful response is documented, but its body has no schema. */
-    case ResponseSchema = 'response_schema';
+	/** A successful response is documented, but its body has no schema. */
+	case ResponseSchema = 'response_schema';
 
-    /** At least one parameter is undescribed. */
-    case Parameters = 'parameters';
+	/** At least one parameter is undescribed. */
+	case Parameters = 'parameters';
 
-    /** The endpoint takes a body, but none is documented — or it has no schema. */
-    case RequestBody = 'request_body';
+	/** The endpoint takes a body, but none is documented — or it has no schema. */
+	case RequestBody = 'request_body';
 
-    public function translationKey(): string
-    {
-        return "filament-api-explorer::explorer.gaps.{$this->value}";
-    }
+	public function translationKey(): string
+	{
+		return "filament-api-explorer::explorer.gaps.{$this->value}";
+	}
 }

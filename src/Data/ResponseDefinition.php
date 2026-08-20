@@ -12,50 +12,49 @@ use DardanGashi\FilamentApiExplorer\Support\HttpStatus;
  */
 final readonly class ResponseDefinition
 {
-    /**
-     * @param  list<SchemaField>  $fields
-     * @param  list<Parameter>  $headers
-     * @param  bool  $exampleSynthesised  Whether the example was built from the schema
-     *                                    rather than declared by the document.
-     */
-    public function __construct(
-        public string $status,
-        public ?string $description = null,
-        public ?string $mediaType = null,
-        public ?string $schemaName = null,
-        public array $fields = [],
-        public array $headers = [],
-        public ?string $example = null,
-        public bool $exampleSynthesised = false,
-    ) {}
+	/**
+	 * @param  list<SchemaField>  $fields
+	 * @param  list<Parameter>  $headers
+	 * @param  bool  $exampleSynthesised  Whether the example was built from the schema rather than declared by the document.
+	 */
+	public function __construct(
+		public string $status,
+		public ?string $description = null,
+		public ?string $mediaType = null,
+		public ?string $schemaName = null,
+		public array $fields = [],
+		public array $headers = [],
+		public ?string $example = null,
+		public bool $exampleSynthesised = false,
+	) {}
 
-    public function isSuccessful(): bool
-    {
-        return HttpStatus::isSuccessful($this->status);
-    }
+	public function isSuccessful(): bool
+	{
+		return HttpStatus::isSuccessful($this->status);
+	}
 
-    public function color(): string
-    {
-        return HttpStatus::color($this->status);
-    }
+	public function color(): string
+	{
+		return HttpStatus::color($this->status);
+	}
 
-    public function hasFields(): bool
-    {
-        return $this->fields !== [];
-    }
+	public function hasFields(): bool
+	{
+		return $this->fields !== [];
+	}
 
-    public function hasHeaders(): bool
-    {
-        return $this->headers !== [];
-    }
+	public function hasHeaders(): bool
+	{
+		return $this->headers !== [];
+	}
 
-    /**
-     * The body fields narrowed to a search term.
-     *
-     * @return list<SchemaField>
-     */
-    public function filteredFields(?string $term): array
-    {
-        return SchemaField::filterAll($this->fields, $term);
-    }
+	/**
+	 * The body fields narrowed to a search term.
+	 *
+	 * @return list<SchemaField>
+	 */
+	public function filteredFields(?string $term): array
+	{
+		return SchemaField::filterAll($this->fields, $term);
+	}
 }

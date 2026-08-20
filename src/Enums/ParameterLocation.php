@@ -10,18 +10,18 @@ namespace DardanGashi\FilamentApiExplorer\Enums;
  */
 enum ParameterLocation: string
 {
-    case Path = 'path';
-    case Header = 'header';
-    case Query = 'query';
-    case Cookie = 'cookie';
+	case Path = 'path';
+	case Header = 'header';
+	case Query = 'query';
+	case Cookie = 'cookie';
 
-    public function translationKey(): string
-    {
-        return "filament-api-explorer::explorer.sections.{$this->value}";
-    }
+	public function translationKey(): string
+	{
+		return "filament-api-explorer::explorer.sections.{$this->value}";
+	}
 
-    public static function tryFromName(string $name): ?self
-    {
-        return self::tryFrom(strtolower(trim($name)));
-    }
+	public static function tryFromName(string $name): ?self
+	{
+		return self::tryFrom(strtolower(trim($name)));
+	}
 }

@@ -18,88 +18,88 @@ use Illuminate\Support\Str;
  */
 final class ExecutionPolicy
 {
-    /**
-     * @param  list<string>  $allowedHosts
-     * @param  list<string>  $allowedSchemes
-     */
-    public function __construct(
-        private readonly bool $enabled,
-        private readonly array $allowedHosts,
-        private readonly array $allowedSchemes = ['http', 'https'],
-    ) {}
+	/**
+	 * @param  list<string>  $allowedHosts
+	 * @param  list<string>  $allowedSchemes
+	 */
+	public function __construct(
+		private readonly bool $enabled,
+		private readonly array $allowedHosts,
+		private readonly array $allowedSchemes = ['http', 'https'],
+	) {}
 
-    public function isEnabled(): bool
-    {
-        return $this->enabled;
-    }
+	public function isEnabled(): bool
+	{
+		return $this->enabled;
+	}
 
-    /**
-     * @return list<string>
-     */
-    public function allowedHosts(): array
-    {
-        return $this->allowedHosts;
-    }
+	/**
+	 * @return list<string>
+	 */
+	public function allowedHosts(): array
+	{
+		return $this->allowedHosts;
+	}
 
-    public function allows(RequestBlueprint $blueprint): bool
-    {
-        try {
-            $this->authorize($blueprint);
-        } catch (RequestNotAllowed) {
-            return false;
-        }
+	public function allows(RequestBlueprint $blueprint): bool
+	{
+		try {
+			$this->authorize($blueprint);
+		} catch (RequestNotAllowed) {
+			return false;
+		}
 
-        return true;
-    }
+		return true;
+	}
 
-    /**
-     * @throws RequestNotAllowed
-     */
-    public function authorize(RequestBlueprint $blueprint): void
-    {
-        if (! $this->enabled) {
-            throw RequestNotAllowed::disabled();
-        }
+	/**
+	 * @throws RequestNotAllowed
+	 */
+	public function authorize(RequestBlueprint $blueprint): void
+	{
+		if (!$this->enabled) {
+			throw RequestNotAllowed::disabled();
+		}
 
-        if (! $blueprint->method->isSafe()) {
-            throw RequestNotAllowed::unsafeMethod($blueprint->method);
-        }
+		if (!$blueprint->method->isSafe()) {
+			throw RequestNotAllowed::unsafeMethod($blueprint->method);
+		}
 
-        $scheme = strtolower((string) $blueprint->scheme());
+		$scheme = strtolower((string) $blueprint->scheme());
 
-        if (! in_array($scheme, $this->allowedSchemes, true)) {
-            throw RequestNotAllowed::insecureScheme($blueprint->scheme());
-        }
+		if (!in_array($scheme, $this->allowedSchemes, true)) {
+			throw RequestNotAllowed::insecureScheme($blueprint->scheme());
+		}
 
-        if (! $this->allowsHost($blueprint->host())) {
-            throw RequestNotAllowed::hostNotAllowed($blueprint->host());
-        }
+		if (!$this->allowsHost($blueprint->host())) {
+			throw RequestNotAllowed::hostNotAllowed($blueprint->host());
+		}
 
-        $unresolved = $blueprint->unresolvedPlaceholders();
+		$unresolved = $blueprint->unresolvedPlaceholders();
 
-        if ($unresolved !== []) {
-            throw RequestNotAllowed::unresolvedPath($unresolved);
-        }
+		if ($unresolved !== []) {
+			throw RequestNotAllowed::unresolvedPath($unresolved);
+		}
 
-        $placeholders = $blueprint->placeholderHeaders();
+		$placeholders = $blueprint->placeholderHeaders();
 
-        if ($placeholders !== []) {
-            throw RequestNotAllowed::placeholderHeader($placeholders);
-        }
-    }
+		if ($placeholders !== []) {
+			throw RequestNotAllowed::placeholderHeader($placeholders);
+		}
+	}
 
-    private function allowsHost(?string $host): bool
-    {
-        if ($host === null || $host === '') {
-            return false;
-        }
+	private function allowsHost(?string $host): bool
+	{
+		if ($host === null || $host === '') {
+			return false;
+		}
 
-        foreach ($this->allowedHosts as $pattern) {
-            if (Str::is(strtolower($pattern), strtolower($host))) {
-                return true;
-            }
-        }
+		foreach ($this->allowedHosts as $pattern) {
+			if (Str::is(strtolower($pattern), strtolower($host))) {
+				return true;
+			}
+		}
 
-        return false;
-    }
+		return false;
+	}
 }

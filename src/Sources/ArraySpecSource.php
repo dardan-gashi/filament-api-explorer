@@ -13,30 +13,30 @@ use DardanGashi\FilamentApiExplorer\Contracts\SpecSource;
  */
 final class ArraySpecSource implements SpecSource
 {
-    /**
-     * @param  array<string, mixed>  $document
-     */
-    public function __construct(
-        private readonly string $name,
-        private readonly array $document,
-        private readonly ?CarbonImmutable $generatedAt = null,
-    ) {}
+	/**
+	 * @param  array<string, mixed>  $document
+	 */
+	public function __construct(
+		private readonly string $name,
+		private readonly array $document,
+		private readonly ?CarbonImmutable $generatedAt = null,
+	) {}
 
-    public function name(): string
-    {
-        return $this->name;
-    }
+	public function name(): string
+	{
+		return $this->name;
+	}
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function document(): array
-    {
-        return $this->document;
-    }
+	/**
+	 * @return array<string, mixed>
+	 */
+	public function document(): array
+	{
+		return $this->document;
+	}
 
-    public function generatedAt(): ?CarbonImmutable
-    {
-        return $this->generatedAt;
-    }
+	public function generatedAt(): ?CarbonImmutable
+	{
+		return $this->generatedAt;
+	}
 }
