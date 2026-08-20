@@ -29,6 +29,7 @@
 		"symfony/yaml": "^7.0 || ^8.0"
 	},
 	"require-dev": {
+		"dedoc/scramble": "^0.13",
 		"larastan/larastan": "^3.4",
 		"laravel/pint": "^1.18",
 		"orchestra/testbench": "^11.0",
@@ -36,6 +37,9 @@
 		"pestphp/pest-plugin-laravel": "^4.0",
 		"pestphp/pest-plugin-livewire": "^4.0",
 		"phpstan/phpstan": "^2.1"
+	},
+	"suggest": {
+		"dedoc/scramble": "Generates the OpenAPI document from the routes themselves (^0.13), which enables the \"scramble\" source driver and the endpoint facts."
 	},
 	"autoload": {
 		"psr-4": {

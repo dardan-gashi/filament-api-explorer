@@ -12,9 +12,14 @@ return [
 	| Each entry is one OpenAPI document. The key is the name shown in the
 	| version picker, and the first entry is the one the page opens with.
 	|
-	| The "file" driver reads a JSON or YAML document from disk. Register your
-	| own driver with SpecSourceManager::extend() to load a document from
-	| somewhere else, for example straight out of a generator.
+	| The "file" driver reads a JSON or YAML document from disk. The "scramble"
+	| driver generates one from the routes themselves, so the reference cannot go
+	| stale behind an export nobody re-ran — it needs dedoc/scramble and takes an
+	| optional "api" name and "watch" paths:
+	|
+	|     'api' => ['driver' => 'scramble', 'api' => 'default'],
+	|
+	| Register a driver of your own with SpecSourceManager::extend().
 	|
 	*/
 
@@ -23,6 +28,24 @@ return [
 			'driver' => 'file',
 			'path' => storage_path('api-docs/openapi.json'),
 		],
+	],
+
+	/*
+	|--------------------------------------------------------------------------
+	| Scramble
+	|--------------------------------------------------------------------------
+	|
+	| Where dedoc/scramble is installed, this package adds the facts an OpenAPI
+	| schema has no field for to every operation it generates: the action that
+	| answers the endpoint, its throttle, and the token abilities it insists on.
+	| They travel as x-handler, x-rate-limit and x-abilities, and the page reads
+	| them back as the captions under an endpoint title. Set this to false to
+	| leave the generated document exactly as Scramble wrote it.
+	|
+	*/
+
+	'scramble' => [
+		'facts' => true,
 	],
 
 	/*

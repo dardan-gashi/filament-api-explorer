@@ -12,9 +12,14 @@ use DardanGashi\FilamentApiExplorer\Services\ExampleFactory;
 use DardanGashi\FilamentApiExplorer\Services\SchemaFieldFactory;
 use DardanGashi\FilamentApiExplorer\Services\SpecParser;
 use DardanGashi\FilamentApiExplorer\Support\ReferenceResolver;
+use DardanGashi\FilamentApiExplorer\Tests\Fixtures\ScrambleTestCase;
 use DardanGashi\FilamentApiExplorer\Tests\TestCase;
 
 pest()->extend(TestCase::class)->in('Feature', 'Unit');
+
+// The Scramble integration needs that package booted and a couple of routes to
+// describe, which is a different application than the rest of the suite runs in.
+pest()->extend(ScrambleTestCase::class)->in('Scramble');
 
 /**
  * A parser wired up the way the container wires it, for tests that do not need

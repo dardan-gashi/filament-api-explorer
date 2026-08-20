@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DardanGashi\FilamentApiExplorer;
 
+use DardanGashi\FilamentApiExplorer\Scramble\EndpointFacts;
 use DardanGashi\FilamentApiExplorer\Services\EndpointNavigator;
 use DardanGashi\FilamentApiExplorer\Services\ExampleFactory;
 use DardanGashi\FilamentApiExplorer\Services\RequestBlueprintFactory;
@@ -18,9 +19,12 @@ use DardanGashi\FilamentApiExplorer\Snippets\HttpSnippet;
 use DardanGashi\FilamentApiExplorer\Snippets\JavaScriptSnippet;
 use DardanGashi\FilamentApiExplorer\Snippets\PhpSnippet;
 use DardanGashi\FilamentApiExplorer\Snippets\PythonSnippet;
+use DardanGashi\FilamentApiExplorer\Sources\ScrambleSpecSource;
 use DardanGashi\FilamentApiExplorer\Sources\SpecSourceManager;
 use DardanGashi\FilamentApiExplorer\Support\Documents;
 use DardanGashi\FilamentApiExplorer\Support\ExecutionPolicy;
+use Dedoc\Scramble\CacheableGenerator;
+use Dedoc\Scramble\Scramble;
 use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use Illuminate\Http\Client\Factory as HttpFactory;
 use Spatie\LaravelPackageTools\Package;
@@ -57,7 +61,7 @@ final class ApiExplorerServiceProvider extends PackageServiceProvider
 
 		$this->app->singleton(
 			SpecSourceManager::class,
-			fn (): SpecSourceManager => new SpecSourceManager($this->sources()),
+			fn (): SpecSourceManager => $this->withScrambleDriver(new SpecSourceManager($this->sources())),
 		);
 
 		// Scoped, so one request parses each document at most once.
@@ -98,6 +102,54 @@ final class ApiExplorerServiceProvider extends PackageServiceProvider
 			ttl: $this->intConfig('examples.ttl', 86400),
 			maxBytes: $this->intConfig('examples.max_bytes', 65536),
 		));
+	}
+
+	public function packageBooted(): void
+	{
+		$this->registerScrambleFacts();
+	}
+
+	/**
+	 * Let a source read its document straight out of Scramble, so the reference
+	 * describes the routes that are registered rather than an exported snapshot
+	 * that can quietly go stale.
+	 *
+	 * Registered only where Scramble is installed: it is a suggestion of this
+	 * package and not a requirement, and an application without it never comes
+	 * near this driver.
+	 */
+	private function withScrambleDriver(SpecSourceManager $manager): SpecSourceManager
+	{
+		if (!class_exists(Scramble::class)) {
+			return $manager;
+		}
+
+		return $manager->extend('scramble', function (string $name, array $config): ScrambleSpecSource {
+			$watch = $config['watch'] ?? null;
+
+			return new ScrambleSpecSource(
+				name: $name,
+				generator: $this->app->make(CacheableGenerator::class),
+				api: Documents::string($config, 'api') ?? Scramble::DEFAULT_API,
+				watchPaths: is_array($watch)
+					? array_values(array_filter($watch, 'is_string'))
+					: [app_path(), base_path('routes'), config_path()],
+			);
+		});
+	}
+
+	/**
+	 * Add the facts an OpenAPI schema has no field for — the action behind an
+	 * endpoint, its throttle, the token abilities it insists on — to every
+	 * operation Scramble generates. Switched off with `scramble.facts`.
+	 */
+	private function registerScrambleFacts(): void
+	{
+		if (!class_exists(Scramble::class) || !config('filament-api-explorer.scramble.facts', true)) {
+			return;
+		}
+
+		Scramble::configure()->withOperationTransformers(EndpointFacts::class);
 	}
 
 	/**

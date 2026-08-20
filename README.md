@@ -96,56 +96,60 @@ $this->app->resolving(SpecSourceManager::class, function (SpecSourceManager $man
 
 Implement `DardanGashi\FilamentApiExplorer\Contracts\SpecSource` directly if your
 source can also report when the document last changed — the explorer shows that
-as the snapshot time and uses it to key its cache.
-
-### Example: a Scramble driver
-
-A generator builds its document from the code on every call, so it has no
-snapshot time — return `null` and let the generator do its own caching:
-
-```php
-final class ScrambleSpecSource implements SpecSource
-{
-    public function __construct(
-        private readonly string $name,
-        private readonly CacheableGenerator $generator,
-        private readonly string $api = Scramble::DEFAULT_API,
-    ) {}
-
-    public function name(): string
-    {
-        return $this->name;
-    }
-
-    public function document(): array
-    {
-        try {
-            $document = ($this->generator)(Scramble::getGeneratorConfig($this->api));
-        } catch (Throwable $exception) {
-            throw new SpecUnavailable("Scramble failed: {$exception->getMessage()}", previous: $exception);
-        }
-
-        return Documents::toMap($document);
-    }
-
-    public function generatedAt(): ?CarbonImmutable
-    {
-        return null;
-    }
-}
-```
-
-Throwing `SpecUnavailable` matters: the page renders an empty state for it and
+as the snapshot time and uses it to key its cache. Throwing `SpecUnavailable`
+matters: the page renders a state for it that says what is missing and why, and
 lets anything else bubble up, so a document that cannot be built never takes the
 panel down with it.
+
+### Scramble
+
+Where [dedoc/scramble](https://github.com/dedoc/scramble) is installed, a driver
+for it ships with this package. Name it and the reference describes the routes
+that are registered, rather than an export somebody forgot to re-run:
+
+```php
+'sources' => [
+    'api' => [
+        'driver' => 'scramble',
+        'api' => 'default',
+        'watch' => [app_path(), base_path('routes'), config_path()],
+    ],
+],
+```
+
+Generating a document costs about a second, far too much for a page that
+re-renders on every click, so the parsed specification is cached — and a cache
+needs to know when what it describes last changed. `watch` is the answer: the
+newest modification time among those paths dates the document. Editing a
+controller invalidates the cache by itself, a deployment that changes nothing
+keeps serving from it, and scanning a few hundred files costs about three
+milliseconds. It doubles as the snapshot time in the page header, because that is
+what it is.
+
+The same integration adds the facts an OpenAPI schema has no field for to every
+operation Scramble generates:
+
+| Extension       | What it says                                        |
+| --------------- | --------------------------------------------------- |
+| `x-handler`     | the action that answers the endpoint                |
+| `x-rate-limit`  | its throttle, as `600/min` or `100/h`               |
+| `x-abilities`   | the token abilities the route insists on            |
+
+They are the questions a reader asks straight away and would otherwise look up in
+`routes/api.php`, and the page reads them back as the captions under an endpoint
+title. Scramble also replaces an operation's description with the text of its
+`@deprecated` tag, which costs an endpoint its documentation the moment somebody
+marks it as going away; the integration puts both back, the description first and
+the notice after it. Set `scramble.facts` to `false` to leave the generated
+document exactly as Scramble wrote it.
 
 Two things are worth knowing before you point a navigation badge at a generated
 document. The badge is rendered on *every* page of the panel, and `count` and
 `coverage` both need the whole document to compute — with a generator behind the
 source that means a full analysis per page view, so leave the badge off (the
 documented share is on the explorer's own page anyway). And prime the generator's
-cache in production — `php artisan scramble:cache` for Scramble — so neither the
-page nor the badge pays for the analysis at request time.
+cache in production — `php artisan scramble:cache` — so neither the page nor the
+badge pays for the analysis at request time.
 
 ## Configuring the plugin
 

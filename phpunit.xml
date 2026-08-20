@@ -16,6 +16,9 @@
 		<testsuite name="Feature">
 			<directory>tests/Feature</directory>
 		</testsuite>
+		<testsuite name="Scramble">
+			<directory>tests/Scramble</directory>
+		</testsuite>
 	</testsuites>
 
 	<source>
