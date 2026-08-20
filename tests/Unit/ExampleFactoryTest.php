@@ -21,11 +21,11 @@ describe('ExampleFactory - forMediaType', function () {
             'example' => ['code' => 'SUMMER10'],
         ], references());
 
-        expect($example)->toBe(<<<'JSON'
-        {
-            "code": "SUMMER10"
-        }
-        JSON);
+        expect($example)->toBe(implode("\n", [
+            '{',
+            '    "code": "SUMMER10"',
+            '}',
+        ]));
     });
 
     test('takes the first of several named examples', function () {

@@ -36,11 +36,11 @@ describe('HttpSnippet - render', function () {
             headers: ['Accept' => 'application/json'],
         ));
 
-        expect($snippet)->toBe(<<<'HTTP'
-        GET /api/v2/vouchers?sort=-created_at&per_page=25 HTTP/1.1
-        Host: api.bookshop.test
-        Accept: application/json
-        HTTP);
+        expect($snippet)->toBe(implode("\n", [
+            'GET /api/v2/vouchers?sort=-created_at&per_page=25 HTTP/1.1',
+            'Host: api.bookshop.test',
+            'Accept: application/json',
+        ]));
     });
 
     test('names the method it is given', function () {

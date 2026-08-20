@@ -36,19 +36,19 @@ describe('PhpSnippet - render', function () {
             headers: ['Accept-Language' => 'de'],
         ));
 
-        expect($snippet)->toBe(<<<'PHP'
-        use Illuminate\Support\Facades\Http;
-
-        $response = Http::withHeaders([
-            'Accept-Language' => 'de',
-        ])->get(
-            'https://api.bookshop.test/api/v2/vouchers', [
-                'sort' => '-created_at',
-            ],
-        );
-
-        $data = $response->json();
-        PHP);
+        expect($snippet)->toBe(implode("\n", [
+            'use Illuminate\Support\Facades\Http;',
+            '',
+            '$response = Http::withHeaders([',
+            '    \'Accept-Language\' => \'de\',',
+            '])->get(',
+            '    \'https://api.bookshop.test/api/v2/vouchers\', [',
+            '        \'sort\' => \'-created_at\',',
+            '    ],',
+            ');',
+            '',
+            '$data = $response->json();',
+        ]));
     });
 
     test('builds a bare call when there is nothing to pass', function () {

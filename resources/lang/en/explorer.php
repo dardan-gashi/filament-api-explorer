@@ -3,18 +3,15 @@
 declare(strict_types=1);
 
 return [
-
     'navigation' => [
         'label' => 'API Explorer',
     ],
-
     'header' => [
         'snapshot' => 'Snapshot of :time',
         'documented' => ':percentage % documented',
         'version' => 'Version',
         'endpoints' => ':count endpoints',
     ],
-
     'nav' => [
         'search' => 'Endpoint',
         'all' => 'All',
@@ -22,11 +19,6 @@ return [
         'empty' => 'No endpoint matches.',
         'incomplete' => 'Documentation is incomplete',
     ],
-
-    /*
-     | Jumping is typing: the search sits in the toolbar and opens with ⌘K from
-     | anywhere on the page.
-     */
     'palette' => [
         'trigger' => 'Find endpoint',
         'shortcut' => '⌘K',
@@ -37,7 +29,6 @@ return [
         'back' => 'Back',
         'close' => 'Close',
     ],
-
     'sections' => [
         'path' => 'Path parameters',
         'header' => 'Request headers',
@@ -50,7 +41,6 @@ return [
         'sender' => 'Send request',
         'live_response' => 'Live response',
     ],
-
     'labels' => [
         'required' => 'required',
         'optional' => 'optional',
@@ -70,14 +60,9 @@ return [
         'toggle' => 'Expand or collapse',
         'discard_sample' => 'Discard',
     ],
-
-    /*
-     | Captions the explorer can name. Any other `x-` extension is shown as it is.
-     */
     'meta' => [
         'since' => 'since :value',
     ],
-
     'gaps' => [
         'description' => 'No summary or description',
         'responses' => 'No response documented',
@@ -85,33 +70,30 @@ return [
         'parameters' => 'Parameters without a description',
         'request_body' => 'No request body documented',
     ],
-
     'notes' => [
         'unsafe_method' => 'The explorer only sends GET requests, so this endpoint can be read but not tried.',
         'sending_disabled' => 'Sending requests is disabled for this panel.',
         'missing_credentials' => 'The :headers field is empty, so the header was not sent at all.',
         'capture' => 'Send it once — the real response replaces the structure example here.',
     ],
-
     'empty' => [
-        'spec' => 'No OpenAPI document could be loaded.',
+        'spec' => 'No OpenAPI document',
+        'spec_source' => 'The source “:name” could not be read.',
+        'spec_hint' => 'Generate the document again, or check the sources in the explorer’s configuration.',
         'endpoint' => 'Select an endpoint to read its documentation.',
         'fields' => 'No structured fields documented.',
         'field_match' => 'No field matches.',
         'body' => 'No body documented.',
         'parameters' => 'No parameters documented.',
     ],
-
     'examples' => [
         'captured' => 'Real response · :time',
         'documented' => 'Example from the specification',
         'synthesised' => 'Structure only, no real values',
         'request' => 'Request body',
     ],
-
     'notifications' => [
         'refused' => 'Request refused',
         'failed' => 'Request failed',
     ],
-
 ];

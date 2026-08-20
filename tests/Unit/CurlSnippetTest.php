@@ -35,12 +35,12 @@ describe('CurlSnippet - render', function () {
             query: ['sort' => '-created_at', 'per_page' => '25'],
         ));
 
-        expect($snippet)->toBe(<<<'CURL'
-        curl -G \
-          "https://api.bookshop.test/api/v2/vouchers" \
-          -d "sort=-created_at" \
-          -d "per_page=25"
-        CURL);
+        expect($snippet)->toBe(implode("\n", [
+            'curl -G \\',
+            '  "https://api.bookshop.test/api/v2/vouchers" \\',
+            '  -d "sort=-created_at" \\',
+            '  -d "per_page=25"',
+        ]));
     });
 
     test('leaves out the query flag when there is no query', function () {
@@ -49,10 +49,10 @@ describe('CurlSnippet - render', function () {
             url: 'https://api.bookshop.test/api/v2/vouchers',
         ));
 
-        expect($snippet)->toBe(<<<'CURL'
-        curl \
-          "https://api.bookshop.test/api/v2/vouchers"
-        CURL);
+        expect($snippet)->toBe(implode("\n", [
+            'curl \\',
+            '  "https://api.bookshop.test/api/v2/vouchers"',
+        ]));
     });
 
     test('names the method when it is not a get', function () {

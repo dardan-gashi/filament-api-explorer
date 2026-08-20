@@ -36,21 +36,21 @@ describe('PythonSnippet - render', function () {
             headers: ['Accept' => 'application/json'],
         ));
 
-        expect($snippet)->toBe(<<<'PYTHON'
-        import requests
-
-        response = requests.get(
-            'https://api.bookshop.test/api/v2/vouchers',
-            params={
-                'sort': '-created_at',
-            },
-            headers={
-                'Accept': 'application/json',
-            },
-        )
-
-        data = response.json()
-        PYTHON);
+        expect($snippet)->toBe(implode("\n", [
+            'import requests',
+            '',
+            'response = requests.get(',
+            '    \'https://api.bookshop.test/api/v2/vouchers\',',
+            '    params={',
+            '        \'sort\': \'-created_at\',',
+            '    },',
+            '    headers={',
+            '        \'Accept\': \'application/json\',',
+            '    },',
+            ')',
+            '',
+            'data = response.json()',
+        ]));
     });
 
     test('calls the method it is given', function () {

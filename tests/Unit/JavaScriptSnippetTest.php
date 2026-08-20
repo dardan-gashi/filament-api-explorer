@@ -36,21 +36,21 @@ describe('JavaScriptSnippet - render', function () {
             headers: ['Accept-Language' => 'de'],
         ));
 
-        expect($snippet)->toBe(<<<'JS'
-        const url = new URL('https://api.bookshop.test/api/v2/vouchers')
-
-        url.search = new URLSearchParams({
-            per_page: '25',
-        }).toString()
-
-        const response = await fetch(url, {
-            headers: {
-                'Accept-Language': 'de',
-            },
-        })
-
-        const data = await response.json()
-        JS);
+        expect($snippet)->toBe(implode("\n", [
+            'const url = new URL(\'https://api.bookshop.test/api/v2/vouchers\')',
+            '',
+            'url.search = new URLSearchParams({',
+            '    per_page: \'25\',',
+            '}).toString()',
+            '',
+            'const response = await fetch(url, {',
+            '    headers: {',
+            '        \'Accept-Language\': \'de\',',
+            '    },',
+            '})',
+            '',
+            'const data = await response.json()',
+        ]));
     });
 
     test('builds a bare fetch when there is nothing to pass', function () {

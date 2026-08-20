@@ -1,11 +1,3 @@
-/*
- | API Explorer
- |
- | Plain CSS on purpose: a plugin cannot ship a Tailwind build without knowing
- | the host application's theme, so every class here is prefixed with `fae-`
- | and every colour comes from a token that is redefined for dark mode.
- */
-
 .fae {
 	--fae-bg: #ffffff;
 	--fae-panel: #f8fafc;
@@ -40,11 +32,6 @@
 
 	--fae-mono: var(--mono-font-family, ui-monospace), SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
-	/*
-	 | Filament's own type scale, so the explorer reads at the same size as the rest
-	 | of the panel: its body is --text-sm. The fallbacks keep the page sane if it is
-	 | ever rendered outside a Filament panel.
-	 */
 	--fae-font-xs: var(--text-xs, 0.75rem);
 	--fae-font-sm: var(--text-sm, 0.875rem);
 	--fae-font-base: var(--text-base, 1rem);
@@ -95,11 +82,6 @@
 	grid-template-columns: minmax(0, 1fr);
 }
 
-/*
- | Two columns and no third: what used to be a navigation column is a palette now,
- | which is why the samples can sit beside the documentation from 1280px instead of
- | from 1536px.
- */
 @media (min-width: 1280px) {
 	.fae-shell {
 		grid-template-columns: minmax(0, 1fr) 26rem;
@@ -114,11 +96,6 @@
 	overflow: hidden;
 }
 
-/*
- | One surface per column, and inside it nothing but sections: a label, the rule
- | under it, the content. Boxing each section again would stack a container in a
- | container for no information gained.
- */
 .fae-section {
 	padding: 0.75rem 0.875rem;
 }
@@ -238,10 +215,6 @@
 	margin-left: auto;
 }
 
-/*
- | What the keys do, at the bottom of the box where a reader looks for it once and
- | then never again.
- */
 .fae-palette-keys {
 	border-top: 1px solid var(--fae-border);
 	color: var(--fae-text-faint);
@@ -286,7 +259,6 @@
 	flex-direction: column;
 }
 
-/* Which level the palette is on is not obvious until you see what you are inside of. */
 .fae-palette-back {
 	align-items: center;
 	background: var(--fae-panel-strong);
@@ -342,11 +314,6 @@
 	width: 100%;
 }
 
-/*
- | The row the keyboard is on. It used to be drawn one token away from the panel
- | colour, which is a highlight nobody can see — and then the arrow keys look
- | broken while they work perfectly. Neutral, but far enough away to be seen.
- */
 .fae-palette-result-active {
 	background: var(--fae-select);
 	color: var(--fae-text);
@@ -479,7 +446,6 @@
 	padding: 0.5rem 0 0.25rem;
 }
 
-/* A filter that came from the address bar, said out loud. */
 .fae-nav-filter {
 	align-items: center;
 	border-bottom: 1px solid var(--fae-border);
@@ -529,10 +495,6 @@
 
 /* ---------------------------------------------------------------- breadcrumb */
 
-/*
- | Where the endpoint on screen sits, and one click away, what sits beside it. With
- | no navigation column this is the only permanent "you are here" on the page.
- */
 .fae-breadcrumb {
 	margin-bottom: 0.375rem;
 	position: relative;
@@ -631,8 +593,6 @@
 	margin-top: 0.5rem;
 }
 
-/* Icon and value read as one caption: the panel's reset draws an svg as a block,
-   so an inline row has to be laid out and cannot be left to the default. */
 .fae-meta-item {
 	align-items: center;
 	display: inline-flex;
@@ -655,10 +615,47 @@
 	margin: 0 0 0.5rem;
 }
 
-/* A code span in a description names something; the words around it are prose. */
 .fae-inline-code {
 	color: var(--fae-text);
 	font-family: var(--fae-mono);
+}
+
+/*
+ | The page when there is nothing to show it for. Centred, because there is no
+ | column of content for it to line up with, and roomy, because a cramped error is
+ | read as a glitch while a stated one is read as an answer.
+ */
+.fae-state {
+	align-items: center;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	padding: 3rem 1.5rem;
+	text-align: center;
+}
+
+.fae-state-icon {
+	color: var(--fae-text-faint);
+	margin-bottom: 0.25rem;
+}
+
+.fae-state-title {
+	color: var(--fae-text);
+	font-size: var(--fae-font-base);
+	font-weight: 600;
+	margin: 0;
+}
+
+.fae-state-text {
+	color: var(--fae-text-muted);
+	margin: 0;
+	max-width: 32rem;
+}
+
+.fae-state-reason {
+	margin: 0.25rem 0;
+	max-width: 100%;
+	text-align: left;
 }
 
 .fae-note {
@@ -730,10 +727,6 @@
 	padding: 0;
 }
 
-/*
- | Children hang off their parent on a drawn trunk, with a tee into every row and
- | an elbow into the last one, so a wrapped row cannot be mistaken for a sibling.
- */
 .fae-tree ul {
 	margin-left: 0.4375rem;
 	padding-left: 0.875rem;
@@ -837,8 +830,6 @@
 	font-size: var(--fae-font-xs);
 }
 
-/* Indented past the chevron slot, so the text lines up with the field name, and
-   set tight: a described field has to read as one row rather than as two. */
 .fae-field-description,
 .fae-field .fae-enum {
 	color: var(--fae-text-muted);
@@ -849,10 +840,6 @@
 
 /* ---------------------------------------------------------------- code */
 
-/*
- | Samples wrap rather than scroll: a horizontal scrollbar hides the end of every
- | line it appears on, and the end of a line is where a URL or a token sits.
- */
 .fae-code {
 	background: var(--fae-bg);
 	border-radius: 0.375rem;
@@ -866,11 +853,6 @@
 	white-space: pre-wrap;
 }
 
-/*
- | One set of token colours for every language on the page: a string is the same
- | colour in a curl line, in a PHP sample and in a response body, because it is
- | the same thing.
- */
 .fae-code-property {
 	color: var(--fae-code-property);
 }
@@ -884,10 +866,6 @@
 	color: var(--fae-code-number);
 }
 
-/*
- | `true` and `null` are words of the language like `const` and `use`, so they are
- | drawn like them.
- */
 .fae-code-keyword,
 .fae-code-literal {
 	color: var(--fae-code-keyword);
@@ -897,9 +875,6 @@
 	color: var(--fae-code-call);
 }
 
-/*
- | The one token the reader has to act on: the credential a sample cannot know.
- */
 .fae-code-variable {
 	color: var(--fae-code-variable);
 }
@@ -1033,7 +1008,6 @@
 	text-overflow: ellipsis;
 }
 
-/* The scheme is part of the header, not part of what the user has to type. */
 .fae-input-group {
 	align-items: stretch;
 	display: flex;
@@ -1077,7 +1051,6 @@
 	white-space: nowrap;
 }
 
-/* A recorded response is the real payload, so it is the one worth pointing at. */
 .fae-example-origin-live {
 	color: var(--fae-green);
 	font-weight: 600;

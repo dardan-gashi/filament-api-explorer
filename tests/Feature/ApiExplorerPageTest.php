@@ -264,7 +264,26 @@ describe('ApiExplorerPage - Render', function () {
 
         livewire(ApiExplorerPage::class)
             ->assertOk()
-            ->assertSee('No OpenAPI document');
+            ->assertSee('No OpenAPI document')
+            // The path is the one thing the reader has to go and look at.
+            ->assertSee('/does/not/exist.json')
+            ->assertSee('check the sources');
+    });
+
+    test('offers nothing to do with a document it has not got', function () {
+        // A share of a document that never loaded, a filter over nothing, a search
+        // across nothing, and an invitation to pick an endpoint out of an empty
+        // list: four things the page used to say next to the error that says why
+        // none of them can work.
+        config()->set('filament-api-explorer.sources', [
+            'v2' => ['driver' => 'file', 'path' => '/does/not/exist.json'],
+        ]);
+
+        livewire(ApiExplorerPage::class)
+            ->assertDontSee('% documented')
+            ->assertDontSee('Gaps')
+            ->assertDontSee('Find endpoint')
+            ->assertDontSee('Select an endpoint');
     });
 });
 

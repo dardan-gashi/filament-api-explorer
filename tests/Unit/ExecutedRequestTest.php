@@ -66,11 +66,11 @@ describe('ExecutedRequest - prettyBody', function () {
     test('indents a json body', function () {
         $result = new ExecutedRequest(status: 200, body: '{"code":"SUMMER10"}');
 
-        expect($result->prettyBody())->toBe(<<<'JSON'
-        {
-            "code": "SUMMER10"
-        }
-        JSON);
+        expect($result->prettyBody())->toBe(implode("\n", [
+            '{',
+            '    "code": "SUMMER10"',
+            '}',
+        ]));
     });
 
     test('leaves a body that is not json untouched', function () {
