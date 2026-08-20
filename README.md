@@ -73,35 +73,53 @@ the driver below.
 
 ### Reading a document from somewhere else
 
-Register your own driver from a service provider. Anything that can hand over a
-decoded document works — a generator, an object store, an HTTP endpoint:
+Anything that writes a document to disk needs no code at all: the `file` driver
+reads JSON and YAML, so an l5-swagger or swagger-php setup is a path.
 
 ```php
-use DardanGashi\FilamentApiExplorer\Sources\ArraySpecSource;
+'sources' => [
+    'v1' => ['driver' => 'file', 'path' => storage_path('api-docs/api-docs.json')],
+],
+```
+
+Anything that has no file — a generator, an object store, an HTTP endpoint —
+is a driver you register from a service provider. The whole configuration entry
+reaches the resolver, so a driver takes the options it needs:
+
+```php
+use DardanGashi\FilamentApiExplorer\Contracts\SpecSource;
 use DardanGashi\FilamentApiExplorer\Sources\SpecSourceManager;
 
 $this->app->resolving(SpecSourceManager::class, function (SpecSourceManager $manager): void {
-    $manager->extend('generator', fn (string $name, array $config) => new ArraySpecSource(
-        $name,
-        app(YourGenerator::class)->document(),
+    $manager->extend('gateway', fn (string $name, array $config): SpecSource => new GatewaySpecSource(
+        name: $name,
+        stage: $config['stage'] ?? 'prod',
     ));
 });
 ```
 
 ```php
 'sources' => [
-    'v2' => ['driver' => 'generator'],
+    'gateway' => ['driver' => 'gateway', 'stage' => 'staging'],
 ],
 ```
 
-Implement `DardanGashi\FilamentApiExplorer\Contracts\SpecSource` directly if your
-source can also report when the document last changed — the explorer shows that
-as the snapshot time and uses it to key its cache. Throwing `SpecUnavailable`
-matters: the page renders a state for it that says what is missing and why, and
-lets anything else bubble up, so a document that cannot be built never takes the
-panel down with it.
+A driver may replace a built-in one — register `file` again and files are read
+your way from then on.
+
+Two parts of `SpecSource` are worth more than they look. `generatedAt()` is what
+allows the parsed document to be cached across requests, and it is the snapshot
+time in the page header; a source that cannot date its document is parsed again on
+every render, which is the safe way round. And `SpecUnavailable` is the way to
+fail: the page renders a state for it that names the source and says why, while
+anything else bubbles up, so a document that cannot be built never takes the panel
+down with it.
 
 ### Scramble
+
+Scramble is the one generator this package integrates with, and the only one it
+follows through their releases. Everything else is a driver you register, using
+the contract above.
 
 Where [dedoc/scramble](https://github.com/dedoc/scramble) is installed, a driver
 for it ships with this package. Name it and the reference describes the routes

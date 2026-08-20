@@ -270,6 +270,18 @@ describe('ApiExplorerPage - Render', function () {
 			->assertSee('check the sources');
 	});
 
+	test('names a driver nobody registered', function () {
+		// The first thing a driver of one's own runs into is its own name, so the
+		// state says which driver was asked for rather than only that something
+		// went wrong.
+		config()->set('filament-api-explorer.sources', ['v2' => ['driver' => 'gateway']]);
+
+		livewire(ApiExplorerPage::class)
+			->assertOk()
+			->assertSee('No OpenAPI document')
+			->assertSee('No OpenAPI source driver named [gateway] is registered.');
+	});
+
 	test('offers nothing to do with a document it has not got', function () {
 		// A share of a document that never loaded, a filter over nothing, a search
 		// across nothing, and an invitation to pick an endpoint out of an empty
