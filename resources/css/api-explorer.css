@@ -892,6 +892,11 @@ select.fae-input {
 	white-space: pre-wrap;
 }
 
+.fae-response-body {
+	max-height: 60vh;
+	overflow: hidden auto;
+}
+
 .fae-code-property {
 	color: var(--fae-code-property);
 }

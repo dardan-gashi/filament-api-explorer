@@ -604,6 +604,31 @@ describe('ApiExplorerPage - Examples', function () {
 			->assertSee('SUMMER10');
 	});
 
+	test('says what sending does without a paragraph of its own', function () {
+		// Every example already says it is a structure; that sending replaces it is
+		// one sentence more, and a page opened daily cannot hold a standing box for
+		// something you learn once. It rides on the label it is about.
+		Http::fake(['api.bookshop.test/*' => Http::response(['data' => []], 200)]);
+
+		$page = livewire(ApiExplorerPage::class);
+
+		expect($page->html())->toContain('title="Send it once')
+			->and(substr_count($page->html(), 'Send it once'))->toBe(3);
+
+		// Once a status holds a real response, its label has nothing left to promise.
+		expect($page->call('send')->html())->toContain('Real response');
+	});
+
+	test('scrolls a payload in itself rather than moving the page', function () {
+		// Both bodies: the example rendered on arrival and the live response next to
+		// it. A payload without a scroll of its own takes the sender off the screen.
+		Http::fake(['api.bookshop.test/*' => Http::response(['data' => []], 200)]);
+
+		$html = livewire(ApiExplorerPage::class)->call('send')->html();
+
+		expect(substr_count($html, 'fae-response-body'))->toBeGreaterThan(1);
+	});
+
 	test('says when an example is only a shape it built itself', function () {
 		// The fixture's 401 carries a schema and no example, so the explorer has
 		// to admit that "message": "string" is not an example of anything.

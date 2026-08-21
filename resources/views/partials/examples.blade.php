@@ -1,7 +1,3 @@
-@php
-	$hasCaptured = collect($exampleSections)->contains(fn (array $section): bool => $section['captured']);
-@endphp
-
 @foreach ($exampleSections as $section)
 	<section class="fae-section" wire:key="example-{{ $section['key'] }}" x-data="{ open: {{ $section['collapsed'] ? 'false' : 'true' }} }">
 		<div class="fae-section-head">
@@ -33,9 +29,12 @@
 					<span class="fae-badge fae-badge-{{ $section['color'] }}">{{ $section['status'] }}</span>
 				@endif
 
-				<span @class(['fae-example-origin', 'fae-example-origin-live' => $section['captured']])>
-					{{ $section['origin'] }}
-				</span>
+				<span
+					@class(['fae-example-origin', 'fae-example-origin-live' => $section['captured']])
+					@if ($captureEnabled && $canSend && ! $section['captured'])
+						title="{{ __('filament-api-explorer::explorer.notes.capture') }}"
+					@endif
+				>{{ $section['origin'] }}</span>
 			</button>
 
 			<div class="fae-section-actions">
@@ -53,16 +52,10 @@
 			</div>
 		</div>
 
-		<pre class="fae-code" x-show="open">{!! \DardanGashi\FilamentApiExplorer\Highlighting\JsonHighlighter::highlight($section['body']) !!}</pre>
+		<pre class="fae-code fae-response-body" x-show="open">{!! \DardanGashi\FilamentApiExplorer\Highlighting\JsonHighlighter::highlight($section['body']) !!}</pre>
 	</section>
 
 	@if ($section['headers'] !== [])
 		@include('filament-api-explorer::partials.response-headers', ['headers' => $section['headers']])
 	@endif
 @endforeach
-
-@if ($captureEnabled && $canSend && ! $hasCaptured)
-	<section class="fae-section">
-		<p class="fae-note">{{ __('filament-api-explorer::explorer.notes.capture') }}</p>
-	</section>
-@endif

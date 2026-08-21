@@ -110,7 +110,7 @@
 				</div>
 			@endforeach
 
-			<pre class="fae-code">{!! \DardanGashi\FilamentApiExplorer\Highlighting\JsonHighlighter::highlight($result->prettyBody()) !!}</pre>
+			<pre class="fae-code fae-response-body">{!! \DardanGashi\FilamentApiExplorer\Highlighting\JsonHighlighter::highlight($result->prettyBody()) !!}</pre>
 		@endif
 	</section>
 @endif
