@@ -1,9 +1,32 @@
 # Filament API Explorer
 
-An OpenAPI-driven API reference inside a Filament panel: find any endpoint from a
-`⌘K` palette, read request and response schemas as a searchable tree, copy a
-request sample in five languages — and send a `GET` request to see the live
-response next to the documented one.
+[![PHP](https://img.shields.io/badge/PHP-8.3%2B-777BB4?logo=php&logoColor=white)]()
+[![Laravel](https://img.shields.io/badge/Laravel-12%20%7C%2013-FF2D20?logo=laravel&logoColor=white)](https://laravel.com)
+[![Filament](https://img.shields.io/badge/Filament-5-FFA500?logo=filament&logoColor=white)](https://filamentphp.com)
+[![Scramble](https://img.shields.io/badge/Scramble-integrated-6366F1)](https://scramble.dedoc.co)
+[![Tests](https://img.shields.io/badge/tests-543%20passing-brightgreen)]()
+[![PHPStan](https://img.shields.io/badge/PHPStan-level%208-2A5EA7)]()
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE.md)
+
+<!-- Add this once the first version is tagged on Packagist:
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/dardangashi/filament-api-explorer.svg?label=stable)](https://packagist.org/packages/dardangashi/filament-api-explorer)
+-->
+
+## Introduction
+
+An OpenAPI-driven API reference inside a [Filament](https://filamentphp.com) panel:
+find any endpoint from a `⌘K` palette, read request and response schemas as a
+searchable tree, copy a request sample in five languages — and send a `GET`
+request to see the live response next to the documented one.
+
+**[Scramble](https://scramble.dedoc.co) is integrated.** Name its driver and the
+reference describes the routes that are actually registered, rather than an export
+somebody forgot to re-run. The integration also adds the facts an OpenAPI schema
+has no field for — the action behind an endpoint, its throttle, the token
+abilities it insists on — and puts back the description Scramble replaces when an
+operation is marked `@deprecated`. Scramble is the one generator this package
+follows through their releases; it stays a suggestion rather than a requirement,
+because any document on disk works as well.
 
 Responses you fetch are kept and shown as the endpoint's example, because a real
 payload documents an API and a skeleton built from its schema does not.
@@ -14,11 +37,49 @@ it takes without documenting, and parameters without a description. The header
 shows the documented share of the API, and one toggle narrows the whole page to
 those gaps.
 
+## Features
+
+- **A palette instead of a sidebar.** `⌘K` opens a two-level browser — resource,
+  then endpoint — driven by the arrow keys, matched against method, path, summary
+  and resource at once, and searched in the browser rather than over the wire.
+- **Schemas as a tree.** Request and response bodies expand as a collapsible tree
+  with types, nullability and descriptions, and a field search that narrows it.
+- **Five request samples**, generated from the same blueprint the live sender
+  uses: `curl`, raw HTTP, PHP (Laravel's HTTP client), JavaScript `fetch` and
+  Python `requests`. Highlighted on the server — no syntax-highlighting library
+  in the browser — with credentials drawn as the placeholder they are.
+- **Live `GET` requests** from inside the panel, behind a policy you configure:
+  safe methods only, your schemes, your hosts, no redirects, a timeout.
+- **Real responses as examples.** What the API answers is kept and shown in place
+  of a skeleton built from the schema, one sample per status, discardable.
+- **Coverage that means something.** Five checks per endpoint, the documented
+  share in the header, and a filter that narrows the page to what is missing.
+- **[Scramble](https://scramble.dedoc.co) integration** — see above.
+- **Several documents at once**, with a version picker, plus `file`, `array` and
+  `scramble` drivers and a `SpecSourceManager::extend()` hook for your own.
+- **Vendor extensions**: any scalar `x-*` field on an operation is shown as a
+  caption under the endpoint title.
+- **Filament-native.** Field metrics read off Filament's own input CSS, the
+  panel's primary colour for focus, dark mode, and the page width the panel hands
+  out. English and German ship with it.
+- **Deep links.** The selected endpoint, the search term and the gap filter live
+  in the query string, so a page can be sent to a colleague as it stands.
+
+## Screenshots
+
+The endpoint page: palette above, documentation on the left, request samples and
+the sender on the right.
+
+![The API explorer page](docs/images/api-explorer.png)
+
 ## Requirements
 
 - PHP 8.3+
 - Laravel 12 or 13
 - Filament 5
+- [`dedoc/scramble`](https://scramble.dedoc.co) `^0.13` — optional, and only for
+  the `scramble` driver and the endpoint facts. Any JSON or YAML document on disk
+  works without it.
 
 ## Installation
 
@@ -26,6 +87,9 @@ those gaps.
 composer require dardangashi/filament-api-explorer
 php artisan filament:assets
 ```
+
+Run `php artisan filament:assets` after package updates and on deployment as
+well, unless your application already runs Filament's asset command for you.
 
 Register the plugin on a panel:
 
@@ -40,12 +104,37 @@ public function panel(Panel $panel): Panel
 }
 ```
 
+The page is served at your panel's path plus `api-explorer` — `/admin/api-explorer`
+for a panel at `/admin` — and it is kept out of production panels until you ask
+for it. Access is your panel's business: whoever may open the panel may open the
+page, unless you narrow it with `authorizeUsing()`.
+
 Publish the configuration if you want to change it in the repository rather than
 per panel:
 
 ```bash
 php artisan vendor:publish --tag=filament-api-explorer-config
 ```
+
+## Usage
+
+Open the page from the panel navigation. It arrives on the first endpoint of the
+document, and from there:
+
+- `⌘K` (or `Ctrl+K`) opens the palette. Type to match a method, path, summary or
+  resource, `↑`/`↓` to move, `↵` to select, `Esc` to close. `→` opens a resource
+  and `←` leaves it again — while the search box is empty, so typing still moves
+  the cursor.
+- The left column is the documentation: parameters, request body, responses, and
+  every schema as a tree you can search and collapse.
+- The right column is the request: a sample in the language you pick, and the
+  sender underneath it.
+- Fill in the path parameters and your credential, then **Send**. The response
+  arrives beside the documented one and stays as this endpoint's example. A
+  credential you type follows you to the next endpoint that asks for the same
+  header.
+- `Gaps` narrows the palette to the endpoints that are missing documentation, and
+  the badge beside it is the documented share of the whole API.
 
 ## Pointing it at a document
 
