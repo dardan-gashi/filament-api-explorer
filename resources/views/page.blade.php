@@ -9,6 +9,8 @@
 						type="button"
 						class="fae-button"
 						aria-pressed="{{ $this->onlyGaps ? 'true' : 'false' }}"
+						@disabled($coverage->isComplete() && ! $this->onlyGaps)
+						@if ($coverage->isComplete()) title="{{ __('filament-api-explorer::explorer.nav.no_gaps') }}" @endif
 						wire:click="filterGaps({{ $this->onlyGaps ? 'false' : 'true' }})"
 					>
 						{{ __('filament-api-explorer::explorer.nav.gaps') }}
@@ -40,15 +42,17 @@
 
 				@unless ($specError)
 					<span class="fae-toolbar-meta">
-						{{ $spec->name }}
-						&middot; {{ __('filament-api-explorer::explorer.header.endpoints', ['count' => $spec->endpointCount()]) }}
+						{{ __('filament-api-explorer::explorer.header.endpoints', ['count' => $spec->endpointCount()]) }}
 						@if ($spec->generatedAt)
 							&middot; {{ __('filament-api-explorer::explorer.header.snapshot', ['time' => $spec->generatedAt->translatedFormat('d.m., H:i')]) }}
 						@endif
 					</span>
 
 					@if ($spec->versionLabel())
-						<span class="fae-badge fae-badge-outline">{{ $spec->versionLabel() }}</span>
+						<span
+							class="fae-badge fae-badge-outline"
+							title="{{ __('filament-api-explorer::explorer.header.api_version') }}"
+						>{{ $spec->versionLabel() }}</span>
 					@endif
 
 					<span class="fae-badge fae-badge-{{ $coverage->color() }}">

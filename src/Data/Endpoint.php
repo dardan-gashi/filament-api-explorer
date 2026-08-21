@@ -187,11 +187,6 @@ final readonly class Endpoint
 	}
 
 	/**
-	 * Parameters the explorer inferred are skipped: an authentication header
-	 * read off a security scheme is not part of the document, so a missing
-	 * description on it says nothing about how well the API is documented.
-	 */
-	/**
 	 * A method that carries a body has to document one, with a schema. Without
 	 * this check the coverage figure would call a `POST` fully documented while
 	 * saying nothing at all about what it expects to be sent.
@@ -205,6 +200,11 @@ final readonly class Endpoint
 		return $this->requestBody === null || !$this->requestBody->hasFields();
 	}
 
+	/**
+	 * Parameters the explorer inferred are skipped: an authentication header
+	 * read off a security scheme is not part of the document, so a missing
+	 * description on it says nothing about how well the API is documented.
+	 */
 	private function hasUndescribedParameter(): bool
 	{
 		foreach ($this->parameters as $parameter) {

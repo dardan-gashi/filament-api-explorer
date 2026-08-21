@@ -39,6 +39,40 @@ function badges(string $html, string $label): int
 	return substr_count((string) preg_replace('/\s+/', '', $html), ">{$label}<");
 }
 
+/**
+ * A document with no gaps at all: an endpoint that is summarised, answers with a
+ * documented status, and describes the body of it.
+ *
+ * @return array<string, mixed>
+ */
+function documentedDocument(): array
+{
+	return [
+		'openapi' => '3.1.0',
+		'info' => ['title' => 'complete api'],
+		'paths' => [
+			'/things' => [
+				'get' => [
+					'summary' => 'Lists things.',
+					'responses' => [
+						'200' => [
+							'description' => 'OK',
+							'content' => [
+								'application/json' => [
+									'schema' => [
+										'type' => 'object',
+										'properties' => ['id' => ['type' => 'string']],
+									],
+								],
+							],
+						],
+					],
+				],
+			],
+		],
+	];
+}
+
 // ----------------------------------------------------------------------------------
 // ApiExplorerPage Test Suite
 // Sections: Render, Endpoint Selection, Search, Gap Filter, Snippets, Sending, Examples
@@ -54,6 +88,17 @@ describe('ApiExplorerPage - Render', function () {
 		livewire(ApiExplorerPage::class)
 			->assertOk()
 			->assertSet('endpointKey', Endpoint::keyFor(HttpMethod::Get, '/vouchers'));
+	});
+
+	test('states one version, and it is the API’s', function () {
+		// The source key is a name from the configuration — `v2` next to the document's
+		// own `v2.4.1` read as two versions of something. The picker is where a source
+		// is named, and it is only there when there is a choice to make.
+		$html = livewire(ApiExplorerPage::class)
+			->assertSee('Version of the API')
+			->html();
+
+		expect($html)->toMatch('/fae-toolbar-meta">\s*7 endpoints/');
 	});
 
 	test('hands the whole navigation to the palette', function () {
@@ -433,6 +478,28 @@ describe('ApiExplorerPage - Gap Filter', function () {
 			->viewData('resources');
 
 		expect(array_column($resources, 'group'))->toContain('Vouchers');
+	});
+
+	test('offers the filter while there is something to filter', function () {
+		$html = livewire(ApiExplorerPage::class)->html();
+
+		expect($html)->toMatch('/<button[^>]*filterGaps/')
+			->and($html)->not->toMatch('/<button[^>]*disabled[^>]*filterGaps/');
+	});
+
+	test('switches itself off when every endpoint is documented', function () {
+		// A filter over nothing empties the page and reads as a broken button, so at
+		// full coverage it is disabled and says why rather than offering the click.
+		config()->set('filament-api-explorer.sources', [
+			'v1' => ['driver' => 'array', 'document' => documentedDocument()],
+		]);
+
+		$html = livewire(ApiExplorerPage::class)
+			->assertSee('100 % documented')
+			->assertSee('No gaps to filter')
+			->html();
+
+		expect($html)->toMatch('/<button[^>]*disabled[^>]*filterGaps/');
 	});
 
 	test('keeps a filtered endpoint out of the palette rather than in it', function () {
