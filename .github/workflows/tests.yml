@@ -31,7 +31,7 @@ jobs:
     name: PHP ${{ matrix.php }} · Laravel ${{ matrix.laravel }} · ${{ matrix.dependencies }} deps
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
@@ -43,7 +43,7 @@ jobs:
       # No composer.lock is committed — a library resolves against the
       # application it lands in, so the matrix resolves it here too.
       - name: Cache Composer
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.composer/cache
           key: composer-${{ matrix.php }}-L${{ matrix.laravel }}-${{ matrix.dependencies }}-${{ hashFiles('composer.json') }}
