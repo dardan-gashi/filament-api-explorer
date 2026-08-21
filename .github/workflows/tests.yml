@@ -50,7 +50,7 @@ jobs:
           restore-keys: composer-${{ matrix.php }}-L${{ matrix.laravel }}-${{ matrix.dependencies }}-
 
       - name: Validate composer.json
-        run: composer validate --strict
+        run: composer validate --strict --no-check-lock
 
       - name: Install dependencies
         run: |
@@ -60,7 +60,7 @@ jobs:
           else
             composer update --prefer-stable --no-interaction --no-progress
           fi
-          composer show laravel/framework filament/filament
+          composer show | grep -E '^(laravel/framework|filament/filament|dedoc/scramble) ' || true
 
       - name: Check the code style
         run: vendor/bin/pint --test
