@@ -13,16 +13,22 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    # Spelled out rather than built from axes: the Laravel version is chosen by
+    # the Testbench major, so the two travel together and a cross product would
+    # produce pairs that cannot resolve.
     strategy:
       fail-fast: false
       matrix:
-        php: ['8.3', '8.4', '8.5']
-        dependencies: [highest]
         include:
-          - php: '8.3'
-            dependencies: lowest
+          - { php: '8.3', laravel: 12, testbench: '^10.0', dependencies: highest }
+          - { php: '8.4', laravel: 12, testbench: '^10.0', dependencies: highest }
+          - { php: '8.5', laravel: 12, testbench: '^10.0', dependencies: highest }
+          - { php: '8.3', laravel: 13, testbench: '^11.0', dependencies: highest }
+          - { php: '8.4', laravel: 13, testbench: '^11.0', dependencies: highest }
+          - { php: '8.5', laravel: 13, testbench: '^11.0', dependencies: highest }
+          - { php: '8.3', laravel: 12, testbench: '^10.0', dependencies: lowest }
 
-    name: PHP ${{ matrix.php }} · ${{ matrix.dependencies }} deps
+    name: PHP ${{ matrix.php }} · Laravel ${{ matrix.laravel }} · ${{ matrix.dependencies }} deps
 
     steps:
       - uses: actions/checkout@v4
@@ -40,19 +46,21 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.composer/cache
-          key: composer-${{ matrix.php }}-${{ matrix.dependencies }}-${{ hashFiles('composer.json') }}
-          restore-keys: composer-${{ matrix.php }}-${{ matrix.dependencies }}-
+          key: composer-${{ matrix.php }}-L${{ matrix.laravel }}-${{ matrix.dependencies }}-${{ hashFiles('composer.json') }}
+          restore-keys: composer-${{ matrix.php }}-L${{ matrix.laravel }}-${{ matrix.dependencies }}-
 
       - name: Validate composer.json
         run: composer validate --strict
 
       - name: Install dependencies
         run: |
+          composer require --dev "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
           if [ "${{ matrix.dependencies }}" = "lowest" ]; then
             composer update --prefer-lowest --prefer-stable --no-interaction --no-progress
           else
             composer update --prefer-stable --no-interaction --no-progress
           fi
+          composer show laravel/framework filament/filament
 
       - name: Check the code style
         run: vendor/bin/pint --test
