@@ -61,7 +61,7 @@ The endpoint page: palette above, documentation on the left, request samples and
 - 🐘 **PHP** >= 8.3
 - 🌐 **Laravel** >= 12.x
 - ✨ **Filament** >= 5.x
-- 📄 **[`dedoc/scramble`](https://scramble.dedoc.co)** `^0.13` — optional, for the `scramble` driver and the endpoint facts
+- 📄 **[`dedoc/scramble`](https://scramble.dedoc.co)** `^0.13.41` — optional, for the `scramble` driver and the endpoint facts
 
 ## 📥 Installation
 

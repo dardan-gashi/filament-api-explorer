@@ -29,7 +29,7 @@
 		"symfony/yaml": "^7.0 || ^8.0"
 	},
 	"require-dev": {
-		"dedoc/scramble": "^0.13",
+		"dedoc/scramble": "^0.13.41",
 		"larastan/larastan": "^3.4",
 		"laravel/pint": "^1.18",
 		"orchestra/testbench": "^11.0",
@@ -39,7 +39,7 @@
 		"phpstan/phpstan": "^2.1"
 	},
 	"suggest": {
-		"dedoc/scramble": "Generates the OpenAPI document from the routes themselves (^0.13), which enables the \"scramble\" source driver and the endpoint facts."
+		"dedoc/scramble": "Generates the OpenAPI document from the routes themselves (^0.13.41, the first release with the cacheable generator this package reads), which enables the \"scramble\" source driver and the endpoint facts."
 	},
 	"autoload": {
 		"psr-4": {
