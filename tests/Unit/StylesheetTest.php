@@ -154,6 +154,63 @@ describe('Stylesheet - Selectors', function () {
 			->toContain('--fae-select: rgb(255 255 255 / 0.08);');
 	});
 
+	test('takes the field metrics from Filament and not from taste', function () {
+		// The canary: these numbers are Filament's, and the day it changes them a
+		// field of ours that is two pixels off is exactly the kind of thing nobody
+		// reports and everybody notices.
+		$filament = __DIR__.'/../../vendor/filament/support/resources/css/components/input/index.css';
+
+		$theirs = (string) file_get_contents($filament);
+
+		expect($theirs)->toContain('px-3 py-1.5')
+			->and($theirs)->toContain('text-sm leading-6');
+
+		preg_match('/\\.fae-select,\\s*\\.fae-input \\{([^}]*)\\}/', stylesheet(), $rule);
+
+		// The palette trigger stands in for a search field, so it is measured with it.
+		preg_match('/\\.fae-palette-trigger \\{([^}]*)\\}/', stylesheet(), $trigger);
+
+		expect($trigger[1] ?? '')->toContain('padding: 0.375rem 0.75rem')
+			->and($trigger[1] ?? '')->toContain('border-radius: 0.5rem');
+
+		// px-3, py-1.5, leading-6 and the wrapper's rounded-lg, in rem.
+		expect($rule[1] ?? '')->toContain('padding: 0.375rem 0.75rem')
+			->and($rule[1] ?? '')->toContain('line-height: 1.5rem')
+			->and($rule[1] ?? '')->toContain('border-radius: 0.5rem');
+	});
+
+	test('divides a prefix off the field and keeps the list readable', function () {
+		// Both are Filament's own doing and both are invisible in a screenshot of a
+		// light panel: a prefix is a segment with a rule down its edge, and an option
+		// list is drawn by the platform in white unless every option is given a
+		// surface of its own.
+		preg_match('/\\.fae-input-prefix \\{([^}]*)\\}/', stylesheet(), $prefix);
+		preg_match('/\\.fae-select option \\{([^}]*)\\}/', stylesheet(), $option);
+
+		expect($prefix[1] ?? '')->toContain('border-inline-end')
+			->and($option[1] ?? '')->toContain('background: var(--fae-panel)')
+			->and(stylesheet())->toContain('--fae-field-divider: rgb(255 255 255 / 0.1)');
+	});
+
+	test('measures the room a column has and never the window', function () {
+		// Every layout here sits in a column of its own width: the panel's sidebar and
+		// the page width Filament hands out are invisible to a viewport query, which
+		// then reads a wide window as room the column has not got.
+		expect(stylesheet())->not->toMatch('/@media \\(min-width/')
+			->and(stylesheet())->toContain('@container (min-width: 64rem)')
+			->and(stylesheet())->toContain('container-type: inline-size');
+	});
+
+	test('keeps a response inside its own scroll area', function () {
+		// The page has one scroll, and a response has no length limit: without a
+		// scroll of its own, a long payload pushes the sender out of the viewport and
+		// every second attempt costs a trip up and back down.
+		preg_match('/\\.fae-response-body \\{([^}]*)\\}/', stylesheet(), $rule);
+
+		expect($rule[1] ?? '')->toContain('max-height')
+			->and($rule[1] ?? '')->toContain('overflow');
+	});
+
 	test('colours every token the highlighters emit', function () {
 		// A token class with no rule behind it is drawn in the body colour, which
 		// reads as a highlighter that failed to recognise it. The count pins the

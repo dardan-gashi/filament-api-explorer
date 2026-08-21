@@ -21,7 +21,7 @@
 		@endif
 
 		@foreach ($senderSections as $section)
-			<h4 class="fae-group-label fae-group-label-flush">{{ $section['label'] }}</h4>
+			<h4 class="fae-group-label">{{ $section['label'] }}</h4>
 
 			@foreach ($section['fields'] as $field)
 				<div class="fae-field-grid">

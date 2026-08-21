@@ -83,24 +83,26 @@
 				</div>
 			</div>
 		@else
-			<div class="fae-shell">
-				<div class="fae-surface">
+			<div class="fae-columns">
+				<div class="fae-shell">
+					<div class="fae-surface">
+						@if ($endpoint)
+							@include('filament-api-explorer::partials.endpoint')
+						@else
+							<section class="fae-section">
+								<p class="fae-empty">{{ __('filament-api-explorer::explorer.empty.endpoint') }}</p>
+							</section>
+						@endif
+					</div>
+
 					@if ($endpoint)
-						@include('filament-api-explorer::partials.endpoint')
-					@else
-						<section class="fae-section">
-							<p class="fae-empty">{{ __('filament-api-explorer::explorer.empty.endpoint') }}</p>
-						</section>
+						<div class="fae-surface">
+							@include('filament-api-explorer::partials.snippet')
+							@include('filament-api-explorer::partials.sender')
+							@include('filament-api-explorer::partials.examples')
+						</div>
 					@endif
 				</div>
-
-				@if ($endpoint)
-					<div class="fae-surface">
-						@include('filament-api-explorer::partials.snippet')
-						@include('filament-api-explorer::partials.sender')
-						@include('filament-api-explorer::partials.examples')
-					</div>
-				@endif
 			</div>
 		@endif
 	</div>
