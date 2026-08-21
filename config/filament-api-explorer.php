@@ -143,9 +143,15 @@ return [
 	|
 	| The explorer can send an endpoint's request and show the live response.
 	| This runs server-side, so it is restricted on purpose: only safe methods,
-	| only the schemes below, and only hosts listed here. Leave "allowed_hosts"
-	| empty to allow the application's own host, and use patterns such as
-	| "*.staging.example.com" to cover a set of environments.
+	| only the schemes below, and only hosts you list here — the hosts are yours to
+	| name, because only you know which environments this installation may reach.
+	| An empty list means this application's own host, which is the one host an
+	| explorer needs in order to try its own API, and patterns such as
+	| "*.staging.example.com" cover a set of environments.
+	|
+	| Naming a host reachable from everywhere means it is reachable from everywhere:
+	| put production in this list and a laptop can call production the moment
+	| somebody picks that server from the list on the page.
 	|
 	*/
 
