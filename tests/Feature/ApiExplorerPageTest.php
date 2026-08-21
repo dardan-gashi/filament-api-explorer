@@ -405,6 +405,18 @@ describe('ApiExplorerPage - Endpoint Selection', function () {
 		livewire(ApiExplorerPage::class)
 			->assertSet('headerValues.'.InputKey::for('Authorization'), '');
 	});
+
+	test('carries a filled header to the next endpoint that asks for it', function () {
+		// A token is typed to try an API, not one endpoint of it. Retyping it per
+		// endpoint is the friction that ends with the token pasted somewhere it can
+		// be found again — but a header the next endpoint never asks for is dropped.
+		livewire(ApiExplorerPage::class)
+			->set('headerValues.'.InputKey::for('Authorization'), 'Bearer carried')
+			->set('headerValues.'.InputKey::for('Accept-Language'), 'de-DE')
+			->call('selectEndpoint', Endpoint::keyFor(HttpMethod::Get, '/courses'))
+			->assertSet('headerValues.'.InputKey::for('Authorization'), 'Bearer carried')
+			->assertSet('headerValues.'.InputKey::for('Accept-Language'), null);
+	});
 });
 
 // ------------------------------------------------------------

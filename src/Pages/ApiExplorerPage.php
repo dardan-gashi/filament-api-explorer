@@ -735,6 +735,12 @@ class ApiExplorerPage extends Page
 	 * Query values start from the documented defaults; header values start
 	 * empty, because a documented header example is a placeholder and not a
 	 * credential anybody should send by accident.
+	 *
+	 * A header already filled in is carried over to the next endpoint that asks
+	 * for the same one: a token is typed to try an API, not a single endpoint,
+	 * and retyping it per endpoint is the kind of friction that ends in a token
+	 * pasted somewhere it can be found again. It lives in this component and
+	 * nowhere else — a reload asks for it again.
 	 */
 	private function prefillRequest(): void
 	{
@@ -749,7 +755,12 @@ class ApiExplorerPage extends Page
 
 		$this->pathValues = $this->suggestedState($endpoint, ParameterLocation::Path);
 		$this->queryValues = $this->suggestedState($endpoint, ParameterLocation::Query);
-		$this->headerValues = array_map(fn (): string => '', $this->suggestedState($endpoint, ParameterLocation::Header));
+		$typed = $this->headerValues;
+		$this->headerValues = [];
+
+		foreach (array_keys($this->suggestedState($endpoint, ParameterLocation::Header)) as $key) {
+			$this->headerValues[$key] = $typed[$key] ?? '';
+		}
 	}
 
 	/**

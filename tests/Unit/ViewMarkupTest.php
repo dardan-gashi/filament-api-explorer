@@ -7,7 +7,7 @@ use Symfony\Component\Finder\SplFileInfo;
 
 // ----------------------------------------------------------------------------------
 // View Markup Test Suite
-// Sections: Expressions
+// Sections: Expressions, Menus
 // ----------------------------------------------------------------------------------
 
 /**
@@ -84,5 +84,24 @@ describe('View Markup - Expressions', function () {
 		// The check above passes just as well when the pattern matches nothing.
 		expect(viewExpressions())->not->toBeEmpty()
 			->and(bracketsBalance("'[data-active=\"true\"]')"))->toBeFalse();
+	});
+});
+
+// ------------------------------------------------------------
+// View Markup - Menus
+// ------------------------------------------------------------
+
+describe('View Markup - Menus', function () {
+
+	test('closes the sibling menu on the way out as well as on the way in', function () {
+		// Alpine state survives a Livewire morph: the element is patched, not replaced,
+		// so `open` stays true and the menu hangs over the endpoint it just switched
+		// to. It has to be closed where it is left — on the choice, on a click outside
+		// and on escape — because nothing else will close it.
+		$markup = (string) file_get_contents(__DIR__.'/../../resources/views/partials/endpoint.blade.php');
+
+		expect($markup)->toContain('x-on:click.outside="open = false"')
+			->and($markup)->toContain('x-on:keydown.escape.window="open = false"')
+			->and(substr_count($markup, 'x-on:click="open = false"'))->toBe(1);
 	});
 });

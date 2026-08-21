@@ -1,6 +1,11 @@
 <section class="fae-section">
 	@if ($siblings !== [])
-		<div class="fae-breadcrumb" x-data="{ open: false }">
+		<div
+			class="fae-breadcrumb"
+			x-data="{ open: false }"
+			x-on:click.outside="open = false"
+			x-on:keydown.escape.window="open = false"
+		>
 			<button type="button" class="fae-breadcrumb-resource" x-on:click="open = !open" x-bind:aria-expanded="open ? 'true' : 'false'">
 				<span>{{ $resourceCaption }}</span>
 
@@ -16,6 +21,7 @@
 						class="fae-breadcrumb-sibling"
 						aria-current="{{ $sibling['key'] === $endpoint->key ? 'true' : 'false' }}"
 						title="{{ $sibling['path'] }}"
+						x-on:click="open = false"
 						wire:click="selectEndpoint(@js($sibling['key']))"
 					>
 						<span class="fae-badge fae-badge-{{ $sibling['color'] }} fae-method">{{ $sibling['method'] }}</span>
