@@ -42,6 +42,8 @@ final class ApiExplorerPlugin implements Plugin
 
 	private ?string $title = null;
 
+	private ?string $description = null;
+
 	private ?string $source = null;
 
 	private ?bool $enabledInProduction = null;
@@ -148,6 +150,17 @@ final class ApiExplorerPlugin implements Plugin
 	}
 
 	/**
+	 * The line under the page title. Unset, the page carries none — the
+	 * document's own description is prose, not a subheading.
+	 */
+	public function description(?string $description): static
+	{
+		$this->description = $description;
+
+		return $this;
+	}
+
+	/**
 	 * Which configured source the page opens with.
 	 */
 	public function source(?string $source): static
@@ -236,6 +249,11 @@ final class ApiExplorerPlugin implements Plugin
 		return $this->title ?? $this->configString('page.title');
 	}
 
+	public function getDescription(): ?string
+	{
+		return $this->description ?? $this->configString('page.description');
+	}
+
 	public function getSource(): ?string
 	{
 		return $this->source;
@@ -248,7 +266,7 @@ final class ApiExplorerPlugin implements Plugin
 
 	public function hasFullWidthLayout(): bool
 	{
-		return $this->fullWidth ?? (bool) config('filament-api-explorer.page.full_width', true);
+		return $this->fullWidth ?? (bool) config('filament-api-explorer.page.full_width', false);
 	}
 
 	public function allowsRequestSending(): bool

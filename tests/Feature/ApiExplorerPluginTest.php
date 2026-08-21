@@ -146,19 +146,29 @@ describe('ApiExplorerPlugin - Page Options', function () {
 		livewire(ApiExplorerPage::class)->assertSee('API Documentation');
 	});
 
-	test('explains nothing above the fold', function () {
-		// The document's own description used to be rendered as a subheading. On a
-		// page opened daily, two lines of prose are only ever in the way.
+	test('takes the description a panel sets', function () {
+		ApiExplorerPlugin::current()?->description('Browse the endpoints and try them out.');
+
+		livewire(ApiExplorerPage::class)->assertSee('Browse the endpoints and try them out.');
+	});
+
+	test('explains nothing above the fold unless a panel asks for it', function () {
+		// The document's own description is not the subheading, and a panel that
+		// states none gets none: on a page opened daily, two lines of prose are only
+		// ever in the way.
 		livewire(ApiExplorerPage::class)
 			->assertDontSee('A catalogue and order API.');
 	});
 
-	test('uses the full page width by default and gives it up on request', function () {
-		expect(app(ApiExplorerPage::class)->getMaxContentWidth())->toBe(Width::Full);
-
-		ApiExplorerPlugin::current()?->fullWidth(false);
-
+	test('keeps the width of the panel until a panel asks for the window', function () {
+		// Filament decides how wide a page is. A plugin that overrules that has
+		// decided something for an application that was not its to decide, so the
+		// whole window is a request and not the default.
 		expect(app(ApiExplorerPage::class)->getMaxContentWidth())->not->toBe(Width::Full);
+
+		ApiExplorerPlugin::current()?->fullWidth();
+
+		expect(app(ApiExplorerPage::class)->getMaxContentWidth())->toBe(Width::Full);
 	});
 
 	test('opens on the source a panel chose', function () {

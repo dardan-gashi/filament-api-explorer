@@ -107,15 +107,21 @@ return [
 	|--------------------------------------------------------------------------
 	|
 	| Leave "title" empty to fall back to the title in the document's info
-	| object. The page is kept out of production panels by default, because an
+	| object. A "description" is shown under it, and there is none unless you
+	| write one. The page is kept out of production panels by default, because an
 	| API reference is usually an internal tool.
+	|
+	| The page keeps the width your panel gives every other page. Set "full_width"
+	| to true where the two columns should have the whole window; they lay
+	| themselves out from the room they are given either way.
 	|
 	*/
 
 	'page' => [
 		'slug' => 'api-explorer',
 		'title' => null,
-		'full_width' => true,
+		'description' => null,
+		'full_width' => false,
 		'enabled_in_production' => false,
 	],
 

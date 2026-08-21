@@ -107,9 +107,24 @@ class ApiExplorerPage extends Page
 			?? $this->spec()->title;
 	}
 
+	/**
+	 * The line under the title, and only where a panel asks for one: the
+	 * document's own description is prose of any length, and on a page opened
+	 * daily it is in the way rather than read.
+	 */
+	public function getSubheading(): string|Htmlable|null
+	{
+		return $this->plugin()?->getDescription();
+	}
+
+	/**
+	 * The width the panel gives its pages, unless a panel asks for the window: a
+	 * plugin that overrides the layout convention of the application it is
+	 * installed into has decided something that was not its to decide.
+	 */
 	public function getMaxContentWidth(): Width|string|null
 	{
-		return ($this->plugin()?->hasFullWidthLayout() ?? true)
+		return ($this->plugin()?->hasFullWidthLayout() ?? false)
 			? Width::Full
 			: parent::getMaxContentWidth();
 	}
