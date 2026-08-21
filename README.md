@@ -183,12 +183,84 @@ ApiExplorerPlugin::make()
     ->navigationSort(100)
     ->navigationBadge('coverage')          // count | coverage | version | null
     ->title('API Documentation')
+    ->description('Browse the endpoints and try them out.')
     ->source('v2')                         // which source the page opens with
-    ->fullWidth()
+    ->fullWidth()                          // off by default: the panel decides
     ->requestSending()                     // allow live GET requests
     ->enabledInProduction()                // off by default
     ->authorizeUsing(fn (): bool => auth()->user()?->isDeveloper() ?? false);
 ```
+
+The page takes the width your panel gives every other page. `fullWidth()` hands
+it the window instead, and nothing else changes: the two columns are laid out
+from the room they are actually given — a container query, not the window size —
+so an open sidebar or a panel of its own width does not leave them squeezed at
+the moment a viewport breakpoint says there is space.
+
+## Documentation gaps
+
+Coverage here is not "does the endpoint appear in the document" — every route
+does that by itself. It is whether the document answers the five questions a
+reader actually arrives with, and `Gaps` in the toolbar narrows the palette to
+the endpoints that leave one open. The share in the header is the same check
+counted the other way round: endpoints with *no* gap at all. At 100 % there is
+nothing to filter, so the button is disabled and says so.
+
+| Badge                             | Raised when                                                                     | What closes it                                                        |
+| --------------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| No summary or description         | the operation has neither                                                       | one sentence of PHPDoc                                                |
+| No response documented            | the operation documents no response at all                                      | a return type the generator can read, or `@response`                  |
+| Success response without a schema | a `2xx` names a media type but nothing describes its body                        | return a resource or a typed value instead of an untyped array        |
+| Parameters without a description   | a documented parameter carries no `description`                                 | describe it where it is declared                                      |
+| No request body documented        | the method carries a body and none is documented, or it has no schema           | validate in a `FormRequest`, or in the action                         |
+
+Two of those are worth a note. A parameter the explorer *inferred* — the
+authentication header it reads off a security scheme, for instance — is never
+counted: it is not in the document, so a missing description on it says nothing
+about the document. And the request-body check is why a `POST` cannot reach full
+coverage on its responses alone; without it the figure would call an endpoint
+documented while saying nothing about what it expects to be sent.
+
+The gaps are the document's, so they close wherever the document comes from. With
+Scramble that is the controller, and this is an endpoint with four of the five:
+
+```php
+public function index(Request $request)
+{
+    return Order::query()
+        ->when($request->string('status')->toString(), /* ... */)
+        ->paginate()
+        ->toArray();
+}
+```
+
+No sentence, no described parameter, and an array whose shape nothing knows —
+`paginate()->toArray()` is documented as an object with no properties. The same
+endpoint with nothing left open:
+
+```php
+/**
+ * Return a paginated list of orders.
+ *
+ * Supports filtering by status, source, payment status, and date range.
+ *
+ * @param  string  $status  Only orders in this status.
+ */
+public function index(OrderIndexRequest $request): AnonymousResourceCollection
+{
+    return OrderResource::collection(
+        Order::query()->filter($request->validated())->paginate(),
+    );
+}
+```
+
+The first line is the summary, the paragraph under it the description, the
+`@param` tag the parameter description, and the return type is what lets the
+generator describe the body — one resource class documents every endpoint that
+returns it.
+
+There is nothing to configure: the five checks are the same for every document,
+because a coverage figure you can widen until it reads 100 % measures nothing.
 
 ## Code samples
 
@@ -231,7 +303,9 @@ which `Highlighter` turns into the same colours every other language uses. See
 The request panel prefills each documented query parameter with its example,
 default or first allowed value. Header inputs stay empty on purpose: a documented
 header example is a placeholder, not a credential, so nothing is sent until you
-type it.
+type it. Once typed, a header follows you to the next endpoint that asks for the
+same one — a token is typed to try an API, not one endpoint of it. It is held in
+the page and stored nowhere, so a reload asks again.
 
 Sending runs server-side, and it is restricted on purpose:
 
