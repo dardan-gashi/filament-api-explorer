@@ -239,7 +239,10 @@ Sending runs server-side, and it is restricted on purpose:
   documented but never sent
 - only the schemes in `execution.allowed_schemes`
 - only the hosts in `execution.allowed_hosts`, which defaults to the
-  application's own host. Patterns such as `*.staging.example.com` are supported
+  application's own host — which is the one host an explorer needs in order to try
+  its own API, and the reason a document offering a production server refuses to
+  be called from a laptop. Patterns such as `*.staging.example.com` are supported,
+  and a refusal names the setting it came from, so there is nothing to look up
 - redirects are not followed, so a `30x` cannot lead somewhere the policy would
   have refused
 - credentials never reach the code samples: a header that carries one is rendered

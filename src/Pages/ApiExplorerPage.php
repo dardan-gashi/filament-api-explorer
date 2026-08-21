@@ -230,7 +230,7 @@ class ApiExplorerPage extends Page
 			Notification::make()
 				->danger()
 				->title(__('filament-api-explorer::explorer.notifications.refused'))
-				->body($exception->getMessage())
+				->body($exception->reason())
 				->send();
 
 			return;
