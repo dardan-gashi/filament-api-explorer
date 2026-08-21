@@ -238,7 +238,7 @@ class ApiExplorerPage extends Page
 		}
 
 		try {
-			$this->result = app(RequestExecutor::class)->send($this->liveBlueprint($endpoint));
+			$result = app(RequestExecutor::class)->send($this->liveBlueprint($endpoint));
 		} catch (RequestNotAllowed $exception) {
 			$this->result = null;
 
@@ -251,17 +251,19 @@ class ApiExplorerPage extends Page
 			return;
 		}
 
-		if ($this->result->hasFailed()) {
+		$this->result = $result;
+
+		if ($result->hasFailed()) {
 			Notification::make()
 				->warning()
 				->title(__('filament-api-explorer::explorer.notifications.failed'))
-				->body($this->result->error)
+				->body($result->error)
 				->send();
 
 			return;
 		}
 
-		$this->samples()->remember($this->source ?? '', $endpoint->key, $this->result);
+		$this->samples()->remember($this->source ?? '', $endpoint->key, $result);
 	}
 
 	/**
