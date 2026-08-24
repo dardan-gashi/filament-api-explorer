@@ -228,6 +228,16 @@ describe('Stylesheet - Selectors', function () {
 			->and($gutter[1] ?? '')->toContain('background: var(--fae-bg)');
 	});
 
+	test('sets an entry the reader typed apart from a documented field', function () {
+		// A documented parameter is a label over a field; an entry somebody added is
+		// a name beside a value, because the two halves are one entry and a stack of
+		// two inputs reads as two unrelated fields.
+		preg_match('/\\.fae-custom-row \\{([^}]*)\\}/', stylesheet(), $rule);
+
+		expect($rule[1] ?? '')->toContain('grid-template-columns')
+			->and(stylesheet())->toMatch('/\\.fae-field-grid \\{[^}]*grid-template-columns: minmax\\(0, 1fr\\);/s');
+	});
+
 	test('keeps a response inside its own scroll area', function () {
 		// The page has one scroll, and a response has no length limit: without a
 		// scroll of its own, a long payload pushes the sender out of the viewport and

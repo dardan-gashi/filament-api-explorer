@@ -1043,6 +1043,13 @@ select.fae-input {
 	font-size: var(--fae-font-xs);
 }
 
+.fae-custom-row {
+	align-items: center;
+	display: grid;
+	gap: 0.375rem;
+	grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) auto;
+}
+
 .fae-add-row {
 	margin-top: 0.25rem;
 	width: fit-content;
