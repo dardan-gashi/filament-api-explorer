@@ -1,0 +1,1018 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Bookshop API",
+    "version": "1.9.0",
+    "description": "The previous major of the same fictional API, kept here so the version picker has two documents to switch between."
+  },
+  "servers": [
+    {
+      "url": "https://api.bookshop.test",
+      "description": "Production"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Books",
+      "description": "The catalogue."
+    },
+    {
+      "name": "Orders",
+      "description": "What customers bought."
+    },
+    {
+      "name": "System",
+      "description": "Operational endpoints."
+    }
+  ],
+  "security": [
+    {
+      "bearer": []
+    }
+  ],
+  "paths": {
+    "/v1/books": {
+      "get": {
+        "tags": [
+          "Books"
+        ],
+        "summary": "Lists books.",
+        "description": "Cursor-paginated, filtered by `q` and `status`, and sorted by `sort`. The catalogue is public data, so this is the endpoint to try first.",
+        "x-handler": "BookController@index",
+        "x-rate-limit": "120/min",
+        "x-since": "v2.0",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Matches title, subtitle and author name.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "earthsea"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Narrows the list to one shelf state.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "available",
+                "reprinting",
+                "out-of-print"
+              ]
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort key, prefixed with `-` for descending order.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "title",
+                "-title",
+                "created_at",
+                "-created_at"
+              ],
+              "default": "-created_at"
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "Records per page, at most 100.",
+            "schema": {
+              "type": "integer",
+              "default": 25,
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "The `meta.next_cursor` of the previous page.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of books.",
+            "headers": {
+              "X-RateLimit-Remaining": {
+                "description": "Requests left in the current window.",
+                "schema": {
+                  "type": "integer"
+                },
+                "example": 118
+              },
+              "Cache-Control": {
+                "description": "The catalogue is cacheable for a minute.",
+                "schema": {
+                  "type": "string"
+                },
+                "example": "public, max-age=60"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookCollection"
+                },
+                "example": {
+                  "data": [
+                    {
+                      "isbn": "978-0-441-01359-3",
+                      "title": "The Left Hand of Darkness",
+                      "subtitle": null,
+                      "status": "available",
+                      "author": {
+                        "name": "Ursula K. Le Guin",
+                        "born": 1929
+                      },
+                      "editions": [
+                        {
+                          "isbn": "978-0-441-01359-3",
+                          "format": "paperback",
+                          "published_at": "2019-09-03",
+                          "price": {
+                            "amount": 1099,
+                            "currency": "EUR"
+                          },
+                          "in_stock": 7
+                        },
+                        {
+                          "isbn": "978-0-14-303669-8",
+                          "format": "hardcover",
+                          "published_at": "2017-04-25",
+                          "price": {
+                            "amount": 2499,
+                            "currency": "EUR"
+                          },
+                          "in_stock": 0
+                        }
+                      ],
+                      "tags": [
+                        "science-fiction",
+                        "classics"
+                      ],
+                      "created_at": "2024-11-02T09:14:31+00:00"
+                    },
+                    {
+                      "isbn": "978-0-241-95367-9",
+                      "title": "A Wizard of Earthsea",
+                      "subtitle": "The Earthsea Cycle, Book One",
+                      "status": "reprinting",
+                      "author": {
+                        "name": "Ursula K. Le Guin",
+                        "born": 1929
+                      },
+                      "editions": [
+                        {
+                          "isbn": "978-0-241-95367-9",
+                          "format": "ebook",
+                          "published_at": "2018-02-01",
+                          "price": {
+                            "amount": 899,
+                            "currency": "EUR"
+                          },
+                          "in_stock": 0
+                        }
+                      ],
+                      "tags": [
+                        "fantasy"
+                      ],
+                      "created_at": "2025-03-18T11:47:02+00:00"
+                    }
+                  ],
+                  "meta": {
+                    "next_cursor": "eyJpZCI6MTQyfQ",
+                    "per_page": 25
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          }
+        }
+      }
+    },
+    "/v1/books/{isbn}": {
+      "parameters": [
+        {
+          "name": "isbn",
+          "in": "path",
+          "required": true,
+          "description": "ISBN-13 of the book, with or without hyphens.",
+          "schema": {
+            "type": "string"
+          },
+          "example": "978-0-441-01359-3"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Books"
+        ],
+        "summary": "Reads one book.",
+        "description": "Every edition of the title comes with it.",
+        "x-handler": "BookController@show",
+        "x-since": "v2.0",
+        "responses": {
+          "200": {
+            "description": "The book.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Book"
+                },
+                "example": {
+                  "isbn": "978-0-441-01359-3",
+                  "title": "The Left Hand of Darkness",
+                  "subtitle": null,
+                  "status": "available",
+                  "author": {
+                    "name": "Ursula K. Le Guin",
+                    "born": 1929
+                  },
+                  "editions": [
+                    {
+                      "isbn": "978-0-441-01359-3",
+                      "format": "paperback",
+                      "published_at": "2019-09-03",
+                      "price": {
+                        "amount": 1099,
+                        "currency": "EUR"
+                      },
+                      "in_stock": 7
+                    },
+                    {
+                      "isbn": "978-0-14-303669-8",
+                      "format": "hardcover",
+                      "published_at": "2017-04-25",
+                      "price": {
+                        "amount": 2499,
+                        "currency": "EUR"
+                      },
+                      "in_stock": 0
+                    }
+                  ],
+                  "tags": [
+                    "science-fiction",
+                    "classics"
+                  ],
+                  "created_at": "2024-11-02T09:14:31+00:00"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/v1/orders": {
+      "get": {
+        "tags": [
+          "Orders"
+        ],
+        "summary": "Lists orders.",
+        "description": "Newest first, filtered by status and date.",
+        "x-handler": "OrderController@index",
+        "x-rate-limit": "60/min",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Narrows the list to one state.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "paid",
+                "shipped",
+                "cancelled"
+              ]
+            }
+          },
+          {
+            "name": "placed_after",
+            "in": "query",
+            "description": "Only orders placed on or after this date.",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-08-01"
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "Records per page, at most 100.",
+            "schema": {
+              "type": "integer",
+              "default": 25
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of orders.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderCollection"
+                },
+                "example": {
+                  "data": [
+                    {
+                      "id": "4f1c9a20-7d3e-4b16-9f8a-2c5e7b0d1a63",
+                      "number": "ORD-2026-004182",
+                      "status": "paid",
+                      "customer": {
+                        "id": "9b4e2c1f-3a7d-4f82-b5e0-1d6c8a9f2e34",
+                        "name": "Mara Feldmann",
+                        "email": "mara@example.test",
+                        "addresses": [
+                          {
+                            "line1": "Kastanienallee 12",
+                            "line2": null,
+                            "postcode": "10435",
+                            "city": "Berlin",
+                            "country": "DE"
+                          }
+                        ]
+                      },
+                      "lines": [
+                        {
+                          "isbn": "978-0-441-01359-3",
+                          "quantity": 2,
+                          "unit_price": {
+                            "amount": 1099,
+                            "currency": "EUR"
+                          }
+                        }
+                      ],
+                      "total": {
+                        "amount": 2198,
+                        "currency": "EUR"
+                      },
+                      "placed_at": "2026-08-19T14:02:11+00:00"
+                    }
+                  ],
+                  "meta": {
+                    "next_cursor": null,
+                    "per_page": 25
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          }
+        }
+      }
+    },
+    "/v1/orders/{order}": {
+      "parameters": [
+        {
+          "name": "order",
+          "in": "path",
+          "required": true,
+          "description": "Identifier of the order.",
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "example": "4f1c9a20-7d3e-4b16-9f8a-2c5e7b0d1a63"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Orders"
+        ],
+        "responses": {
+          "200": {
+            "description": "The order.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                },
+                "example": {
+                  "id": "4f1c9a20-7d3e-4b16-9f8a-2c5e7b0d1a63",
+                  "number": "ORD-2026-004182",
+                  "status": "paid",
+                  "customer": {
+                    "id": "9b4e2c1f-3a7d-4f82-b5e0-1d6c8a9f2e34",
+                    "name": "Mara Feldmann",
+                    "email": "mara@example.test",
+                    "addresses": [
+                      {
+                        "line1": "Kastanienallee 12",
+                        "line2": null,
+                        "postcode": "10435",
+                        "city": "Berlin",
+                        "country": "DE"
+                      }
+                    ]
+                  },
+                  "lines": [
+                    {
+                      "isbn": "978-0-441-01359-3",
+                      "quantity": 2,
+                      "unit_price": {
+                        "amount": 1099,
+                        "currency": "EUR"
+                      }
+                    }
+                  ],
+                  "total": {
+                    "amount": 2198,
+                    "currency": "EUR"
+                  },
+                  "placed_at": "2026-08-19T14:02:11+00:00"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        },
+        "summary": "Reads one order.",
+        "description": "Lines, customer snapshot and total."
+      }
+    },
+    "/v1/health": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Reports whether the API is up.",
+        "description": "The one endpoint that needs no credential.",
+        "security": [],
+        "x-since": "v1.0",
+        "responses": {
+          "200": {
+            "description": "The service is up.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ok",
+                        "degraded"
+                      ],
+                      "description": "Overall state."
+                    },
+                    "version": {
+                      "type": "string",
+                      "description": "The release that is serving."
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "version"
+                  ]
+                },
+                "example": {
+                  "status": "ok",
+                  "version": "2.4.0"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "A personal access token, sent as `Authorization: Bearer <token>`."
+      },
+      "apiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Api-Key",
+        "description": "A key issued per integration, for unattended jobs."
+      }
+    },
+    "schemas": {
+      "Author": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name as it is printed on the cover.",
+            "examples": [
+              "Ursula K. Le Guin"
+            ]
+          },
+          "born": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Year of birth, where it is known.",
+            "examples": [
+              1929
+            ]
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "Price": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "integer",
+            "description": "Net amount in the smallest unit of the currency.",
+            "examples": [
+              1899
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217 code.",
+            "examples": [
+              "EUR"
+            ]
+          }
+        },
+        "required": [
+          "amount",
+          "currency"
+        ]
+      },
+      "Edition": {
+        "type": "object",
+        "properties": {
+          "isbn": {
+            "type": "string",
+            "description": "ISBN-13 of this edition.",
+            "examples": [
+              "978-0-441-01359-3"
+            ]
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "hardcover",
+              "paperback",
+              "ebook"
+            ],
+            "description": "How the edition is bound.",
+            "examples": [
+              "paperback"
+            ]
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date",
+            "description": "Publication date of this edition.",
+            "examples": [
+              "2019-09-03"
+            ]
+          },
+          "price": {
+            "$ref": "#/components/schemas/Price",
+            "description": "Recommended retail price."
+          },
+          "in_stock": {
+            "type": "integer",
+            "description": "Copies on the shelf right now.",
+            "examples": [
+              7
+            ]
+          }
+        },
+        "required": [
+          "isbn",
+          "format",
+          "published_at",
+          "price"
+        ]
+      },
+      "Book": {
+        "type": "object",
+        "properties": {
+          "isbn": {
+            "type": "string",
+            "description": "ISBN-13, and the identifier every other endpoint takes.",
+            "examples": [
+              "978-0-441-01359-3"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "description": "Title without the subtitle.",
+            "examples": [
+              "The Left Hand of Darkness"
+            ]
+          },
+          "subtitle": {
+            "type": "string",
+            "nullable": true,
+            "description": "Subtitle, where the edition carries one."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "reprinting",
+              "out-of-print"
+            ],
+            "description": "Whether the shop can currently sell it.",
+            "examples": [
+              "available"
+            ]
+          },
+          "author": {
+            "$ref": "#/components/schemas/Author",
+            "description": "The author of the work."
+          },
+          "editions": {
+            "type": "array",
+            "description": "Every edition the shop carries.",
+            "items": {
+              "$ref": "#/components/schemas/Edition"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "description": "Free-text tags used by the shop’s own navigation.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the title was added to the catalogue.",
+            "examples": [
+              "2024-11-02T09:14:31+00:00"
+            ]
+          }
+        },
+        "required": [
+          "isbn",
+          "title",
+          "status",
+          "author",
+          "editions"
+        ]
+      },
+      "Cursor": {
+        "type": "object",
+        "properties": {
+          "next_cursor": {
+            "type": "string",
+            "nullable": true,
+            "description": "Pass this back as `cursor` for the following page.",
+            "examples": [
+              "eyJpZCI6MTQyfQ"
+            ]
+          },
+          "per_page": {
+            "type": "integer",
+            "description": "How many records this page holds.",
+            "examples": [
+              25
+            ]
+          }
+        },
+        "required": [
+          "per_page"
+        ]
+      },
+      "BookCollection": {
+        "type": "object",
+        "xml": {
+          "name": "books"
+        },
+        "properties": {
+          "data": {
+            "type": "array",
+            "description": "The books of this page.",
+            "items": {
+              "$ref": "#/components/schemas/Book"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Cursor",
+            "description": "Cursor pagination."
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "Address": {
+        "type": "object",
+        "properties": {
+          "line1": {
+            "type": "string",
+            "description": "Street and number.",
+            "examples": [
+              "Kastanienallee 12"
+            ]
+          },
+          "line2": {
+            "type": "string",
+            "nullable": true,
+            "description": "Second line, where there is one."
+          },
+          "postcode": {
+            "type": "string",
+            "description": "Postal code.",
+            "examples": [
+              "10435"
+            ]
+          },
+          "city": {
+            "type": "string",
+            "description": "City.",
+            "examples": [
+              "Berlin"
+            ]
+          },
+          "country": {
+            "type": "string",
+            "description": "ISO 3166-1 alpha-2 code.",
+            "examples": [
+              "DE"
+            ]
+          }
+        },
+        "required": [
+          "line1",
+          "postcode",
+          "city",
+          "country"
+        ]
+      },
+      "Customer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the customer.",
+            "examples": [
+              "9b4e2c1f-3a7d-4f82-b5e0-1d6c8a9f2e34"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "Full name.",
+            "examples": [
+              "Mara Feldmann"
+            ]
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Address every notification goes to.",
+            "examples": [
+              "mara@example.test"
+            ]
+          },
+          "addresses": {
+            "type": "array",
+            "description": "Delivery and billing addresses.",
+            "items": {
+              "$ref": "#/components/schemas/Address"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email"
+        ]
+      },
+      "OrderLine": {
+        "type": "object",
+        "properties": {
+          "isbn": {
+            "type": "string",
+            "description": "The edition that was ordered.",
+            "examples": [
+              "978-0-441-01359-3"
+            ]
+          },
+          "quantity": {
+            "type": "integer",
+            "description": "Copies ordered.",
+            "examples": [
+              2
+            ]
+          },
+          "unit_price": {
+            "$ref": "#/components/schemas/Price",
+            "description": "Net price per copy at the time of the order."
+          }
+        },
+        "required": [
+          "isbn",
+          "quantity",
+          "unit_price"
+        ]
+      },
+      "Order": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the order.",
+            "examples": [
+              "4f1c9a20-7d3e-4b16-9f8a-2c5e7b0d1a63"
+            ]
+          },
+          "number": {
+            "type": "string",
+            "description": "The number printed on the invoice.",
+            "examples": [
+              "ORD-2026-004182"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "paid",
+              "shipped",
+              "cancelled"
+            ],
+            "description": "Where the order stands.",
+            "examples": [
+              "paid"
+            ]
+          },
+          "customer": {
+            "$ref": "#/components/schemas/Customer",
+            "description": "A snapshot of the customer as the order was placed."
+          },
+          "lines": {
+            "type": "array",
+            "description": "One entry per edition ordered.",
+            "items": {
+              "$ref": "#/components/schemas/OrderLine"
+            }
+          },
+          "total": {
+            "$ref": "#/components/schemas/Price",
+            "description": "Net total of every line."
+          },
+          "placed_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the order was placed.",
+            "examples": [
+              "2026-08-19T14:02:11+00:00"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "status",
+          "customer",
+          "lines",
+          "total",
+          "placed_at"
+        ]
+      },
+      "OrderCollection": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "description": "The orders of this page.",
+            "items": {
+              "$ref": "#/components/schemas/Order"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Cursor",
+            "description": "Cursor pagination."
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "What went wrong, in one sentence."
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "ValidationError": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "An overview of the failure."
+          },
+          "errors": {
+            "type": "object",
+            "description": "One entry per field, each holding every message for it.",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": [
+          "message",
+          "errors"
+        ]
+      }
+    },
+    "responses": {
+      "Unauthenticated": {
+        "description": "Unauthenticated",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "message": "Unauthenticated."
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "message": "No book matches that ISBN."
+            }
+          }
+        }
+      },
+      "ValidationFailed": {
+        "description": "Validation failed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "example": {
+              "message": "The isbn has already been taken.",
+              "errors": {
+                "isbn": [
+                  "The isbn has already been taken."
+                ],
+                "author.name": [
+                  "The author name is required."
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

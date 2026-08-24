@@ -106,6 +106,33 @@ Open the page from the panel navigation. It arrives on the first endpoint of the
 - 📨 **Fill in the path parameters and your credential, then Send.** The response arrives beside the documented one and stays as this endpoint's example. A credential you type follows you to the next endpoint that asks for the same header.
 - 🕳️ **`Gaps`** narrows the palette to the endpoints that are missing documentation, and the badge beside it is the documented share of the whole API.
 
+## 🧪 Trying it without an API of your own
+
+The package ships a fictional OpenAPI document — a bookshop with books, orders,
+customers and a pair of exports — written so that every feature has something to
+show: a body offered as both JSON and XML, an XML-only export, a CSV one, two
+security schemes, deprecated and undocumented operations, and a coverage figure
+that is deliberately not 100 %. Register it and the page has something to open:
+
+```php
+// config/filament-api-explorer.php
+'sources' => [
+    'v2' => [
+        'driver' => 'file',
+        'path' => base_path('vendor/dardangashi/filament-api-explorer/examples/bookshop-v2.json'),
+    ],
+    'v1' => [
+        'driver' => 'file',
+        'path' => base_path('vendor/dardangashi/filament-api-explorer/examples/bookshop-v1.json'),
+    ],
+],
+```
+
+Two documents, so the version picker has something to switch between: `v2` has
+fourteen endpoints and four gaps, `v1` has five and none. Nothing in either is a
+real service — the servers are `.test` hostnames, and a live request to them goes
+nowhere.
+
 ## 📄 Pointing it at a document
 
 Each entry of `sources` is one OpenAPI document, and the key is the name shown in
