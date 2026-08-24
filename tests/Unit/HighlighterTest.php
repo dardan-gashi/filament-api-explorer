@@ -114,10 +114,10 @@ describe('Highlighter - lines', function () {
 describe('JsonHighlighter - highlight', function () {
 
 	test('marks up keys, strings, numbers and literals', function () {
-		$html = JsonHighlighter::highlight('{"code": "SUMMER10", "total": 42, "is_active": true}');
+		$html = JsonHighlighter::highlight('{"code": "LEGUIN-01", "total": 42, "is_active": true}');
 
 		expect($html)->toContain('<span class="fae-code-property">&quot;code&quot;</span>')
-			->and($html)->toContain('<span class="fae-code-string">&quot;SUMMER10&quot;</span>')
+			->and($html)->toContain('<span class="fae-code-string">&quot;LEGUIN-01&quot;</span>')
 			->and($html)->toContain('<span class="fae-code-number">42</span>')
 			->and($html)->toContain('<span class="fae-code-literal">true</span>');
 	});
@@ -160,7 +160,7 @@ describe('ShellHighlighter - highlight', function () {
 
 	test('takes a flag only where an argument starts', function () {
 		// A hyphen inside a path is part of the path, not an option.
-		$html = ShellHighlighter::highlight('  "https://example.test/physical-products"');
+		$html = ShellHighlighter::highlight('  "https://example.test/paperback-editions"');
 
 		expect($html)->not->toContain('fae-code-keyword');
 	});

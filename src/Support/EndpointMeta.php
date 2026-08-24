@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Lang;
  *
  * A document surfaces facts the OpenAPI schema has no field for through `x-`
  * extensions: `x-handler`, `x-rate-limit`, `x-since`. Most of those values speak
- * for themselves — `VoucherController@index` needs no label. A bare `v2.0` does
+ * for themselves — `BookController@index` needs no label. A bare `v2.0` does
  * not, so the extensions this package recognises get a worded caption and an
  * icon, and every other one is shown exactly as the document wrote it.
  */

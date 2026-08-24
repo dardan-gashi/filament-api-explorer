@@ -87,7 +87,7 @@ describe('Translations - Page', function () {
 			->assertSee('Keine Antwort dokumentiert')
 			// A gap is named on the endpoint that has it, so the body gap needs the
 			// endpoint that takes a body without documenting one.
-			->call('selectEndpoint', Endpoint::keyFor(HttpMethod::Patch, '/participants/{participant}'))
+			->call('selectEndpoint', Endpoint::keyFor(HttpMethod::Patch, '/editions/{edition}'))
 			->assertSee('Kein Anfrage-Body dokumentiert');
 	});
 

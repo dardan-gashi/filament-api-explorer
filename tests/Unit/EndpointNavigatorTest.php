@@ -26,10 +26,10 @@ function navigable(): ApiSpec
 		name: 'v2',
 		title: 'Bookshop API',
 		endpoints: [
-			endpoint(path: '/vouchers', summary: 'Lists vouchers', group: 'Vouchers', responses: $documented),
-			endpoint(method: HttpMethod::Post, path: '/vouchers', summary: 'Creates a voucher', group: 'Vouchers', responses: $documented, requestBody: requestBody()),
-			endpoint(path: '/participants', summary: null, group: 'Participants'),
-			endpoint(path: '/courses', summary: 'Lists courses', group: 'Courses', responses: $documented),
+			endpoint(path: '/books', summary: 'Lists books', group: 'Books', responses: $documented),
+			endpoint(method: HttpMethod::Post, path: '/books', summary: 'Creates a book', group: 'Books', responses: $documented, requestBody: requestBody()),
+			endpoint(path: '/editions', summary: null, group: 'Editions'),
+			endpoint(path: '/authors', summary: 'Lists authors', group: 'Authors', responses: $documented),
 		],
 	);
 }
@@ -45,21 +45,21 @@ describe('EndpointNavigator - filter', function () {
 	});
 
 	test('keeps the endpoints that match the term', function () {
-		$filtered = (new EndpointNavigator)->filter(navigable(), 'courses');
+		$filtered = (new EndpointNavigator)->filter(navigable(), 'authors');
 
 		expect($filtered)->toHaveCount(1)
-			->and($filtered[0]->path)->toBe('/courses');
+			->and($filtered[0]->path)->toBe('/authors');
 	});
 
 	test('keeps only the incomplete endpoints when asked for gaps', function () {
 		$filtered = (new EndpointNavigator)->filter(navigable(), onlyGaps: true);
 
 		expect($filtered)->toHaveCount(1)
-			->and($filtered[0]->path)->toBe('/participants');
+			->and($filtered[0]->path)->toBe('/editions');
 	});
 
 	test('applies the term and the gap filter together', function () {
-		expect((new EndpointNavigator)->filter(navigable(), 'vouchers', onlyGaps: true))->toBe([]);
+		expect((new EndpointNavigator)->filter(navigable(), 'books', onlyGaps: true))->toBe([]);
 	});
 });
 
@@ -72,14 +72,14 @@ describe('EndpointNavigator - groups', function () {
 	test('groups the endpoints by tag in the order they appear', function () {
 		$groups = (new EndpointNavigator)->groups(navigable());
 
-		expect(array_keys($groups))->toBe(['Vouchers', 'Participants', 'Courses'])
-			->and($groups['Vouchers'])->toHaveCount(2);
+		expect(array_keys($groups))->toBe(['Books', 'Editions', 'Authors'])
+			->and($groups['Books'])->toHaveCount(2);
 	});
 
 	test('leaves behind no group whose endpoints were all filtered out', function () {
-		$groups = (new EndpointNavigator)->groups(navigable(), 'courses');
+		$groups = (new EndpointNavigator)->groups(navigable(), 'authors');
 
-		expect(array_keys($groups))->toBe(['Courses']);
+		expect(array_keys($groups))->toBe(['Authors']);
 	});
 });
 
@@ -90,23 +90,23 @@ describe('EndpointNavigator - groups', function () {
 describe('EndpointNavigator - resolveSelected', function () {
 
 	test('keeps the current endpoint while it still matches', function () {
-		$key = Endpoint::keyFor(HttpMethod::Get, '/courses');
+		$key = Endpoint::keyFor(HttpMethod::Get, '/authors');
 
 		expect((new EndpointNavigator)->resolveSelected(navigable(), $key)?->key)->toBe($key);
 	});
 
 	test('moves to the first match when the current endpoint is filtered out', function () {
-		$key = Endpoint::keyFor(HttpMethod::Get, '/courses');
+		$key = Endpoint::keyFor(HttpMethod::Get, '/authors');
 
-		expect((new EndpointNavigator)->resolveSelected(navigable(), $key, 'vouchers')?->path)->toBe('/vouchers');
+		expect((new EndpointNavigator)->resolveSelected(navigable(), $key, 'books')?->path)->toBe('/books');
 	});
 
 	test('falls back to the first endpoint when nothing is selected', function () {
-		expect((new EndpointNavigator)->resolveSelected(navigable(), null)?->path)->toBe('/vouchers');
+		expect((new EndpointNavigator)->resolveSelected(navigable(), null)?->path)->toBe('/books');
 	});
 
 	test('keeps showing the selected endpoint when the filter matches nothing', function () {
-		$key = Endpoint::keyFor(HttpMethod::Get, '/courses');
+		$key = Endpoint::keyFor(HttpMethod::Get, '/authors');
 
 		expect((new EndpointNavigator)->resolveSelected(navigable(), $key, 'zzzz')?->key)->toBe($key);
 	});

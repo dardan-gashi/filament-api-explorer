@@ -30,7 +30,7 @@ function getRequest(array $query = [], array $headers = []): RequestBlueprint
 {
 	return new RequestBlueprint(
 		method: HttpMethod::Get,
-		url: 'https://api.bookshop.test/api/v2/vouchers',
+		url: 'https://api.bookshop.test/api/v2/books',
 		query: $query,
 		headers: $headers,
 	);
@@ -66,7 +66,7 @@ describe('RequestExecutor - send', function () {
 		));
 
 		Http::assertSent(function (Request $request): bool {
-			return $request->url() === 'https://api.bookshop.test/api/v2/vouchers?sort=-created_at&per_page=25'
+			return $request->url() === 'https://api.bookshop.test/api/v2/books?sort=-created_at&per_page=25'
 				&& $request->hasHeader('Authorization', 'Bearer token')
 				&& $request->method() === 'GET';
 		});
@@ -130,7 +130,7 @@ describe('RequestExecutor - send', function () {
 	test('refuses a method with side effects', function () {
 		Http::fake();
 
-		$blueprint = new RequestBlueprint(method: HttpMethod::Delete, url: 'https://api.bookshop.test/api/v2/vouchers/1');
+		$blueprint = new RequestBlueprint(method: HttpMethod::Delete, url: 'https://api.bookshop.test/api/v2/books/1');
 
 		expect(fn () => executor()->send($blueprint))->toThrow(RequestNotAllowed::class);
 

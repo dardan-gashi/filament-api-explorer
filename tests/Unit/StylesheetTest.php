@@ -76,7 +76,7 @@ function classesWithOwnRule(): array
 function tokenClassesEmitted(): array
 {
 	$samples = [
-		JsonHighlighter::highlight('{"code": "SUMMER10", "total": 42, "active": true}'),
+		JsonHighlighter::highlight('{"code": "LEGUIN-01", "total": 42, "active": true}'),
 		ShellHighlighter::highlight('curl -H "Authorization: Bearer $TOKEN" # the token is yours'),
 		PhpHighlighter::highlight("// the token is yours\nuse Illuminate\\Support\\Facades\\Http;\n\n\$data = Http::get('https://example.test')->json();"),
 		JavaScriptHighlighter::highlight('const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })'),

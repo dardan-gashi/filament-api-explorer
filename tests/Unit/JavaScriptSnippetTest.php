@@ -31,13 +31,13 @@ describe('JavaScriptSnippet - render', function () {
 	test('builds a fetch call with a query and headers', function () {
 		$snippet = (new JavaScriptSnippet)->render(new RequestBlueprint(
 			method: HttpMethod::Get,
-			url: 'https://api.bookshop.test/api/v2/vouchers',
+			url: 'https://api.bookshop.test/api/v2/books',
 			query: ['per_page' => '25'],
 			headers: ['Accept-Language' => 'de'],
 		));
 
 		expect($snippet)->toBe(implode("\n", [
-			'const url = new URL(\'https://api.bookshop.test/api/v2/vouchers\')',
+			'const url = new URL(\'https://api.bookshop.test/api/v2/books\')',
 			'',
 			'url.search = new URLSearchParams({',
 			'    per_page: \'25\',',
@@ -56,7 +56,7 @@ describe('JavaScriptSnippet - render', function () {
 	test('builds a bare fetch when there is nothing to pass', function () {
 		$snippet = (new JavaScriptSnippet)->render(new RequestBlueprint(
 			method: HttpMethod::Get,
-			url: 'https://api.bookshop.test/api/v2/vouchers',
+			url: 'https://api.bookshop.test/api/v2/books',
 		));
 
 		expect($snippet)->toContain('const response = await fetch(url)')
@@ -66,18 +66,18 @@ describe('JavaScriptSnippet - render', function () {
 	test('quotes a key that is not a valid identifier', function () {
 		$snippet = (new JavaScriptSnippet)->render(new RequestBlueprint(
 			method: HttpMethod::Get,
-			url: 'https://api.bookshop.test/api/v2/vouchers',
-			query: ['filter[code]' => 'SUMMER10', 'sort' => 'code'],
+			url: 'https://api.bookshop.test/api/v2/books',
+			query: ['filter[code]' => 'LEGUIN-01', 'sort' => 'code'],
 		));
 
-		expect($snippet)->toContain("'filter[code]': 'SUMMER10'")
+		expect($snippet)->toContain("'filter[code]': 'LEGUIN-01'")
 			->and($snippet)->toContain("sort: 'code'");
 	});
 
 	test('interpolates a credential placeholder in a template literal', function () {
 		$snippet = (new JavaScriptSnippet)->render(new RequestBlueprint(
 			method: HttpMethod::Get,
-			url: 'https://api.bookshop.test/api/v2/vouchers',
+			url: 'https://api.bookshop.test/api/v2/books',
 			headers: ['Authorization' => 'Bearer real-token'],
 		));
 

@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
  * Turns an OpenAPI tag into a heading a person would write.
  *
  * Generators tend to tag operations with the class that handles them, so a
- * document arrives full of tags like `BookApi`. That is a fact
+ * document arrives full of tags like `BookCatalogApi`. That is a fact
  * about the code, not a section title.
  */
 final class GroupLabel

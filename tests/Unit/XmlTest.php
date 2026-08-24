@@ -84,7 +84,7 @@ describe('Xml - format', function () {
 	test('says nothing when the body is not XML at all', function () {
 		// The caller shows the body exactly as it arrived in that case, which is
 		// more use than a parser's complaint.
-		expect(Xml::format('{"code": "SUMMER10"}'))->toBeNull()
+		expect(Xml::format('{"code": "LEGUIN-01"}'))->toBeNull()
 			->and(Xml::format(''))->toBeNull();
 	});
 });

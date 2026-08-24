@@ -78,7 +78,7 @@ final class ReferenceResolver
 	}
 
 	/**
-	 * The display name of a referenced schema, e.g. `VoucherResource`, taken
+	 * The display name of a referenced schema, e.g. `BookResource`, taken
 	 * from the schema before it is resolved.
 	 *
 	 * @param  array<string, mixed>  $schema

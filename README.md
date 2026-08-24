@@ -494,15 +494,15 @@ root element takes its name from `xml.name`, else the schema's `title`, else
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<BookResource>
+<books>
   <data>
-    <id>9b4e2c1f-3a7d-4f82-b5e0-1d6c8a9f2e34</id>
-    <title>WM01</title>
-    <art/>
-    <tags>neu</tags>
-    <tags>alt</tags>
+    <isbn>978-0-441-01359-3</isbn>
+    <title>The Left Hand of Darkness</title>
+    <subtitle/>
+    <tags>science-fiction</tags>
+    <tags>classics</tags>
   </data>
-</BookResource>
+</books>
 ```
 
 An example the document declares itself is passed through untouched, whatever
@@ -556,11 +556,11 @@ nothing about:
 
 ```yaml
 paths:
-  /vouchers:
+  /v2/books:
     get:
-      summary: Lists vouchers with cursor pagination.
-      x-handler: VoucherController@index
-      x-rate-limit: 60/min
+      summary: Lists books with cursor pagination.
+      x-handler: BookController@index
+      x-rate-limit: 120/min
       x-since: v2.0
 ```
 

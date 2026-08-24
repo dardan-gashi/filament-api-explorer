@@ -31,7 +31,7 @@ describe('PhpSnippet - render', function () {
 	test('builds a call with headers and a query', function () {
 		$snippet = (new PhpSnippet)->render(new RequestBlueprint(
 			method: HttpMethod::Get,
-			url: 'https://api.bookshop.test/api/v2/vouchers',
+			url: 'https://api.bookshop.test/api/v2/books',
 			query: ['sort' => '-created_at'],
 			headers: ['Accept-Language' => 'de'],
 		));
@@ -42,7 +42,7 @@ describe('PhpSnippet - render', function () {
 			'$response = Http::withHeaders([',
 			'    \'Accept-Language\' => \'de\',',
 			'])->get(',
-			'    \'https://api.bookshop.test/api/v2/vouchers\', [',
+			'    \'https://api.bookshop.test/api/v2/books\', [',
 			'        \'sort\' => \'-created_at\',',
 			'    ],',
 			');',
@@ -54,7 +54,7 @@ describe('PhpSnippet - render', function () {
 	test('builds a bare call when there is nothing to pass', function () {
 		$snippet = (new PhpSnippet)->render(new RequestBlueprint(
 			method: HttpMethod::Get,
-			url: 'https://api.bookshop.test/api/v2/vouchers',
+			url: 'https://api.bookshop.test/api/v2/books',
 		));
 
 		expect($snippet)->toContain('$response = Http::get(')
@@ -64,7 +64,7 @@ describe('PhpSnippet - render', function () {
 	test('interpolates a credential placeholder instead of printing the value', function () {
 		$snippet = (new PhpSnippet)->render(new RequestBlueprint(
 			method: HttpMethod::Get,
-			url: 'https://api.bookshop.test/api/v2/vouchers',
+			url: 'https://api.bookshop.test/api/v2/books',
 			headers: ['Authorization' => 'Bearer real-token'],
 		));
 
@@ -75,7 +75,7 @@ describe('PhpSnippet - render', function () {
 	test('escapes a quote in a value', function () {
 		$snippet = (new PhpSnippet)->render(new RequestBlueprint(
 			method: HttpMethod::Get,
-			url: 'https://api.bookshop.test/api/v2/vouchers',
+			url: 'https://api.bookshop.test/api/v2/books',
 			query: ['filter[code]' => "it's"],
 		));
 

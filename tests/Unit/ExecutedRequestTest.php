@@ -92,11 +92,11 @@ describe('ExecutedRequest - contentType', function () {
 describe('ExecutedRequest - prettyBody', function () {
 
 	test('indents a json body', function () {
-		$result = new ExecutedRequest(status: 200, body: '{"code":"SUMMER10"}');
+		$result = new ExecutedRequest(status: 200, body: '{"code":"LEGUIN-01"}');
 
 		expect($result->prettyBody())->toBe(implode("\n", [
 			'{',
-			'    "code": "SUMMER10"',
+			'    "code": "LEGUIN-01"',
 			'}',
 		]));
 	});

@@ -29,11 +29,11 @@ describe('SchemaFieldFactory - rootFields', function () {
 	});
 
 	test('names the single row of a body that is not an object after its schema', function () {
-		$document = ['components' => ['schemas' => ['VoucherResource' => ['type' => 'object', 'properties' => ['id' => ['type' => 'string']]]]]];
+		$document = ['components' => ['schemas' => ['BookResource' => ['type' => 'object', 'properties' => ['id' => ['type' => 'string']]]]]];
 
 		$fields = (new SchemaFieldFactory)->rootFields([
 			'type' => 'array',
-			'items' => ['$ref' => '#/components/schemas/VoucherResource'],
+			'items' => ['$ref' => '#/components/schemas/BookResource'],
 		], references($document));
 
 		expect($fields)->toHaveCount(1)
@@ -113,25 +113,25 @@ describe('SchemaFieldFactory - field', function () {
 	});
 
 	test('records the name of a referenced schema', function () {
-		$document = ['components' => ['schemas' => ['CourseResource' => ['type' => 'object', 'properties' => ['id' => ['type' => 'string']]]]]];
+		$document = ['components' => ['schemas' => ['AuthorResource' => ['type' => 'object', 'properties' => ['id' => ['type' => 'string']]]]]];
 
-		$field = (new SchemaFieldFactory)->field('course', ['$ref' => '#/components/schemas/CourseResource'], references($document));
+		$field = (new SchemaFieldFactory)->field('author', ['$ref' => '#/components/schemas/AuthorResource'], references($document));
 
-		expect($field->reference)->toBe('CourseResource')
+		expect($field->reference)->toBe('AuthorResource')
 			->and($field->type)->toBe('object')
 			->and($field->children)->toHaveCount(1);
 	});
 
 	test('merges the branches of an allOf', function () {
-		$document = ['components' => ['schemas' => ['CourseResource' => [
+		$document = ['components' => ['schemas' => ['AuthorResource' => [
 			'type' => 'object',
 			'properties' => ['id' => ['type' => 'string']],
 			'required' => ['id'],
 		]]]];
 
-		$field = (new SchemaFieldFactory)->field('course', [
+		$field = (new SchemaFieldFactory)->field('author', [
 			'allOf' => [
-				['$ref' => '#/components/schemas/CourseResource'],
+				['$ref' => '#/components/schemas/AuthorResource'],
 				['type' => 'object', 'properties' => ['seats' => ['type' => 'integer']]],
 			],
 			'nullable' => true,

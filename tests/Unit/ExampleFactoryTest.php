@@ -18,12 +18,12 @@ describe('ExampleFactory - forMediaType', function () {
 	test('prefers the example the document wrote', function () {
 		$example = (new ExampleFactory)->forMediaType([
 			'schema' => ['type' => 'object', 'properties' => ['code' => ['type' => 'string']]],
-			'example' => ['code' => 'SUMMER10'],
+			'example' => ['code' => 'LEGUIN-01'],
 		], references());
 
 		expect($example)->toBe(implode("\n", [
 			'{',
-			'    "code": "SUMMER10"',
+			'    "code": "LEGUIN-01"',
 			'}',
 		]));
 	});
@@ -170,7 +170,7 @@ describe('ExampleFactory - forSchema', function () {
 	test('prefers an example, then a default, then the first allowed value', function () {
 		$factory = new ExampleFactory;
 
-		expect($factory->forSchema(['type' => 'string', 'example' => 'SUMMER10', 'default' => 'X'], references()))->toBe('SUMMER10')
+		expect($factory->forSchema(['type' => 'string', 'example' => 'LEGUIN-01', 'default' => 'X'], references()))->toBe('LEGUIN-01')
 			->and($factory->forSchema(['type' => 'string', 'default' => 'de'], references()))->toBe('de')
 			->and($factory->forSchema(['type' => 'string', 'enum' => ['percentage', 'fixed']], references()))->toBe('percentage');
 	});
@@ -193,12 +193,12 @@ describe('ExampleFactory - forSchema', function () {
 	});
 
 	test('resolves a referenced schema', function () {
-		$document = ['components' => ['schemas' => ['CourseResource' => [
+		$document = ['components' => ['schemas' => ['AuthorResource' => [
 			'type' => 'object',
 			'properties' => ['title' => ['type' => 'string', 'example' => 'Prophylaxe']],
 		]]]];
 
-		expect((new ExampleFactory)->forSchema(['$ref' => '#/components/schemas/CourseResource'], references($document)))
+		expect((new ExampleFactory)->forSchema(['$ref' => '#/components/schemas/AuthorResource'], references($document)))
 			->toBe(['title' => 'Prophylaxe']);
 	});
 

@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 /**
  * How a list of endpoint paths is written short without losing what tells them apart.
  *
- * `/physical-products` and `/physical-products/{physicalProduct}/tier-prices` share
+ * `/paperback-editions` and `/paperback-editions/{paperbackEdition}/prices` share
  * everything a reader would use to distinguish them until the very last segment. So
  * the shared part is stated once for the whole group, and the last segment is the
  * one thing that is never touched.

@@ -124,16 +124,16 @@ describe('SpecParser - parseDocument', function () {
 
 		expect($spec->endpointCount())->toBe(7)
 			->and(array_map(fn (Endpoint $endpoint): string => $endpoint->key, $spec->endpoints))
-			->toContain(Endpoint::keyFor(HttpMethod::Delete, '/participants/{participant}'));
+			->toContain(Endpoint::keyFor(HttpMethod::Delete, '/editions/{edition}'));
 	});
 
 	test('ignores the keys of a path item that are not methods', function () {
 		$spec = parser()->parseDocument('v2', [
 			'paths' => [
-				'/vouchers' => [
+				'/books' => [
 					'summary' => 'Not an operation',
 					'parameters' => [],
-					'get' => ['summary' => 'Lists vouchers'],
+					'get' => ['summary' => 'Lists books'],
 				],
 			],
 		]);
@@ -145,7 +145,7 @@ describe('SpecParser - parseDocument', function () {
 	test('groups an endpoint by its first tag', function () {
 		$spec = parser()->parseDocument('v2', fixtureDocument());
 
-		expect($spec->find(Endpoint::keyFor(HttpMethod::Get, '/vouchers'))?->group)->toBe('Vouchers');
+		expect($spec->find(Endpoint::keyFor(HttpMethod::Get, '/books'))?->group)->toBe('Books');
 	});
 
 	test('falls back to a shared group when an operation has no tag', function () {
@@ -158,10 +158,10 @@ describe('SpecParser - parseDocument', function () {
 
 	test('collects the vendor extensions of an operation as captions', function () {
 		$endpoint = parser()->parseDocument('v2', fixtureDocument())
-			->find(Endpoint::keyFor(HttpMethod::Get, '/vouchers'));
+			->find(Endpoint::keyFor(HttpMethod::Get, '/books'));
 
 		expect($endpoint?->meta)->toBe([
-			'handler' => 'VoucherController@index',
+			'handler' => 'BookController@index',
 			'rate-limit' => '60/min',
 			'since' => 'v2.0',
 		]);
@@ -169,24 +169,24 @@ describe('SpecParser - parseDocument', function () {
 
 	test('inherits the document security when an operation declares none', function () {
 		$endpoint = parser()->parseDocument('v2', fixtureDocument())
-			->find(Endpoint::keyFor(HttpMethod::Get, '/vouchers'));
+			->find(Endpoint::keyFor(HttpMethod::Get, '/books'));
 
 		expect($endpoint?->security)->toBe(['sanctum']);
 	});
 
 	test('lets an operation opt out of the document security', function () {
 		$document = fixtureDocument();
-		$document['paths']['/vouchers']['get']['security'] = [];
+		$document['paths']['/books']['get']['security'] = [];
 
 		$endpoint = parser()->parseDocument('v2', $document)
-			->find(Endpoint::keyFor(HttpMethod::Get, '/vouchers'));
+			->find(Endpoint::keyFor(HttpMethod::Get, '/books'));
 
 		expect($endpoint?->security)->toBe([]);
 	});
 
 	test('adds the authentication header implied by a bearer scheme', function () {
 		$endpoint = parser()->parseDocument('v2', fixtureDocument())
-			->find(Endpoint::keyFor(HttpMethod::Get, '/vouchers'));
+			->find(Endpoint::keyFor(HttpMethod::Get, '/books'));
 
 		$authorization = $endpoint?->parametersIn(ParameterLocation::Header)[0];
 
@@ -203,7 +203,7 @@ describe('SpecParser - parseDocument', function () {
 		unset($document['components']['securitySchemes']['sanctum']['description']);
 
 		$endpoint = parser()->parseDocument('v2', $document)
-			->find(Endpoint::keyFor(HttpMethod::Get, '/vouchers'));
+			->find(Endpoint::keyFor(HttpMethod::Get, '/books'));
 
 		$authorization = $endpoint?->parametersIn(ParameterLocation::Header)[0];
 
@@ -214,7 +214,7 @@ describe('SpecParser - parseDocument', function () {
 
 	test('leaves an authentication header the document declares itself', function () {
 		$document = fixtureDocument();
-		$document['paths']['/vouchers']['get']['parameters'][] = [
+		$document['paths']['/books']['get']['parameters'][] = [
 			'name' => 'authorization',
 			'in' => 'header',
 			'description' => 'Documented by hand.',
@@ -222,7 +222,7 @@ describe('SpecParser - parseDocument', function () {
 		];
 
 		$headers = parser()->parseDocument('v2', $document)
-			->find(Endpoint::keyFor(HttpMethod::Get, '/vouchers'))
+			->find(Endpoint::keyFor(HttpMethod::Get, '/books'))
 			?->parametersIn(ParameterLocation::Header) ?? [];
 
 		$names = array_map(fn ($header): string => strtolower($header->name), $headers);
@@ -232,13 +232,13 @@ describe('SpecParser - parseDocument', function () {
 
 	test('merges the parameters a path shares into each of its operations', function () {
 		$endpoint = parser()->parseDocument('v2', fixtureDocument())
-			->find(Endpoint::keyFor(HttpMethod::Get, '/vouchers/{code}'));
+			->find(Endpoint::keyFor(HttpMethod::Get, '/books/{code}'));
 
 		$path = $endpoint?->parametersIn(ParameterLocation::Path)[0];
 
 		expect($path?->name)->toBe('code')
 			->and($path?->required)->toBeTrue()
-			->and($path?->example)->toBe('SUMMER10');
+			->and($path?->example)->toBe('LEGUIN-01');
 	});
 
 	test('prefills a parameter from the 3.1 spelling of its example', function () {
@@ -269,7 +269,7 @@ describe('SpecParser - parseDocument', function () {
 
 	test('reads the type, default and allowed values of a query parameter', function () {
 		$parameters = parser()->parseDocument('v2', fixtureDocument())
-			->find(Endpoint::keyFor(HttpMethod::Get, '/vouchers'))
+			->find(Endpoint::keyFor(HttpMethod::Get, '/books'))
 			?->parametersIn(ParameterLocation::Query) ?? [];
 
 		$sort = collect($parameters)->firstWhere('name', 'sort');
@@ -284,7 +284,7 @@ describe('SpecParser - parseDocument', function () {
 
 	test('keeps the response status as a string', function () {
 		$responses = parser()->parseDocument('v2', fixtureDocument())
-			->find(Endpoint::keyFor(HttpMethod::Get, '/vouchers'))
+			->find(Endpoint::keyFor(HttpMethod::Get, '/books'))
 			?->responses ?? [];
 
 		expect(array_map(fn ($response): string => $response->status, $responses))
@@ -297,40 +297,40 @@ describe('SpecParser - parseDocument', function () {
 		// `Not found` of the next response; as a name it lands where every other
 		// response carries its schema name.
 		$document = fixtureDocument();
-		$document['paths']['/courses']['get']['responses']['200'] = [
-			'description' => '`CourseListResource`',
+		$document['paths']['/authors']['get']['responses']['200'] = [
+			'description' => '`AuthorListResource`',
 			'content' => ['application/json' => ['schema' => ['type' => 'object']]],
 		];
 
 		$response = parser()->parseDocument('v2', $document)
-			->find(Endpoint::keyFor(HttpMethod::Get, '/courses'))
+			->find(Endpoint::keyFor(HttpMethod::Get, '/authors'))
 			?->response('200');
 
-		expect($response?->schemaName)->toBe('CourseListResource')
+		expect($response?->schemaName)->toBe('AuthorListResource')
 			->and($response?->description)->toBeNull();
 	});
 
 	test('leaves a description that says something alone', function () {
 		$document = fixtureDocument();
-		$document['paths']['/courses']['get']['responses']['200'] = [
-			'description' => 'One page of `CourseResource` items.',
+		$document['paths']['/authors']['get']['responses']['200'] = [
+			'description' => 'One page of `AuthorResource` items.',
 			'content' => ['application/json' => ['schema' => ['type' => 'object']]],
 		];
 
 		$response = parser()->parseDocument('v2', $document)
-			->find(Endpoint::keyFor(HttpMethod::Get, '/courses'))
+			->find(Endpoint::keyFor(HttpMethod::Get, '/authors'))
 			?->response('200');
 
-		expect($response?->description)->toBe('One page of `CourseResource` items.')
+		expect($response?->description)->toBe('One page of `AuthorResource` items.')
 			->and($response?->schemaName)->toBeNull();
 	});
 
 	test('reads the schema name, media type and fields of a response', function () {
 		$response = parser()->parseDocument('v2', fixtureDocument())
-			->find(Endpoint::keyFor(HttpMethod::Get, '/vouchers'))
+			->find(Endpoint::keyFor(HttpMethod::Get, '/books'))
 			?->response('200');
 
-		expect($response?->schemaName)->toBe('VoucherListResource')
+		expect($response?->schemaName)->toBe('BookListResource')
 			->and($response?->mediaType)->toBe('application/json')
 			->and(array_map(fn ($field): string => $field->name, $response?->fields ?? []))
 			->toBe(['data', 'meta']);
@@ -338,7 +338,7 @@ describe('SpecParser - parseDocument', function () {
 
 	test('reads the documented headers of a response', function () {
 		$headers = parser()->parseDocument('v2', fixtureDocument())
-			->find(Endpoint::keyFor(HttpMethod::Get, '/vouchers'))
+			->find(Endpoint::keyFor(HttpMethod::Get, '/books'))
 			?->response('200')?->headers ?? [];
 
 		expect(array_map(fn ($header): string => $header->name, $headers))
@@ -348,16 +348,16 @@ describe('SpecParser - parseDocument', function () {
 
 	test('uses the example the document provides', function () {
 		$example = parser()->parseDocument('v2', fixtureDocument())
-			->find(Endpoint::keyFor(HttpMethod::Get, '/vouchers'))
+			->find(Endpoint::keyFor(HttpMethod::Get, '/books'))
 			?->response('200')?->example;
 
-		expect($example)->toContain('SUMMER10')
+		expect($example)->toContain('LEGUIN-01')
 			->and($example)->toContain('"total": 42');
 	});
 
 	test('documents a response that carries no body at all', function () {
 		$response = parser()->parseDocument('v2', fixtureDocument())
-			->find(Endpoint::keyFor(HttpMethod::Get, '/vouchers'))
+			->find(Endpoint::keyFor(HttpMethod::Get, '/books'))
 			?->response('304');
 
 		expect($response?->mediaType)->toBeNull()
@@ -368,21 +368,21 @@ describe('SpecParser - parseDocument', function () {
 	test('marks the endpoints whose documentation is incomplete', function () {
 		$spec = parser()->parseDocument('v2', fixtureDocument());
 
-		expect($spec->find(Endpoint::keyFor(HttpMethod::Get, '/participants'))?->gaps())
+		expect($spec->find(Endpoint::keyFor(HttpMethod::Get, '/editions'))?->gaps())
 			->toBe([DocumentationGap::Description, DocumentationGap::Responses])
-			->and($spec->find(Endpoint::keyFor(HttpMethod::Get, '/courses'))?->gaps())
+			->and($spec->find(Endpoint::keyFor(HttpMethod::Get, '/authors'))?->gaps())
 			->toBe([DocumentationGap::ResponseSchema, DocumentationGap::Parameters])
 			->and($spec->coverage()->percentage())->toBe(57);
 	});
 
 	test('reads the body an operation expects', function () {
 		$body = parser()->parseDocument('v2', fixtureDocument())
-			->find(Endpoint::keyFor(HttpMethod::Post, '/vouchers'))
+			->find(Endpoint::keyFor(HttpMethod::Post, '/books'))
 			?->requestBody;
 
 		expect($body?->mediaType)->toBe('application/json')
 			->and($body?->required)->toBeTrue()
-			->and($body?->description)->toBe('The voucher to create.')
+			->and($body?->description)->toBe('The book to create.')
 			->and(array_map(fn ($field): string => $field->name, $body?->fields ?? []))
 			->toBe(['code', 'value', 'expires_at']);
 	});
@@ -392,15 +392,15 @@ describe('SpecParser - parseDocument', function () {
 		// which is the one gap the coverage figure used to be blind to.
 		$spec = parser()->parseDocument('v2', fixtureDocument());
 
-		expect($spec->find(Endpoint::keyFor(HttpMethod::Patch, '/participants/{participant}'))?->gaps())
+		expect($spec->find(Endpoint::keyFor(HttpMethod::Patch, '/editions/{edition}'))?->gaps())
 			->toBe([DocumentationGap::RequestBody])
-			->and($spec->find(Endpoint::keyFor(HttpMethod::Delete, '/participants/{participant}'))?->gaps())
+			->and($spec->find(Endpoint::keyFor(HttpMethod::Delete, '/editions/{edition}'))?->gaps())
 			->toBe([]);
 	});
 
 	test('marks a body example it had to build itself', function () {
 		$body = parser()->parseDocument('v2', fixtureDocument())
-			->find(Endpoint::keyFor(HttpMethod::Post, '/vouchers'))
+			->find(Endpoint::keyFor(HttpMethod::Post, '/books'))
 			?->requestBody;
 
 		expect($body?->exampleSynthesised)->toBeTrue()
@@ -409,7 +409,7 @@ describe('SpecParser - parseDocument', function () {
 
 	test('separates a declared response example from one it synthesised', function () {
 		$endpoint = parser()->parseDocument('v2', fixtureDocument())
-			->find(Endpoint::keyFor(HttpMethod::Get, '/vouchers'));
+			->find(Endpoint::keyFor(HttpMethod::Get, '/books'));
 
 		expect($endpoint?->response('200')?->exampleSynthesised)->toBeFalse()
 			->and($endpoint?->response('401')?->exampleSynthesised)->toBeTrue();
@@ -428,7 +428,7 @@ describe('SpecParser - parseDocument', function () {
 
 	test('reads a deprecated operation', function () {
 		$document = fixtureDocument();
-		$document['paths']['/vouchers']['get']['deprecated'] = true;
+		$document['paths']['/books']['get']['deprecated'] = true;
 
 		expect(parser()->parseDocument('v2', $document)->endpoints[0]->deprecated)->toBeTrue();
 	});
@@ -445,7 +445,7 @@ describe('SpecParser - parseDocument', function () {
 		$spec = parser()->parseDocument('v2', [
 			'info' => 'nonsense',
 			'servers' => 'nonsense',
-			'paths' => ['/vouchers' => 'nonsense'],
+			'paths' => ['/books' => 'nonsense'],
 		]);
 
 		expect($spec->title)->toBe('v2')

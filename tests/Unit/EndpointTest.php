@@ -22,7 +22,7 @@ function documentedResponse(string $status = '200'): ResponseDefinition
 {
 	return new ResponseDefinition(
 		status: $status,
-		description: 'A page of vouchers.',
+		description: 'A page of books.',
 		mediaType: 'application/json',
 		fields: [new SchemaField(name: 'data', type: 'array<object>')],
 	);
@@ -35,13 +35,13 @@ function documentedResponse(string $status = '200'): ResponseDefinition
 describe('Endpoint - keyFor', function () {
 
 	test('builds a key that is safe to put in a url', function () {
-		expect(Endpoint::keyFor(HttpMethod::Get, '/api/v2/vouchers/{code}'))
-			->toBe('get-api-v2-vouchers-code');
+		expect(Endpoint::keyFor(HttpMethod::Get, '/api/v2/books/{code}'))
+			->toBe('get-api-v2-books-code');
 	});
 
 	test('separates the methods of one path', function () {
-		expect(Endpoint::keyFor(HttpMethod::Get, '/vouchers'))
-			->not->toBe(Endpoint::keyFor(HttpMethod::Post, '/vouchers'));
+		expect(Endpoint::keyFor(HttpMethod::Get, '/books'))
+			->not->toBe(Endpoint::keyFor(HttpMethod::Post, '/books'));
 	});
 });
 
@@ -52,11 +52,11 @@ describe('Endpoint - keyFor', function () {
 describe('Endpoint - label', function () {
 
 	test('prefers the summary', function () {
-		expect(endpoint(summary: 'Lists vouchers')->label())->toBe('Lists vouchers');
+		expect(endpoint(summary: 'Lists books')->label())->toBe('Lists books');
 	});
 
 	test('falls back to the path', function () {
-		expect(endpoint(summary: null, path: '/vouchers')->label())->toBe('/vouchers');
+		expect(endpoint(summary: null, path: '/books')->label())->toBe('/books');
 	});
 });
 
@@ -170,9 +170,9 @@ describe('Endpoint - gaps', function () {
 
 	test('reports a missing explanation', function () {
 		$subject = new Endpoint(
-			key: 'get-vouchers',
+			key: 'get-books',
 			method: HttpMethod::Get,
-			path: '/vouchers',
+			path: '/books',
 			responses: [documentedResponse()],
 		);
 
@@ -181,10 +181,10 @@ describe('Endpoint - gaps', function () {
 
 	test('accepts a description in place of a summary', function () {
 		$subject = new Endpoint(
-			key: 'get-vouchers',
+			key: 'get-books',
 			method: HttpMethod::Get,
-			path: '/vouchers',
-			description: 'Lists vouchers.',
+			path: '/books',
+			description: 'Lists books.',
 			responses: [documentedResponse()],
 		);
 
@@ -259,14 +259,14 @@ describe('Endpoint - matches', function () {
 	test('matches on the path, the summary, the group or the method', function (string $term) {
 		expect(endpoint()->matches($term))->toBeTrue();
 	})->with([
-		['vouchers'],
+		['books'],
 		['Lists'],
-		['Vouchers'],
+		['Books'],
 		['GET'],
 	]);
 
 	test('ignores casing', function () {
-		expect(endpoint()->matches('VOUCHERS'))->toBeTrue();
+		expect(endpoint()->matches('BOOKS'))->toBeTrue();
 	});
 
 	test('matches everything for a blank term', function () {
@@ -275,6 +275,6 @@ describe('Endpoint - matches', function () {
 	});
 
 	test('does not match an unrelated term', function () {
-		expect(endpoint()->matches('participants'))->toBeFalse();
+		expect(endpoint()->matches('editions'))->toBeFalse();
 	});
 });

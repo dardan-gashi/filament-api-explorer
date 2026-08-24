@@ -36,35 +36,35 @@ describe('RequestBlueprintFactory - make', function () {
 
 	test('joins the server and the path into an absolute url', function () {
 		$blueprint = (new RequestBlueprintFactory)->make(
-			endpoint: endpoint(path: '/vouchers'),
+			endpoint: endpoint(path: '/books'),
 			server: 'https://api.bookshop.test/api/v2/',
 		);
 
-		expect($blueprint->url)->toBe('https://api.bookshop.test/api/v2/vouchers');
+		expect($blueprint->url)->toBe('https://api.bookshop.test/api/v2/books');
 	});
 
 	test('substitutes a path parameter that has a value', function () {
 		$blueprint = (new RequestBlueprintFactory)->make(
-			endpoint: endpoint(path: '/vouchers/{code}', parameters: [
+			endpoint: endpoint(path: '/books/{code}', parameters: [
 				new Parameter(name: 'code', in: ParameterLocation::Path, required: true),
 			]),
 			server: 'https://api.bookshop.test',
-			pathParameters: ['code' => 'SUMMER 10'],
+			pathParameters: ['code' => 'LEGUIN 01'],
 		);
 
-		expect($blueprint->url)->toBe('https://api.bookshop.test/vouchers/SUMMER%2010');
+		expect($blueprint->url)->toBe('https://api.bookshop.test/books/LEGUIN%2001');
 	});
 
 	test('leaves a path placeholder that has no value', function () {
 		$blueprint = (new RequestBlueprintFactory)->make(
-			endpoint: endpoint(path: '/vouchers/{code}', parameters: [
+			endpoint: endpoint(path: '/books/{code}', parameters: [
 				new Parameter(name: 'code', in: ParameterLocation::Path, required: true),
 			]),
 			server: 'https://api.bookshop.test',
 			pathParameters: ['code' => '   '],
 		);
 
-		expect($blueprint->url)->toBe('https://api.bookshop.test/vouchers/{code}');
+		expect($blueprint->url)->toBe('https://api.bookshop.test/books/{code}');
 	});
 
 	test('keeps the query values of documented parameters', function () {
@@ -261,7 +261,7 @@ describe('RequestBlueprintFactory - suggestions', function () {
 	test('suggests the example, then the default, then the first allowed value', function () {
 		$suggestions = (new RequestBlueprintFactory)->suggestions(
 			endpoint(parameters: [
-				new Parameter(name: 'code', in: ParameterLocation::Query, example: 'SUMMER10', default: 'X'),
+				new Parameter(name: 'code', in: ParameterLocation::Query, example: 'LEGUIN-01', default: 'X'),
 				new Parameter(name: 'per_page', in: ParameterLocation::Query, default: 25),
 				new Parameter(name: 'sort', in: ParameterLocation::Query, enum: ['code', '-code']),
 				new Parameter(name: 'cursor', in: ParameterLocation::Query),
@@ -270,7 +270,7 @@ describe('RequestBlueprintFactory - suggestions', function () {
 		);
 
 		expect($suggestions)->toBe([
-			'code' => 'SUMMER10',
+			'code' => 'LEGUIN-01',
 			'per_page' => '25',
 			'sort' => 'code',
 			'cursor' => '',

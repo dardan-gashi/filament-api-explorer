@@ -56,9 +56,9 @@ function fixtureDocument(): array
  */
 function endpoint(
 	HttpMethod $method = HttpMethod::Get,
-	string $path = '/api/v2/vouchers',
-	?string $summary = 'Lists vouchers',
-	string $group = 'Vouchers',
+	string $path = '/api/v2/books',
+	?string $summary = 'Lists books',
+	string $group = 'Books',
 	array $parameters = [],
 	array $responses = [],
 	?RequestBodyDefinition $requestBody = null,

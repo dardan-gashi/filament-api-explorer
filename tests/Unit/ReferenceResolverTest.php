@@ -14,8 +14,8 @@ function documentWithSchemas(): array
 	return [
 		'components' => [
 			'schemas' => [
-				'CourseResource' => ['type' => 'object', 'properties' => ['id' => ['type' => 'string']]],
-				'Alias' => ['$ref' => '#/components/schemas/CourseResource'],
+				'AuthorResource' => ['type' => 'object', 'properties' => ['id' => ['type' => 'string']]],
+				'Alias' => ['$ref' => '#/components/schemas/AuthorResource'],
 				'Loop' => ['$ref' => '#/components/schemas/Loop'],
 			],
 			'responses' => [
@@ -32,7 +32,7 @@ function documentWithSchemas(): array
 describe('ReferenceResolver - resolve', function () {
 
 	test('replaces a reference with the schema it points at', function () {
-		$resolved = references(documentWithSchemas())->resolve(['$ref' => '#/components/schemas/CourseResource']);
+		$resolved = references(documentWithSchemas())->resolve(['$ref' => '#/components/schemas/AuthorResource']);
 
 		expect($resolved['type'])->toBe('object')
 			->and($resolved)->not->toHaveKey('$ref');
@@ -46,12 +46,12 @@ describe('ReferenceResolver - resolve', function () {
 
 	test('lets keys written beside the reference win', function () {
 		$resolved = references(documentWithSchemas())->resolve([
-			'$ref' => '#/components/schemas/CourseResource',
-			'description' => 'The course of this voucher.',
+			'$ref' => '#/components/schemas/AuthorResource',
+			'description' => 'The author of this book.',
 			'nullable' => true,
 		]);
 
-		expect($resolved['description'])->toBe('The course of this voucher.')
+		expect($resolved['description'])->toBe('The author of this book.')
 			->and($resolved['nullable'])->toBeTrue()
 			->and($resolved['type'])->toBe('object');
 	});
@@ -82,7 +82,7 @@ describe('ReferenceResolver - resolve', function () {
 describe('ReferenceResolver - pointer', function () {
 
 	test('walks the document to the addressed schema', function () {
-		expect(references(documentWithSchemas())->pointer('#/components/schemas/CourseResource'))
+		expect(references(documentWithSchemas())->pointer('#/components/schemas/AuthorResource'))
 			->toHaveKey('properties');
 	});
 
@@ -96,7 +96,7 @@ describe('ReferenceResolver - pointer', function () {
 	})->with([
 		['https://example.com/openapi.json#/Foo'],
 		['#/components/schemas/Missing'],
-		['#/components/schemas/CourseResource/type'],
+		['#/components/schemas/AuthorResource/type'],
 	]);
 });
 
@@ -107,8 +107,8 @@ describe('ReferenceResolver - pointer', function () {
 describe('ReferenceResolver - nameOf', function () {
 
 	test('reads the display name of a referenced schema', function () {
-		expect(ReferenceResolver::nameOf(['$ref' => '#/components/schemas/VoucherResource']))
-			->toBe('VoucherResource');
+		expect(ReferenceResolver::nameOf(['$ref' => '#/components/schemas/BookResource']))
+			->toBe('BookResource');
 	});
 
 	test('returns null for a schema written inline', function () {
@@ -123,6 +123,6 @@ describe('ReferenceResolver - nameOf', function () {
 describe('ReferenceResolver - shortName', function () {
 
 	test('takes the last segment of a pointer', function () {
-		expect(ReferenceResolver::shortName('#/components/schemas/VoucherResource'))->toBe('VoucherResource');
+		expect(ReferenceResolver::shortName('#/components/schemas/BookResource'))->toBe('BookResource');
 	});
 });

@@ -29,7 +29,7 @@
             }
         },
         "schemas": {
-            "CourseResource": {
+            "AuthorResource": {
                 "type": "object",
                 "properties": {
                     "id": {
@@ -45,7 +45,7 @@
                     "title"
                 ]
             },
-            "VoucherResource": {
+            "BookResource": {
                 "type": "object",
                 "properties": {
                     "id": {
@@ -105,10 +105,10 @@
                             }
                         }
                     },
-                    "course": {
+                    "author": {
                         "allOf": [
                             {
-                                "$ref": "#/components/schemas/CourseResource"
+                                "$ref": "#/components/schemas/AuthorResource"
                             }
                         ],
                         "nullable": true
@@ -127,13 +127,13 @@
                     "created_at"
                 ]
             },
-            "VoucherListResource": {
+            "BookListResource": {
                 "type": "object",
                 "properties": {
                     "data": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/VoucherResource"
+                            "$ref": "#/components/schemas/BookResource"
                         }
                     },
                     "meta": {
@@ -166,7 +166,7 @@
                     }
                 }
             },
-            "ParticipantResource": {
+            "EditionResource": {
                 "type": "object",
                 "properties": {
                     "id": {
@@ -193,14 +193,14 @@
         }
     },
     "paths": {
-        "/vouchers": {
+        "/books": {
             "get": {
                 "tags": [
-                    "Vouchers"
+                    "Books"
                 ],
-                "summary": "Lists vouchers with cursor pagination.",
-                "description": "Without a filter only active vouchers are returned.",
-                "x-handler": "VoucherController@index",
+                "summary": "Lists books with cursor pagination.",
+                "description": "Without a filter only active books are returned.",
+                "x-handler": "BookController@index",
                 "x-rate-limit": "60/min",
                 "x-since": "v2.0",
                 "parameters": [
@@ -240,7 +240,7 @@
                             "type": "boolean",
                             "default": true
                         },
-                        "description": "Restrict to active vouchers."
+                        "description": "Restrict to active books."
                     },
                     {
                         "name": "sort",
@@ -277,7 +277,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "One page of vouchers.",
+                        "description": "One page of books.",
                         "headers": {
                             "ETag": {
                                 "schema": {
@@ -301,13 +301,13 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/VoucherListResource"
+                                    "$ref": "#/components/schemas/BookListResource"
                                 },
                                 "example": {
                                     "data": [
                                         {
                                             "id": "9b4e2c1f-0000-4000-8000-000000000000",
-                                            "code": "SUMMER10",
+                                            "code": "LEGUIN-01",
                                             "discount_type": "percentage",
                                             "discount_value": 10,
                                             "is_active": true,
@@ -364,12 +364,12 @@
             },
             "post": {
                 "tags": [
-                    "Vouchers"
+                    "Books"
                 ],
-                "summary": "Creates a voucher.",
+                "summary": "Creates a book.",
                 "requestBody": {
                     "required": true,
-                    "description": "The voucher to create.",
+                    "description": "The book to create.",
                     "content": {
                         "application/json": {
                             "schema": {
@@ -392,7 +392,7 @@
                                         "type": "string",
                                         "format": "date",
                                         "nullable": true,
-                                        "description": "When the voucher stops working."
+                                        "description": "When the book stops working."
                                     }
                                 }
                             }
@@ -401,11 +401,11 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "The created voucher.",
+                        "description": "The created book.",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/VoucherResource"
+                                    "$ref": "#/components/schemas/BookResource"
                                 }
                             }
                         }
@@ -413,7 +413,7 @@
                 }
             }
         },
-        "/vouchers/{code}": {
+        "/books/{code}": {
             "parameters": [
                 {
                     "name": "code",
@@ -422,23 +422,23 @@
                     "schema": {
                         "type": "string"
                     },
-                    "description": "The voucher code.",
-                    "example": "SUMMER10"
+                    "description": "The book code.",
+                    "example": "LEGUIN-01"
                 }
             ],
             "get": {
                 "tags": [
-                    "Vouchers"
+                    "Books"
                 ],
-                "summary": "Shows a single voucher.",
+                "summary": "Shows a single book.",
                 "deprecated": true,
                 "responses": {
                     "200": {
-                        "description": "The voucher.",
+                        "description": "The book.",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/VoucherResource"
+                                    "$ref": "#/components/schemas/BookResource"
                                 }
                             }
                         }
@@ -446,20 +446,20 @@
                 }
             }
         },
-        "/participants": {
+        "/editions": {
             "get": {
                 "tags": [
-                    "Participants"
+                    "Editions"
                 ],
                 "responses": {}
             }
         },
-        "/courses": {
+        "/authors": {
             "get": {
                 "tags": [
-                    "Courses"
+                    "Authors"
                 ],
-                "summary": "Lists courses.",
+                "summary": "Lists authors.",
                 "parameters": [
                     {
                         "name": "page",
@@ -471,7 +471,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Courses.",
+                        "description": "Authors.",
                         "content": {
                             "application/json": {}
                         }
@@ -479,31 +479,31 @@
                 }
             }
         },
-        "/participants/{participant}": {
+        "/editions/{edition}": {
             "parameters": [
                 {
-                    "name": "participant",
+                    "name": "edition",
                     "in": "path",
                     "required": true,
                     "schema": {
                         "type": "string",
                         "format": "uuid"
                     },
-                    "description": "The participant UUID."
+                    "description": "The edition UUID."
                 }
             ],
             "patch": {
                 "tags": [
-                    "Participants"
+                    "Editions"
                 ],
-                "summary": "Updates a participant.",
+                "summary": "Updates a edition.",
                 "responses": {
                     "200": {
-                        "description": "The updated participant.",
+                        "description": "The updated edition.",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ParticipantResource"
+                                    "$ref": "#/components/schemas/EditionResource"
                                 }
                             }
                         }
@@ -512,9 +512,9 @@
             },
             "delete": {
                 "tags": [
-                    "Participants"
+                    "Editions"
                 ],
-                "summary": "Removes a participant from an event.",
+                "summary": "Removes a edition from an event.",
                 "responses": {
                     "204": {
                         "description": "Removed. No body is returned."

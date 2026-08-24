@@ -12,7 +12,7 @@ use DardanGashi\FilamentApiExplorer\Data\SchemaField;
 // Sections: forEndpoints, percentage, gapCount, color
 // ----------------------------------------------------------------------------------
 
-function completeEndpoint(string $path = '/vouchers'): Endpoint
+function completeEndpoint(string $path = '/books'): Endpoint
 {
 	return endpoint(path: $path, responses: [
 		new ResponseDefinition(
@@ -31,9 +31,9 @@ describe('Coverage - forEndpoints', function () {
 
 	test('counts the documented endpoints against the total', function () {
 		$coverage = Coverage::forEndpoints([
-			completeEndpoint('/vouchers'),
-			completeEndpoint('/courses'),
-			endpoint(path: '/participants'),
+			completeEndpoint('/books'),
+			completeEndpoint('/authors'),
+			endpoint(path: '/editions'),
 		]);
 
 		expect($coverage->total)->toBe(3)

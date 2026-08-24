@@ -68,12 +68,12 @@ describe('GroupLabel - for', function () {
 		expect(GroupLabel::for($tag))->toBe($expected);
 	})->with([
 		// Generators tag operations with whatever handles them.
-		['BookApi', 'Book Catalog'],
-		['VoucherController', 'Voucher'],
+		['BookCatalogApi', 'Book Catalog'],
+		['BookController', 'Book'],
 		['OrderApiResource', 'Order Api'],
-		['participants', 'Participants'],
+		['editions', 'Editions'],
 		['shipping-zones', 'Shipping Zones'],
-		['Vouchers', 'Vouchers'],
+		['Books', 'Books'],
 	]);
 
 	test('keeps a tag that is nothing but a suffix', function () {
@@ -142,7 +142,7 @@ describe('EndpointMeta - caption', function () {
 	});
 
 	test('hands back an extension it does not know exactly as the document wrote it', function () {
-		expect(EndpointMeta::caption('handler', 'VoucherController@index'))->toBe('VoucherController@index');
+		expect(EndpointMeta::caption('handler', 'BookController@index'))->toBe('BookController@index');
 	});
 });
 
@@ -174,10 +174,10 @@ describe('PathParts - sharedPrefix', function () {
 
 	test('reads the prefix every path of a group shares', function () {
 		expect(PathParts::sharedPrefix([
-			'/v1/physical-products',
-			'/v1/physical-products/{physicalProduct}',
-			'/v1/physical-products/{physicalProduct}/variants',
-		]))->toBe('/v1/physical-products');
+			'/v1/paperback-editions',
+			'/v1/paperback-editions/{paperbackEdition}',
+			'/v1/paperback-editions/{paperbackEdition}/variants',
+		]))->toBe('/v1/paperback-editions');
 	});
 
 	test('cuts the prefix at a segment, not inside a word', function () {
@@ -194,7 +194,7 @@ describe('PathParts - sharedPrefix', function () {
 	});
 
 	test('shares nothing when the first segment already differs', function () {
-		expect(PathParts::sharedPrefix(['/orders', '/vouchers']))->toBe('');
+		expect(PathParts::sharedPrefix(['/orders', '/books']))->toBe('');
 	});
 });
 

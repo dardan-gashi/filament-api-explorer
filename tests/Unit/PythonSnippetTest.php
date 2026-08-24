@@ -31,7 +31,7 @@ describe('PythonSnippet - render', function () {
 	test('passes the query as the parameters of the request', function () {
 		$snippet = (new PythonSnippet)->render(new RequestBlueprint(
 			method: HttpMethod::Get,
-			url: 'https://api.bookshop.test/api/v2/vouchers',
+			url: 'https://api.bookshop.test/api/v2/books',
 			query: ['sort' => '-created_at'],
 			headers: ['Accept' => 'application/json'],
 		));
@@ -40,7 +40,7 @@ describe('PythonSnippet - render', function () {
 			'import requests',
 			'',
 			'response = requests.get(',
-			'    \'https://api.bookshop.test/api/v2/vouchers\',',
+			'    \'https://api.bookshop.test/api/v2/books\',',
 			'    params={',
 			'        \'sort\': \'-created_at\',',
 			'    },',
@@ -56,7 +56,7 @@ describe('PythonSnippet - render', function () {
 	test('calls the method it is given', function () {
 		$snippet = (new PythonSnippet)->render(new RequestBlueprint(
 			method: HttpMethod::Delete,
-			url: 'https://api.bookshop.test/api/v2/participants/1',
+			url: 'https://api.bookshop.test/api/v2/editions/1',
 		));
 
 		expect($snippet)->toContain('response = requests.delete(');
@@ -65,7 +65,7 @@ describe('PythonSnippet - render', function () {
 	test('leaves out what the request does not carry', function () {
 		$snippet = (new PythonSnippet)->render(new RequestBlueprint(
 			method: HttpMethod::Get,
-			url: 'https://api.bookshop.test/api/v2/vouchers',
+			url: 'https://api.bookshop.test/api/v2/books',
 		));
 
 		expect($snippet)->not->toContain('params=')
@@ -77,7 +77,7 @@ describe('PythonSnippet - render', function () {
 		// carries the placeholder and on no other.
 		$snippet = (new PythonSnippet)->render(new RequestBlueprint(
 			method: HttpMethod::Get,
-			url: 'https://api.bookshop.test/api/v2/vouchers',
+			url: 'https://api.bookshop.test/api/v2/books',
 			headers: ['Authorization' => 'Bearer real-token', 'Accept-Language' => 'de'],
 		));
 
@@ -89,7 +89,7 @@ describe('PythonSnippet - render', function () {
 	test('quotes a value that carries a quote', function () {
 		$snippet = (new PythonSnippet)->render(new RequestBlueprint(
 			method: HttpMethod::Get,
-			url: 'https://api.bookshop.test/api/v2/vouchers',
+			url: 'https://api.bookshop.test/api/v2/books',
 			query: ['filter[code]' => "it's"],
 		));
 
@@ -99,7 +99,7 @@ describe('PythonSnippet - render', function () {
 	test('drops the entries the user left blank', function () {
 		$snippet = (new PythonSnippet)->render(new RequestBlueprint(
 			method: HttpMethod::Get,
-			url: 'https://api.bookshop.test/api/v2/vouchers',
+			url: 'https://api.bookshop.test/api/v2/books',
 			query: ['sort' => '', 'per_page' => '25'],
 			headers: ['If-None-Match' => ''],
 		));

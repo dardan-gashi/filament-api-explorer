@@ -24,7 +24,7 @@ function blueprint(): RequestBlueprint
 {
 	return new RequestBlueprint(
 		method: HttpMethod::Get,
-		url: 'https://api.bookshop.test/api/v2/vouchers',
+		url: 'https://api.bookshop.test/api/v2/books',
 	);
 }
 

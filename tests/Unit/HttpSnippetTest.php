@@ -31,13 +31,13 @@ describe('HttpSnippet - render', function () {
 	test('writes the request the way it goes over the wire', function () {
 		$snippet = (new HttpSnippet)->render(new RequestBlueprint(
 			method: HttpMethod::Get,
-			url: 'https://api.bookshop.test/api/v2/vouchers',
+			url: 'https://api.bookshop.test/api/v2/books',
 			query: ['sort' => '-created_at', 'per_page' => '25'],
 			headers: ['Accept' => 'application/json'],
 		));
 
 		expect($snippet)->toBe(implode("\n", [
-			'GET /api/v2/vouchers?sort=-created_at&per_page=25 HTTP/1.1',
+			'GET /api/v2/books?sort=-created_at&per_page=25 HTTP/1.1',
 			'Host: api.bookshop.test',
 			'Accept: application/json',
 		]));
@@ -46,10 +46,10 @@ describe('HttpSnippet - render', function () {
 	test('names the method it is given', function () {
 		$snippet = (new HttpSnippet)->render(new RequestBlueprint(
 			method: HttpMethod::Delete,
-			url: 'https://api.bookshop.test/api/v2/participants/1',
+			url: 'https://api.bookshop.test/api/v2/editions/1',
 		));
 
-		expect($snippet)->toStartWith('DELETE /api/v2/participants/1 HTTP/1.1');
+		expect($snippet)->toStartWith('DELETE /api/v2/editions/1 HTTP/1.1');
 	});
 
 	test('keeps the port with the host', function () {
@@ -57,7 +57,7 @@ describe('HttpSnippet - render', function () {
 		// of it — a sample against a local server has to say so.
 		$snippet = (new HttpSnippet)->render(new RequestBlueprint(
 			method: HttpMethod::Get,
-			url: 'http://localhost:8000/api/v2/vouchers',
+			url: 'http://localhost:8000/api/v2/books',
 		));
 
 		expect($snippet)->toContain('Host: localhost:8000');
@@ -75,7 +75,7 @@ describe('HttpSnippet - render', function () {
 	test('replaces a credential with a variable the editors resolve', function () {
 		$snippet = (new HttpSnippet)->render(new RequestBlueprint(
 			method: HttpMethod::Get,
-			url: 'https://api.bookshop.test/api/v2/vouchers',
+			url: 'https://api.bookshop.test/api/v2/books',
 			headers: ['Authorization' => 'Bearer real-token'],
 		));
 
@@ -86,7 +86,7 @@ describe('HttpSnippet - render', function () {
 	test('drops the entries the user left blank', function () {
 		$snippet = (new HttpSnippet)->render(new RequestBlueprint(
 			method: HttpMethod::Get,
-			url: 'https://api.bookshop.test/api/v2/vouchers',
+			url: 'https://api.bookshop.test/api/v2/books',
 			query: ['sort' => '', 'per_page' => '25'],
 			headers: ['If-None-Match' => ''],
 		));

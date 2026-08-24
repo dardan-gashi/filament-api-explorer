@@ -17,7 +17,7 @@ function executionPolicy(bool $enabled = true, array $hosts = ['api.bookshop.tes
 	return new ExecutionPolicy(enabled: $enabled, allowedHosts: $hosts, allowedSchemes: $schemes);
 }
 
-function policyRequest(string $url = 'https://api.bookshop.test/api/v2/vouchers', HttpMethod $method = HttpMethod::Get): RequestBlueprint
+function policyRequest(string $url = 'https://api.bookshop.test/api/v2/books', HttpMethod $method = HttpMethod::Get): RequestBlueprint
 {
 	return new RequestBlueprint(method: $method, url: $url);
 }
@@ -95,7 +95,7 @@ describe('ExecutionPolicy - placeholder headers', function () {
 		// produce a 401, and a 401 nobody understands.
 		executionPolicy()->authorize(new RequestBlueprint(
 			method: HttpMethod::Get,
-			url: 'https://api.bookshop.test/api/v2/vouchers',
+			url: 'https://api.bookshop.test/api/v2/books',
 			headers: ['Authorization' => 'Bearer <token>'],
 		));
 	})->throws(RequestNotAllowed::class, 'The header [Authorization] still holds the example');
@@ -103,7 +103,7 @@ describe('ExecutionPolicy - placeholder headers', function () {
 	test('passes a header that holds a real value', function () {
 		executionPolicy()->authorize(new RequestBlueprint(
 			method: HttpMethod::Get,
-			url: 'https://api.bookshop.test/api/v2/vouchers',
+			url: 'https://api.bookshop.test/api/v2/books',
 			headers: ['Authorization' => 'Bearer 7|abcdef', 'Accept' => 'application/json'],
 		));
 	})->throwsNoExceptions();

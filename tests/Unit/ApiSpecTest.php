@@ -45,22 +45,22 @@ describe('ApiSpec - empty', function () {
 describe('ApiSpec - find', function () {
 
 	test('finds an endpoint by its key', function () {
-		$wanted = endpoint(path: '/courses');
-		$subject = spec([endpoint(path: '/vouchers'), $wanted]);
+		$wanted = endpoint(path: '/authors');
+		$subject = spec([endpoint(path: '/books'), $wanted]);
 
-		expect($subject->find($wanted->key)?->path)->toBe('/courses');
+		expect($subject->find($wanted->key)?->path)->toBe('/authors');
 	});
 
 	test('finds an endpoint by the method and path a link used to carry', function () {
 		// The address of an endpoint became its operationId where the document gives
 		// one, and a link written before that must not break.
 		$subject = spec([new Endpoint(
-			key: 'v2.courses.index',
+			key: 'v2.authors.index',
 			method: HttpMethod::Get,
-			path: '/courses',
+			path: '/authors',
 		)]);
 
-		expect($subject->find('get-courses')?->key)->toBe('v2.courses.index');
+		expect($subject->find('get-authors')?->key)->toBe('v2.authors.index');
 	});
 
 	test('returns null for an unknown or blank key', function () {
@@ -114,22 +114,22 @@ describe('ApiSpec - commonPathPrefix', function () {
 
 	test('returns the segments every path shares', function () {
 		$subject = spec([
-			endpoint(path: '/api/v2/vouchers'),
-			endpoint(path: '/api/v2/vouchers/{code}'),
-			endpoint(path: '/api/v2/courses'),
+			endpoint(path: '/api/v2/books'),
+			endpoint(path: '/api/v2/books/{code}'),
+			endpoint(path: '/api/v2/authors'),
 		]);
 
 		expect($subject->commonPathPrefix())->toBe('/api/v2');
 	});
 
 	test('never consumes the last segment of a path', function () {
-		$subject = spec([endpoint(path: '/api/v2/vouchers')]);
+		$subject = spec([endpoint(path: '/api/v2/books')]);
 
 		expect($subject->commonPathPrefix())->toBe('/api/v2');
 	});
 
 	test('returns nothing when the paths share no prefix', function () {
-		$subject = spec([endpoint(path: '/vouchers'), endpoint(path: '/courses')]);
+		$subject = spec([endpoint(path: '/books'), endpoint(path: '/authors')]);
 
 		expect($subject->commonPathPrefix())->toBe('');
 	});

@@ -49,7 +49,7 @@ describe('SchemaField - matches', function () {
 	});
 
 	test('does not match a term that occurs nowhere', function () {
-		expect(schemaTree()->matches('participant'))->toBeFalse();
+		expect(schemaTree()->matches('edition'))->toBeFalse();
 	});
 
 	test('matches everything for an empty term', function () {
@@ -80,7 +80,7 @@ describe('SchemaField - filter', function () {
 	});
 
 	test('drops a field with no match anywhere below it', function () {
-		expect(schemaTree()->children[0]->filter('participant'))->toBeNull();
+		expect(schemaTree()->children[0]->filter('edition'))->toBeNull();
 	});
 
 	test('leaves the field it filters untouched', function () {
@@ -111,7 +111,7 @@ describe('SchemaField - filterAll', function () {
 	});
 
 	test('returns an empty list when nothing matches', function () {
-		expect(SchemaField::filterAll(schemaTree()->children, 'participant'))->toBe([]);
+		expect(SchemaField::filterAll(schemaTree()->children, 'edition'))->toBe([]);
 	});
 });
 
