@@ -892,9 +892,37 @@ select.fae-input {
 	white-space: pre-wrap;
 }
 
+.fae-code-numbered {
+	align-items: start;
+	column-gap: 0;
+	display: grid;
+	grid-template-columns: max-content max-content;
+	overflow-x: auto;
+	padding-inline: 0;
+	white-space: normal;
+}
+
+.fae-code-gutter {
+	background: var(--fae-bg);
+	color: var(--fae-text-faint);
+	left: 0;
+	padding-inline: 0.75rem 0.875rem;
+	position: sticky;
+	text-align: right;
+	user-select: none;
+	z-index: 1;
+}
+
+/* An empty line still owns a row, or the number beside it would sit in nothing. */
+.fae-code-text {
+	min-height: 1.55em;
+	padding-inline-end: 0.75rem;
+	white-space: pre;
+}
+
 .fae-response-body {
 	max-height: 60vh;
-	overflow: hidden auto;
+	overflow: auto;
 }
 
 .fae-code-property {

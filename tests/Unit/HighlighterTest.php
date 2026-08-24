@@ -14,7 +14,7 @@ use DardanGashi\FilamentApiExplorer\Highlighting\SnippetHighlighter;
 
 // ----------------------------------------------------------------------------------
 // Highlighter Test Suite
-// Sections: Highlighter::markUp, JsonHighlighter::highlight,
+// Sections: Highlighter::markUp, Highlighter::lines, JsonHighlighter::highlight,
 //           ShellHighlighter::highlight, HttpHighlighter::highlight,
 //           PhpHighlighter::highlight, JavaScriptHighlighter::highlight,
 //           PythonHighlighter::highlight, SnippetHighlighter::highlight
@@ -63,6 +63,44 @@ describe('Highlighter - markUp', function () {
 
 	test('leaves an empty input empty', function () {
 		expect(Highlighter::markUp('', '/(?P<number>\d+)/'))->toBe('');
+	});
+});
+
+// ------------------------------------------------------------
+// Highlighter - lines
+// ------------------------------------------------------------
+
+describe('Highlighter - lines', function () {
+
+	test('cuts marked-up code into one string per line', function () {
+		$lines = Highlighter::lines(JsonHighlighter::highlight("{\n    \"id\": 7\n}"));
+
+		expect($lines)->toHaveCount(3)
+			->and($lines[0])->toBe('{')
+			->and($lines[1])->toContain('fae-code-property')
+			->and($lines[2])->toBe('}');
+	});
+
+	test('closes a token at the break and opens it again after it', function () {
+		// A heredoc, a template literal, a quoted string broken over two lines: the
+		// span outlives the line, and half a span on each line is markup a browser
+		// repairs by guessing.
+		$lines = Highlighter::lines("<span class=\"fae-code-string\">&quot;a\nb&quot;</span> tail");
+
+		expect($lines)->toBe([
+			'<span class="fae-code-string">&quot;a</span>',
+			'<span class="fae-code-string">b&quot;</span> tail',
+		]);
+	});
+
+	test('keeps a blank line as a line of its own', function () {
+		// The blank line between headers and body in the raw HTTP sample is not
+		// decoration — dropping it would renumber everything under it.
+		expect(Highlighter::lines("a\n\nb"))->toBe(['a', '', 'b']);
+	});
+
+	test('gives an empty input one empty line', function () {
+		expect(Highlighter::lines(''))->toBe(['']);
 	});
 });
 

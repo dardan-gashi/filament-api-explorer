@@ -52,7 +52,12 @@
 			</div>
 		</div>
 
-		<pre class="fae-code fae-response-body" x-show="open">{!! \DardanGashi\FilamentApiExplorer\Highlighting\JsonHighlighter::highlight($section['body']) !!}</pre>
+		<div x-show="open">
+			@include('filament-api-explorer::partials.code', [
+				'html' => \DardanGashi\FilamentApiExplorer\Highlighting\JsonHighlighter::highlight($section['body']),
+				'class' => 'fae-response-body',
+			])
+		</div>
 	</section>
 
 	@if ($section['headers'] !== [])

@@ -58,6 +58,68 @@ final class Highlighter
 	}
 
 	/**
+	 * Marked-up code cut into one string of HTML per line, so a gutter can put a
+	 * number beside each of them.
+	 *
+	 * A token can span a line break — a heredoc, a template literal, a quoted
+	 * string a sample breaks over two lines — so the split cannot simply explode
+	 * on "\n": that would leave a `<span>` open at the end of one line and its
+	 * `</span>` orphaned at the start of the next. Every span still open at a
+	 * break is closed and opened again, which keeps each line valid markup on its
+	 * own and the colour unbroken across the break.
+	 *
+	 * @return list<string>
+	 */
+	public static function lines(string $html): array
+	{
+		$parts = preg_split(
+			'/(<span class="[a-z-]+">|<\/span>)/',
+			$html,
+			-1,
+			PREG_SPLIT_DELIM_CAPTURE,
+		);
+
+		if ($parts === false) {
+			return [$html];
+		}
+
+		/** @var list<string> $open */
+		$open = [];
+		$lines = [''];
+
+		foreach ($parts as $part) {
+			if ($part === '') {
+				continue;
+			}
+
+			if ($part === '</span>') {
+				array_pop($open);
+				$lines[array_key_last($lines)] .= $part;
+
+				continue;
+			}
+
+			if (str_starts_with($part, '<span')) {
+				$open[] = $part;
+				$lines[array_key_last($lines)] .= $part;
+
+				continue;
+			}
+
+			foreach (explode("\n", $part) as $index => $chunk) {
+				if ($index > 0) {
+					$lines[array_key_last($lines)] .= str_repeat('</span>', count($open));
+					$lines[] = implode('', $open);
+				}
+
+				$lines[array_key_last($lines)] .= $chunk;
+			}
+		}
+
+		return $lines;
+	}
+
+	/**
 	 * The named group that matched, which is the name of the token class. A
 	 * group that did not take part reports an offset of -1.
 	 *

@@ -17,5 +17,7 @@
 		@include('filament-api-explorer::partials.copy-button', ['value' => $snippet])
 	</div>
 
-	<pre class="fae-code">{!! \DardanGashi\FilamentApiExplorer\Highlighting\SnippetHighlighter::highlight($snippet, $snippetSyntax) !!}</pre>
+	@include('filament-api-explorer::partials.code', [
+		'html' => \DardanGashi\FilamentApiExplorer\Highlighting\SnippetHighlighter::highlight($snippet, $snippetSyntax),
+	])
 </section>

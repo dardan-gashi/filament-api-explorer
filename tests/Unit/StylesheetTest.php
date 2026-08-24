@@ -201,6 +201,21 @@ describe('Stylesheet - Selectors', function () {
 			->and(stylesheet())->toContain('container-type: inline-size');
 	});
 
+	test('scrolls a long line sideways and keeps the numbers in place', function () {
+		// The gutter lives inside the scroll container, so without `sticky` the
+		// numbers travel left out of the picture at the moment a long line makes
+		// them worth having — and an opaque background is what stops the code from
+		// passing behind them.
+		preg_match('/\\.fae-code-numbered \\{([^}]*)\\}/', stylesheet(), $block);
+		preg_match('/\\.fae-code-gutter \\{([^}]*)\\}/', stylesheet(), $gutter);
+		preg_match('/\\.fae-code-text \\{([^}]*)\\}/', stylesheet(), $text);
+
+		expect($block[1] ?? '')->toContain('overflow-x: auto')
+			->and($text[1] ?? '')->toContain('white-space: pre;')
+			->and($gutter[1] ?? '')->toContain('position: sticky')
+			->and($gutter[1] ?? '')->toContain('background: var(--fae-bg)');
+	});
+
 	test('keeps a response inside its own scroll area', function () {
 		// The page has one scroll, and a response has no length limit: without a
 		// scroll of its own, a long payload pushes the sender out of the viewport and
