@@ -238,6 +238,13 @@ describe('Stylesheet - Selectors', function () {
 			->and(stylesheet())->toMatch('/\\.fae-field-grid \\{[^}]*grid-template-columns: minmax\\(0, 1fr\\);/s');
 	});
 
+	test('spaces the inputs of the sender apart from each other', function () {
+		// A field is a label over an input and a typed entry has no label at all, so
+		// without this the rows sit flush and read as one block of inputs.
+		expect(stylesheet())->toContain('.fae-field-grid + .fae-custom-row')
+			->and(stylesheet())->toContain('.fae-field-grid + .fae-field-grid');
+	});
+
 	test('keeps a response inside its own scroll area', function () {
 		// The page has one scroll, and a response has no length limit: without a
 		// scroll of its own, a long payload pushes the sender out of the viewport and

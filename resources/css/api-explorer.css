@@ -1050,8 +1050,15 @@ select.fae-input {
 	grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) auto;
 }
 
+.fae-field-grid + .fae-field-grid,
+.fae-field-grid + .fae-custom-row,
+.fae-custom-row + .fae-field-grid,
+.fae-custom-row + .fae-custom-row {
+	margin-top: 0.5rem;
+}
+
 .fae-add-row {
-	margin-top: 0.25rem;
+	margin-top: 0.5rem;
 	width: fit-content;
 }
 
