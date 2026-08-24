@@ -85,7 +85,9 @@ final class Highlighter
 
 		/** @var list<string> $open */
 		$open = [];
-		$lines = [''];
+
+		$lines = [];
+		$line = '';
 
 		foreach ($parts as $part) {
 			if ($part === '') {
@@ -94,27 +96,29 @@ final class Highlighter
 
 			if ($part === '</span>') {
 				array_pop($open);
-				$lines[array_key_last($lines)] .= $part;
+				$line .= $part;
 
 				continue;
 			}
 
 			if (str_starts_with($part, '<span')) {
 				$open[] = $part;
-				$lines[array_key_last($lines)] .= $part;
+				$line .= $part;
 
 				continue;
 			}
 
 			foreach (explode("\n", $part) as $index => $chunk) {
 				if ($index > 0) {
-					$lines[array_key_last($lines)] .= str_repeat('</span>', count($open));
-					$lines[] = implode('', $open);
+					$lines[] = $line.str_repeat('</span>', count($open));
+					$line = implode('', $open);
 				}
 
-				$lines[array_key_last($lines)] .= $chunk;
+				$line .= $chunk;
 			}
 		}
+
+		$lines[] = $line;
 
 		return $lines;
 	}
