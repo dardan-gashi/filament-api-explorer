@@ -1,6 +1,7 @@
 @forelse ($endpoint->responses as $response)
 	@php
 		$rendering = $response->renderedAs($format);
+		$formats = $response->mediaTypes();
 		$visibleFields = $rendering->filteredFields($this->fieldSearch);
 	@endphp
 
@@ -18,7 +19,12 @@
 				@endif
 			</div>
 
-			@if ($rendering->mediaType)
+			@if (count($formats) > 1)
+				@include('filament-api-explorer::partials.format-tabs', [
+					'options' => $formats,
+					'selected' => $rendering->mediaType,
+				])
+			@elseif ($rendering->mediaType)
 				<span class="fae-media-type">{{ $rendering->mediaType }}</span>
 			@endif
 		</div>

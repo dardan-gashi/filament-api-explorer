@@ -356,7 +356,6 @@ class ApiExplorerPage extends Page
 			'snippet' => $endpoint === null ? '' : $this->snippet($endpoint),
 			'snippetLanguages' => app(SnippetRenderer::class)->languages(),
 			'format' => $this->format,
-			'formatOptions' => $endpoint?->offersSeveralMediaTypes() === true ? $endpoint->mediaTypes() : [],
 			'snippetSyntax' => $this->snippetSyntax(),
 			'exampleSections' => $endpoint === null ? [] : $this->exampleSections($endpoint),
 			'emptyRequiredHeaders' => $endpoint === null ? [] : $this->emptyRequiredHeaders($endpoint),

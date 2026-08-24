@@ -115,28 +115,6 @@ final readonly class Endpoint
 	}
 
 	/**
-	 * Whether one of its bodies is documented in more than one media type, which
-	 * is the only case where a format is the reader's to choose. Two bodies each
-	 * fixed to a format of their own — an XML payload with a JSON error — is not
-	 * a choice, and offering one there would suggest the endpoint answers in a
-	 * format it does not.
-	 */
-	public function offersSeveralMediaTypes(): bool
-	{
-		if (($this->requestBody->alternates ?? []) !== []) {
-			return true;
-		}
-
-		foreach ($this->responses as $response) {
-			if ($response->alternates !== []) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	/**
 	 * The statuses this endpoint documents, which is what the sample store is
 	 * asked for.
 	 *

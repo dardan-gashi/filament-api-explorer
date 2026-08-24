@@ -451,8 +451,8 @@ would hide the very thing you are looking at.
 
 **A body offered in several media types is offered as a choice.** A response
 whose `content` names both `application/json` and `application/xml` carries two
-bodies in OpenAPI — two schemas, two examples — and the endpoint head grows a
-switch between them:
+bodies in OpenAPI — two schemas, two examples — and that body's head grows a
+switch where it otherwise prints its media type:
 
 ```yaml
 responses:
@@ -469,8 +469,8 @@ The choice carries the whole endpoint: the schema trees, the examples, the
 that changed only the example would show XML and copy a request asking for JSON.
 
 Two things it deliberately does not do. A body documented in one format only —
-the JSON error beside an XML payload — stays in the format it has, labelled as
-such, rather than being redrawn as a format it never comes back as. And a format
+the JSON error beside an XML payload — keeps its plain label and stays in the
+format it has, rather than being redrawn as one it never comes back as. And a format
 no response is documented in is never asked for: the media types of an endpoint
 include the ones its request body is *sent* as, and `multipart/form-data` earns a
 406 from any correct server that is asked to answer in it.

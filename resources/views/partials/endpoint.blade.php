@@ -63,13 +63,7 @@
 			</span>
 		@endif
 
-		<div class="fae-endpoint-actions">
-			@if ($formatOptions !== [])
-				@include('filament-api-explorer::partials.format-tabs')
-			@endif
-
-			@include('filament-api-explorer::partials.permalink-button')
-		</div>
+		@include('filament-api-explorer::partials.permalink-button')
 	</div>
 
 	@if ($endpoint->summary)
@@ -117,6 +111,7 @@
 @if ($endpoint->requestBody)
 	@php
 		$requestRendering = $endpoint->requestBody->renderedAs($format);
+		$requestFormats = $endpoint->requestBody->mediaTypes();
 	@endphp
 
 	<section class="fae-section">
@@ -131,7 +126,12 @@
 				@endif
 			</h3>
 
-			@if ($requestRendering->mediaType)
+			@if (count($requestFormats) > 1)
+				@include('filament-api-explorer::partials.format-tabs', [
+					'options' => $requestFormats,
+					'selected' => $requestRendering->mediaType,
+				])
+			@elseif ($requestRendering->mediaType)
 				<span class="fae-media-type">{{ $requestRendering->mediaType }}</span>
 			@endif
 		</div>

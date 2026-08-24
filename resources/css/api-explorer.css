@@ -626,9 +626,6 @@ select.fae-input {
 }
 
 .fae-endpoint-actions {
-	align-items: center;
-	display: flex;
-	gap: 0.5rem;
 	margin-left: auto;
 }
 
@@ -1036,6 +1033,14 @@ select.fae-input {
 .fae-response-name {
 	font-family: var(--fae-mono);
 	font-weight: 600;
+}
+
+.fae-format-tabs {
+	font-family: var(--fae-mono);
+}
+
+.fae-format-tabs .fae-tab {
+	font-size: var(--fae-font-xs);
 }
 
 .fae-media-type {

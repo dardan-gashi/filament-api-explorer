@@ -1,4 +1,4 @@
-<div x-data="{ copied: false }">
+<div class="fae-endpoint-actions" x-data="{ copied: false }">
 	<button
 		type="button"
 		class="fae-button fae-button-icon"

@@ -14,8 +14,8 @@ use DardanGashi\FilamentApiExplorer\Enums\ParameterLocation;
 
 // ----------------------------------------------------------------------------------
 // Endpoint Test Suite
-// Sections: keyFor, label, parametersIn, response, primaryResponse, mediaTypes,
-//           offersSeveralMediaTypes, gaps, isExecutable, matches
+// Sections: keyFor, label, parametersIn, response, primaryResponse, mediaTypes, gaps,
+//           isExecutable, matches
 // ----------------------------------------------------------------------------------
 
 function documentedResponse(string $status = '200'): ResponseDefinition
@@ -149,30 +149,6 @@ describe('Endpoint - mediaTypes', function () {
 		);
 
 		expect($endpoint->mediaTypes())->toBe(['application/json', 'application/xml']);
-	});
-});
-
-// ------------------------------------------------------------
-// Endpoint - offersSeveralMediaTypes
-// ------------------------------------------------------------
-
-describe('Endpoint - offersSeveralMediaTypes', function () {
-
-	test('is true where one body is documented in more than one media type', function () {
-		expect(endpoint(responses: [new ResponseDefinition(
-			status: '200',
-			mediaType: 'application/json',
-			alternates: [new BodyRendering(mediaType: 'application/xml')],
-		)])->offersSeveralMediaTypes())->toBeTrue();
-	});
-
-	test('is false where two bodies each have one format of their own', function () {
-		// An XML payload with a JSON error is no choice the reader has: offering one
-		// would claim the endpoint answers 200 as JSON, which it does not.
-		expect(endpoint(responses: [
-			new ResponseDefinition(status: '200', mediaType: 'application/xml'),
-			new ResponseDefinition(status: '401', mediaType: 'application/json'),
-		])->offersSeveralMediaTypes())->toBeFalse();
 	});
 });
 

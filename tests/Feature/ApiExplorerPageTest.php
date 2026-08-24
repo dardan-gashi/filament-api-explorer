@@ -773,14 +773,17 @@ describe('ApiExplorerPage - Formats', function () {
 		]]]);
 	});
 
-	test('offers the media types the endpoint documents, shortened for a tab', function () {
-		// `application/` is the half of a media type that tells none of them apart,
-		// and the full string does not fit a tab beside the path.
+	test('offers the choice at the body that has one and nowhere else', function () {
+		// The switch stands where the media type of a body is printed anyway, so the
+		// 200 offered in both formats gets one and the JSON-only 401 keeps its label.
+		// `application/` is the half of a media type that tells none of them apart.
 		$html = (string) preg_replace('/\s+/', '', livewire(ApiExplorerPage::class)->html());
 
-		expect($html)->toContain('>json<')
+		expect(substr_count($html, 'fae-format-tabs'))->toBe(1)
+			->and($html)->toContain('>json<')
 			->and($html)->toContain('>xml<')
-			->and($html)->toContain("setFormat('application\/xml')");
+			->and($html)->toContain("setFormat('application\/xml')")
+			->and($html)->toContain('class="fae-media-type">application/json<');
 	});
 
 	test('reads the whole endpoint in the format it is switched to', function () {
