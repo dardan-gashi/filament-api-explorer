@@ -163,6 +163,19 @@
 	color: var(--fae-text-muted);
 	font-family: var(--fae-mono);
 	font-size: var(--fae-font-xs);
+	margin-left: auto;
+}
+
+/*
+ * A toolbar control is not a form field: at the field height it becomes the
+ * loudest thing on a row of small text. It keeps the ring and the radius and
+ * gives up the height.
+ */
+.fae-toolbar .fae-select {
+	font-size: var(--fae-font-xs);
+	line-height: 1.25rem;
+	padding-inline: 0.5rem 1.75rem;
+	padding-block: 0.125rem;
 }
 
 .fae-select,
@@ -210,7 +223,7 @@ select.fae-input {
 /* ---------------------------------------------------------------- palette */
 
 .fae-palette-root {
-	margin-right: auto;
+	flex-shrink: 0;
 }
 
 .fae-palette-trigger {
