@@ -1043,6 +1043,11 @@ select.fae-input {
 	font-size: var(--fae-font-xs);
 }
 
+.fae-add-row {
+	margin-top: 0.25rem;
+	width: fit-content;
+}
+
 .fae-media-type {
 	color: var(--fae-text-faint);
 	font-family: var(--fae-mono);

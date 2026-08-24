@@ -414,6 +414,15 @@ Where the document lists more than one server, the sender opens with a picker fo
 them and every sample follows the choice, so a request is copied against the host
 you were reading it for.
 
+**A header or a query parameter can be added by hand.** A document is not the
+whole truth about an API — a debug switch, a language, a filter nobody wrote down
+— so both sections carry a `+`, and what you add travels into the code samples as
+well as into the live request. An entry naming something documented replaces it,
+case-insensitively for headers, because `accept` and `Accept` are one header. A
+path parameter cannot be added: the template decides which of those exist, and
+every placeholder in it gets an input whether the document declares it or not —
+an undeclared one is an input and a documentation gap at the same time.
+
 The request panel prefills each documented query parameter with its example,
 default or first allowed value. Header inputs stay empty on purpose: a documented
 header example is a placeholder, not a credential, so nothing is sent until you

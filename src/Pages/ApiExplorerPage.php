@@ -84,6 +84,22 @@ class ApiExplorerPage extends Page
 	 */
 	public array $headerValues = [];
 
+	/**
+	 * Headers the reader added themselves, for what the document does not
+	 * mention: a debug switch, a language, a header an endpoint reads and nobody
+	 * wrote down.
+	 *
+	 * @var list<array{name: string, value: string}>
+	 */
+	public array $extraHeaders = [];
+
+	/**
+	 * Query parameters the reader added themselves.
+	 *
+	 * @var list<array{name: string, value: string}>
+	 */
+	public array $extraQuery = [];
+
 	public ?ExecutedRequest $result = null;
 
 	private ?ApiSpec $memoizedSpec = null;
@@ -241,6 +257,47 @@ class ApiExplorerPage extends Page
 			&& in_array($mediaType, $endpoint->mediaTypes(), true)
 				? $mediaType
 				: null;
+	}
+
+	public function addHeader(): void
+	{
+		$this->extraHeaders[] = ['name' => '', 'value' => ''];
+	}
+
+	public function removeHeader(int $index): void
+	{
+		$this->extraHeaders = $this->without($this->extraHeaders, $index);
+	}
+
+	public function addQueryParameter(): void
+	{
+		$this->extraQuery[] = ['name' => '', 'value' => ''];
+	}
+
+	public function removeQueryParameter(int $index): void
+	{
+		$this->extraQuery = $this->without($this->extraQuery, $index);
+	}
+
+	/**
+	 * The rows without the one at that position, built by appending — which is
+	 * what keeps it a list, and what an `unset` followed by `array_values` only
+	 * looks like.
+	 *
+	 * @param  list<array{name: string, value: string}>  $rows
+	 * @return list<array{name: string, value: string}>
+	 */
+	private function without(array $rows, int $index): array
+	{
+		$kept = [];
+
+		foreach ($rows as $position => $row) {
+			if ($position !== $index) {
+				$kept[] = $row;
+			}
+		}
+
+		return $kept;
 	}
 
 	public function resetRequest(): void
@@ -427,6 +484,8 @@ class ApiExplorerPage extends Page
 			queryParameters: $this->valuesFor($endpoint, ParameterLocation::Query),
 			headers: $headers,
 			accept: $this->format,
+			extraHeaders: $this->extraHeaders,
+			extraQuery: $this->extraQuery,
 		);
 	}
 
@@ -439,6 +498,8 @@ class ApiExplorerPage extends Page
 			queryParameters: $this->valuesFor($endpoint, ParameterLocation::Query),
 			headers: $this->valuesFor($endpoint, ParameterLocation::Header),
 			accept: $this->format,
+			extraHeaders: $this->extraHeaders,
+			extraQuery: $this->extraQuery,
 		);
 	}
 
@@ -701,11 +762,34 @@ class ApiExplorerPage extends Page
 	 * The inputs of the request panel. Cookies are documented but not sent, so
 	 * they get no input.
 	 *
-	 * @return list<array{label: string, fields: list<array{bind: string, name: string, placeholder: string, required: bool, scheme: string|null}>}>
+	 * A header and a query parameter can also be added by hand — a document is
+	 * not the whole truth about an API, and the two locations that carry
+	 * something undocumented are these. A path parameter cannot: the template
+	 * decides which of those exist, and every placeholder in it already has an
+	 * input, declared or not.
+	 *
+	 * @return list<array{label: string, fields: list<array{bind: string, name: string, placeholder: string, required: bool, scheme: string|null}>, custom: array{property: string, add: string, remove: string, count: int, label: string}|null}>
 	 */
 	private function senderSections(Endpoint $endpoint): array
 	{
 		$sections = [];
+
+		$custom = [
+			ParameterLocation::Header->value => [
+				'property' => 'extraHeaders',
+				'add' => 'addHeader',
+				'remove' => 'removeHeader',
+				'count' => count($this->extraHeaders),
+				'label' => (string) __('filament-api-explorer::explorer.labels.add_header'),
+			],
+			ParameterLocation::Query->value => [
+				'property' => 'extraQuery',
+				'add' => 'addQueryParameter',
+				'remove' => 'removeQueryParameter',
+				'count' => count($this->extraQuery),
+				'label' => (string) __('filament-api-explorer::explorer.labels.add_query'),
+			],
+		];
 
 		// The credential comes first: it is the one input that decides whether the
 		// request is answered at all, and the one a reader fills before wondering
@@ -732,10 +816,13 @@ class ApiExplorerPage extends Page
 				];
 			}
 
-			if ($fields !== []) {
+			$addable = $custom[$location->value] ?? null;
+
+			if ($fields !== [] || $addable !== null) {
 				$sections[] = [
 					'label' => (string) __($location->translationKey()),
 					'fields' => $fields,
+					'custom' => $addable,
 				];
 			}
 		}
@@ -781,6 +868,7 @@ class ApiExplorerPage extends Page
 		$endpoint = $this->currentEndpoint();
 		$this->result = null;
 		$this->format = null;
+		$this->extraHeaders = $this->extraQuery = [];
 
 		if ($endpoint === null) {
 			$this->pathValues = $this->queryValues = $this->headerValues = [];

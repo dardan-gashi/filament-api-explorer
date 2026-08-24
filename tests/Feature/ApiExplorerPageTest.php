@@ -76,7 +76,7 @@ function documentedDocument(): array
 // ----------------------------------------------------------------------------------
 // ApiExplorerPage Test Suite
 // Sections: Render, Endpoint Selection, Search, Gap Filter, Snippets, Sending, Examples,
-//           Formats
+//           Formats, Custom Entries
 // ----------------------------------------------------------------------------------
 
 // ------------------------------------------------------------
@@ -414,7 +414,10 @@ describe('ApiExplorerPage - Endpoint Selection', function () {
 			->call('selectEndpoint', Endpoint::keyFor(HttpMethod::Get, '/books/{code}'))
 			->viewData('senderSections');
 
-		expect(array_column($sections, 'label'))->toBe(['Request headers', 'Path parameters']);
+		// Headers and query parameters are always offered, with or without a
+		// documented one: they are the two locations a reader can add to by hand.
+		expect(array_column($sections, 'label'))
+			->toBe(['Request headers', 'Path parameters', 'Query parameters']);
 	});
 
 	test('carries a filled header to the next endpoint that asks for it', function () {
@@ -848,6 +851,58 @@ describe('ApiExplorerPage - Formats', function () {
 			->assertSet('format', 'application/xml')
 			->call('selectEndpoint', 'get-others')
 			->assertSet('format', null);
+	});
+});
+
+// ------------------------------------------------------------
+// ApiExplorerPage - Custom Entries
+// ------------------------------------------------------------
+
+describe('ApiExplorerPage - Custom Entries', function () {
+
+	test('sends a header and a query parameter the document never mentioned', function () {
+		Http::fake(['api.bookshop.test/*' => Http::response(['data' => []], 200)]);
+
+		livewire(ApiExplorerPage::class)
+			->call('addHeader')
+			->set('extraHeaders.0.name', 'X-Debug')
+			->set('extraHeaders.0.value', 'traces')
+			->call('addQueryParameter')
+			->set('extraQuery.0.name', 'include')
+			->set('extraQuery.0.value', 'editions')
+			->call('send');
+
+		Http::assertSent(fn ($request): bool => $request->header('X-Debug') === ['traces']
+			&& str_contains($request->url(), 'include=editions'));
+	});
+
+	test('carries them into the code sample, so what is copied is what is sent', function () {
+		$html = livewire(ApiExplorerPage::class)
+			->call('addHeader')
+			->set('extraHeaders.0.name', 'X-Debug')
+			->set('extraHeaders.0.value', 'traces')
+			->html();
+
+		expect($html)->toContain('X-Debug');
+	});
+
+	test('takes a row away again', function () {
+		livewire(ApiExplorerPage::class)
+			->call('addHeader')
+			->call('addHeader')
+			->set('extraHeaders.1.name', 'X-Second')
+			->call('removeHeader', 0)
+			->assertSet('extraHeaders', [['name' => 'X-Second', 'value' => '']]);
+	});
+
+	test('forgets them when another endpoint is selected', function () {
+		// They were added for one request. Carrying an undocumented header to an
+		// endpoint that was never asked about it would send it unnoticed.
+		livewire(ApiExplorerPage::class)
+			->call('addHeader')
+			->set('extraHeaders.0.name', 'X-Debug')
+			->call('selectEndpoint', 'get-authors')
+			->assertSet('extraHeaders', []);
 	});
 });
 

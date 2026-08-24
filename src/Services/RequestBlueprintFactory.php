@@ -19,6 +19,8 @@ final class RequestBlueprintFactory
 	 * @param  array<string, string>  $pathParameters
 	 * @param  array<string, string>  $queryParameters
 	 * @param  array<string, string>  $headers
+	 * @param  list<array{name: string, value: string}>  $extraHeaders  Headers the reader added by hand.
+	 * @param  list<array{name: string, value: string}>  $extraQuery  Query parameters the reader added by hand.
 	 */
 	public function make(
 		Endpoint $endpoint,
@@ -27,13 +29,59 @@ final class RequestBlueprintFactory
 		array $queryParameters = [],
 		array $headers = [],
 		?string $accept = null,
+		array $extraHeaders = [],
+		array $extraQuery = [],
 	): RequestBlueprint {
+		$sent = $this->withExtras(
+			$this->headers($headers, $endpoint),
+			$extraHeaders,
+			caseInsensitive: true,
+		);
+
 		return new RequestBlueprint(
 			method: $endpoint->method,
 			url: $this->url($endpoint, $server, $pathParameters),
-			query: $this->only($queryParameters, $endpoint, ParameterLocation::Query),
-			headers: $this->withAccept($this->headers($headers, $endpoint), $endpoint, $accept),
+			query: $this->withExtras(
+				$this->only($queryParameters, $endpoint, ParameterLocation::Query),
+				$extraQuery,
+			),
+			headers: $this->withAccept($sent, $endpoint, $accept),
 		);
+	}
+
+	/**
+	 * What the document describes, with what the reader added on top.
+	 *
+	 * An entry with no name is a row somebody opened and did not fill in, and an
+	 * entry naming something documented replaces it — it was typed later and on
+	 * purpose. Header names are case-insensitive by RFC 9110, so `accept` has to
+	 * replace `Accept` rather than travel beside it.
+	 *
+	 * @param  array<string, string>  $documented
+	 * @param  list<array{name: string, value: string}>  $extras
+	 * @return array<string, string>
+	 */
+	private function withExtras(array $documented, array $extras, bool $caseInsensitive = false): array
+	{
+		foreach ($extras as $extra) {
+			$name = trim($extra['name'] ?? '');
+
+			if ($name === '') {
+				continue;
+			}
+
+			if ($caseInsensitive) {
+				foreach (array_keys($documented) as $existing) {
+					if (strcasecmp($existing, $name) === 0) {
+						unset($documented[$existing]);
+					}
+				}
+			}
+
+			$documented[$name] = trim($extra['value'] ?? '');
+		}
+
+		return $documented;
 	}
 
 	/**

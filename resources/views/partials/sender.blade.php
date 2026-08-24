@@ -44,6 +44,46 @@
 					</div>
 				</div>
 			@endforeach
+
+			@if ($section['custom'])
+				@for ($index = 0; $index < $section['custom']['count']; $index++)
+					<div class="fae-field-grid" wire:key="{{ $section['custom']['property'] }}-{{ $index }}">
+						<input
+							type="text"
+							class="fae-input"
+							wire:model="{{ $section['custom']['property'] }}.{{ $index }}.name"
+							placeholder="{{ __('filament-api-explorer::explorer.labels.name') }}"
+						>
+
+						<div class="fae-input-group">
+							<input
+								type="text"
+								class="fae-input"
+								wire:model="{{ $section['custom']['property'] }}.{{ $index }}.value"
+								placeholder="{{ __('filament-api-explorer::explorer.labels.value') }}"
+							>
+
+							<button
+								type="button"
+								class="fae-button fae-button-icon fae-button-quiet"
+								title="{{ __('filament-api-explorer::explorer.labels.remove') }}"
+								aria-label="{{ __('filament-api-explorer::explorer.labels.remove') }}"
+								wire:click="{{ $section['custom']['remove'] }}({{ $index }})"
+							>
+								@include('filament-api-explorer::partials.icon', ['name' => 'heroicon-o-x-mark'])
+							</button>
+						</div>
+					</div>
+				@endfor
+
+				<button
+					type="button"
+					class="fae-button fae-button-quiet fae-add-row"
+					wire:click="{{ $section['custom']['add'] }}"
+				>
+					{{ $section['custom']['label'] }}
+				</button>
+			@endif
 		@endforeach
 
 		<div class="fae-sender-actions">

@@ -25,7 +25,7 @@ function authorizationHeader(): Parameter
 
 // ----------------------------------------------------------------------------------
 // RequestBlueprintFactory Test Suite
-// Sections: make, header scheme, accept header, suggestions
+// Sections: make, header scheme, custom entries, accept header, suggestions
 // ----------------------------------------------------------------------------------
 
 // ------------------------------------------------------------
@@ -169,6 +169,53 @@ describe('RequestBlueprintFactory - header scheme', function () {
 		);
 
 		expect($blueprint->headers)->not->toHaveKey('Authorization');
+	});
+});
+
+// ------------------------------------------------------------
+// RequestBlueprintFactory - accept header
+// ------------------------------------------------------------
+
+describe('RequestBlueprintFactory - custom entries', function () {
+
+	test('sends a header the reader added by hand', function () {
+		$blueprint = (new RequestBlueprintFactory)->make(
+			endpoint: endpoint(),
+			server: 'https://api.bookshop.test/api',
+			extraHeaders: [['name' => 'X-Debug', 'value' => 'traces']],
+			extraQuery: [['name' => 'include', 'value' => 'editions']],
+		);
+
+		expect($blueprint->headers)->toBe(['Accept' => 'application/json', 'X-Debug' => 'traces'])
+			->and($blueprint->query)->toBe(['include' => 'editions']);
+	});
+
+	test('drops a row that was opened and never filled in', function () {
+		$blueprint = (new RequestBlueprintFactory)->make(
+			endpoint: endpoint(),
+			server: 'https://api.bookshop.test/api',
+			extraHeaders: [['name' => '  ', 'value' => 'nowhere']],
+			extraQuery: [['name' => '', 'value' => '']],
+		);
+
+		expect($blueprint->headers)->toBe(['Accept' => 'application/json'])
+			->and($blueprint->query)->toBe([]);
+	});
+
+	test('replaces a documented header however either of them is cased', function () {
+		// Header names are case-insensitive by RFC 9110, so a typed `accept` has to
+		// replace the one the explorer asks for rather than travel beside it.
+		$blueprint = (new RequestBlueprintFactory)->make(
+			endpoint: endpoint(parameters: [new Parameter(name: 'Authorization', in: ParameterLocation::Header)]),
+			server: 'https://api.bookshop.test/api',
+			headers: ['Authorization' => 'Bearer documented'],
+			extraHeaders: [
+				['name' => 'authorization', 'value' => 'Bearer typed'],
+				['name' => 'accept', 'value' => 'text/csv'],
+			],
+		);
+
+		expect($blueprint->headers)->toBe(['authorization' => 'Bearer typed', 'accept' => 'text/csv']);
 	});
 });
 
