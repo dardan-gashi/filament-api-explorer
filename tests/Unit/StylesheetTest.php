@@ -203,6 +203,16 @@ describe('Stylesheet - Selectors', function () {
 			->and(stylesheet())->toContain('container-type: inline-size');
 	});
 
+	test('gives the whole toolbar one control height', function () {
+		// A row of two heights reads as an accident. The height is Filament's own —
+		// 0.375rem over and under a 1.5rem line — and the order between the controls
+		// is carried by ring and width, not by size.
+		preg_match('/\\.fae-toolbar \\.fae-button,\\s*\\.fae-toolbar \\.fae-select \\{([^}]*)\\}/', stylesheet(), $rule);
+
+		expect($rule[1] ?? '')->toContain('padding-block: 0.375rem')
+			->and($rule[1] ?? '')->toContain('line-height: 1.5rem');
+	});
+
 	test('scrolls a long line sideways and keeps the numbers in place', function () {
 		// The gutter lives inside the scroll container, so without `sticky` the
 		// numbers travel left out of the picture at the moment a long line makes
