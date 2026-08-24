@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Carbon\CarbonImmutable;
 use DardanGashi\FilamentApiExplorer\Data\Endpoint;
+use DardanGashi\FilamentApiExplorer\Data\Parameter;
 use DardanGashi\FilamentApiExplorer\Enums\DocumentationGap;
 use DardanGashi\FilamentApiExplorer\Enums\HttpMethod;
 use DardanGashi\FilamentApiExplorer\Enums\ParameterLocation;
@@ -18,6 +19,35 @@ use DardanGashi\FilamentApiExplorer\Enums\ParameterLocation;
 // ------------------------------------------------------------
 
 describe('SpecParser - parseDocument', function () {
+
+	test('adds a parameter for a path placeholder the document never declares', function () {
+		// Without it the placeholder travels into the request as itself, the policy
+		// refuses the request, and there is no field to fill in.
+		$spec = parser()->parseDocument('v1', ['paths' => ['/v1/orders/{order}/lines/{line}' => ['get' => [
+			'parameters' => [['name' => 'order', 'in' => 'path', 'description' => 'The order.']],
+			'responses' => [],
+		]]]]);
+
+		$parameters = $spec->endpoints[0]->parametersIn(ParameterLocation::Path);
+
+		expect(array_map(fn (Parameter $parameter): string => $parameter->name, $parameters))
+			->toBe(['order', 'line'])
+			->and($parameters[1]->required)->toBeTrue()
+			->and($parameters[1]->inferred)->toBeTrue();
+	});
+
+	test('counts an undeclared path placeholder against the documentation', function () {
+		// The template is the document saying the parameter exists and then saying
+		// nothing about it, which is exactly what the parameter gap is for.
+		$spec = parser()->parseDocument('v1', ['paths' => ['/v1/orders/{order}' => ['get' => [
+			'summary' => 'Reads one order.',
+			'responses' => ['200' => ['description' => 'OK', 'content' => ['application/json' => [
+				'schema' => ['type' => 'object', 'properties' => ['id' => ['type' => 'string']]],
+			]]]],
+		]]]]);
+
+		expect($spec->endpoints[0]->gaps())->toContain(DocumentationGap::Parameters);
+	});
 
 	test('keys an endpoint by the operationId the document gives it', function () {
 		// Scramble writes the route name — `v1.orders.show` — and Stoplight, which

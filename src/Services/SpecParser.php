@@ -170,6 +170,8 @@ final class SpecParser
 			$references,
 		);
 
+		$parameters = [...$parameters, ...$this->undeclaredPathParameters($path, $parameters)];
+
 		return new Endpoint(
 			key: $key,
 			method: $method,
@@ -184,6 +186,47 @@ final class SpecParser
 			deprecated: Documents::isTrue($operation, 'deprecated'),
 			meta: $this->meta($operation),
 		);
+	}
+
+	/**
+	 * A parameter for every `{placeholder}` of the path the document does not
+	 * declare.
+	 *
+	 * The template is the proof that the parameter exists, and without an input
+	 * for it the placeholder travels into the request as itself — which the
+	 * policy then refuses, leaving an endpoint nobody can send and no field to
+	 * fill in. Whether the document should have declared it is a separate
+	 * question, and the coverage figure asks it.
+	 *
+	 * @param  list<Parameter>  $declared
+	 * @return list<Parameter>
+	 */
+	private function undeclaredPathParameters(string $path, array $declared): array
+	{
+		preg_match_all('/\{([^{}]+)\}/', $path, $matches);
+
+		$known = [];
+
+		foreach ($declared as $parameter) {
+			if ($parameter->in === ParameterLocation::Path) {
+				$known[] = $parameter->name;
+			}
+		}
+
+		$parameters = [];
+
+		foreach (array_unique($matches[1]) as $name) {
+			if (!in_array($name, $known, true)) {
+				$parameters[] = new Parameter(
+					name: $name,
+					in: ParameterLocation::Path,
+					required: true,
+					inferred: true,
+				);
+			}
+		}
+
+		return $parameters;
 	}
 
 	/**

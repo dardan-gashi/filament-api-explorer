@@ -237,14 +237,22 @@ final readonly class Endpoint
 	}
 
 	/**
-	 * Parameters the explorer inferred are skipped: an authentication header
-	 * read off a security scheme is not part of the document, so a missing
-	 * description on it says nothing about how well the API is documented.
+	 * An inferred parameter is skipped: an authentication header read off a
+	 * security scheme is not part of the document, so a missing description on
+	 * it says nothing about how well the API is documented.
+	 *
+	 * A path parameter is the exception. It is inferred from the path template,
+	 * which is the document declaring that the parameter exists — and then
+	 * saying nothing about it.
 	 */
 	private function hasUndescribedParameter(): bool
 	{
 		foreach ($this->parameters as $parameter) {
-			if (!$parameter->inferred && blank($parameter->description)) {
+			if ($parameter->inferred && $parameter->in !== ParameterLocation::Path) {
+				continue;
+			}
+
+			if (blank($parameter->description)) {
 				return true;
 			}
 		}
