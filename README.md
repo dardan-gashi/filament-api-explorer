@@ -40,7 +40,7 @@ Scramble is the one generator this package follows through their releases. It st
 
 - 🎹 **Command palette** - `⌘K` opens a two-level browser, resource then endpoint, driven by the arrow keys and searched in the browser rather than over the wire
 - 🌳 **Schemas as a tree** - request and response bodies with types, nullability and descriptions, and a field search that narrows them
-- 🧾 **JSON and XML** - a body is written, highlighted and indented in the format its media type declares, and a format nobody here can read is shown plainly rather than through another language's rules
+- 🧾 **JSON and XML** - a body is written, coloured and indented in the format its media type declares, and a live response in the format the server actually sent
 - 📋 **Five request samples** - `curl`, raw HTTP, PHP, JavaScript `fetch` and Python `requests`, highlighted on the server with no highlighter in the browser
 - 📡 **Live `GET` requests** - sent from inside the panel, behind a policy you configure: safe methods, your schemes, your hosts, no redirects, a timeout
 - 💾 **Real responses as examples** - what the API answers replaces the skeleton built from the schema, one sample per status
@@ -406,6 +406,51 @@ where that is not acceptable:
 An example the document declares itself is used when nothing has been recorded;
 a skeleton built from the schema comes last and arrives collapsed, labelled as
 the structure it is.
+
+## 🧾 JSON and XML
+
+A body is written, coloured and indented in the format its media type declares,
+so an endpoint that answers `application/xml` is not documented with a JSON
+payload.
+
+An example built from the schema of an XML body comes out as XML. A list repeats
+its element rather than wrapping it, which is what OpenAPI does unless a document
+says otherwise; an empty value is a closed element rather than nothing; and the
+root element takes its name from `xml.name`, else the schema's `title`, else
+`response`:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<BookResource>
+  <data>
+    <id>9b4e2c1f-3a7d-4f82-b5e0-1d6c8a9f2e34</id>
+    <title>WM01</title>
+    <art/>
+    <tags>neu</tags>
+    <tags>alt</tags>
+  </data>
+</BookResource>
+```
+
+An example the document declares itself is passed through untouched, whatever
+format it is in: it was written in that format on purpose, and re-encoding it
+would be this package overruling the document.
+
+A format neither of the two — `text/csv`, `text/plain`, anything else — is shown
+plainly rather than through another language's rules. JSON colours over CSV
+invent a structure that is not there, and a reader trusts colour. A vendor type
+counts by its suffix, so `application/vnd.api+json` is JSON and
+`application/atom+xml` is XML.
+
+**A live response is read as the type the server named**, not as the one the
+document promised. The `Content-Type` of the answer decides how it is indented
+and coloured, so a document that says XML while the endpoint still answers JSON
+shows an XML example beside a JSON response — which is the truth about both. XML
+that does not parse is shown exactly as it arrived, because a parser's complaint
+would hide the very thing you are looking at.
+
+One body still shows one media type; see [Not yet
+included](#-not-yet-included).
 
 ## 🏷️ Vendor extensions
 
