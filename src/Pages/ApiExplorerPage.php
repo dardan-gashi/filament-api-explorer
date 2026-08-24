@@ -678,10 +678,13 @@ class ApiExplorerPage extends Page
 	{
 		$sections = [];
 
+		// The credential comes first: it is the one input that decides whether the
+		// request is answered at all, and the one a reader fills before wondering
+		// what to put in a path segment.
 		foreach ([
+			[ParameterLocation::Header, 'headerValues'],
 			[ParameterLocation::Path, 'pathValues'],
 			[ParameterLocation::Query, 'queryValues'],
-			[ParameterLocation::Header, 'headerValues'],
 		] as [$location, $property]) {
 			$fields = [];
 

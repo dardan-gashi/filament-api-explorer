@@ -406,6 +406,16 @@ describe('ApiExplorerPage - Endpoint Selection', function () {
 			->assertSet('headerValues.'.InputKey::for('Authorization'), '');
 	});
 
+	test('asks for the credential before the path', function () {
+		// Whether the request is answered at all is decided by the token, so it is
+		// the first input rather than the one below whatever the path needs.
+		$sections = livewire(ApiExplorerPage::class)
+			->call('selectEndpoint', Endpoint::keyFor(HttpMethod::Get, '/vouchers/{code}'))
+			->viewData('senderSections');
+
+		expect(array_column($sections, 'label'))->toBe(['Request headers', 'Path parameters']);
+	});
+
 	test('carries a filled header to the next endpoint that asks for it', function () {
 		// A token is typed to try an API, not one endpoint of it. Retyping it per
 		// endpoint is the friction that ends with the token pasted somewhere it can
