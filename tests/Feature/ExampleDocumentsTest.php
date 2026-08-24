@@ -58,6 +58,18 @@ describe('Example Documents - Parsing', function () {
 			]);
 	});
 
+	test('keys every endpoint by the id its operation carries', function () {
+		// The address of an endpoint is what a link holds and what another tool
+		// reading the same document already uses.
+		$keys = array_map(
+			fn ($endpoint): string => $endpoint->key,
+			app(SpecRepository::class)->get('v2')->endpoints,
+		);
+
+		expect($keys)->toContain('v2.books.index', 'v2.books.show', 'v2.exports.orders-csv')
+			->and(array_filter($keys, fn (string $key): bool => str_starts_with($key, 'get-')))->toBe([]);
+	});
+
 	test('describes a previous major with nothing missing, so switching shows a difference', function () {
 		$spec = app(SpecRepository::class)->get('v1');
 
@@ -69,13 +81,13 @@ describe('Example Documents - Parsing', function () {
 	test('offers a body in two media types, and one in a format of its own', function () {
 		$spec = app(SpecRepository::class)->get('v2');
 
-		$books = $spec->find('get-v2-books');
-		$export = $spec->find('get-v2-exports-orders');
-		$csv = $spec->find('get-v2-exports-orders-csv');
+		$books = $spec->find('v2.books.index');
+		$export = $spec->find('v2.exports.orders');
+		$csv = $spec->find('v2.exports.orders-csv');
 
 		expect($books?->responses[0]->mediaTypes())->toBe(['application/json', 'application/xml'])
 			->and($books?->requestBody)->toBeNull()
-			->and($spec->find('post-v2-books')?->requestBody?->mediaTypes())
+			->and($spec->find('v2.books.store')?->requestBody?->mediaTypes())
 			->toBe(['application/json', 'application/xml'])
 			->and($export?->responses[0]->mediaType)->toBe('application/xml')
 			->and($csv?->responses[0]->mediaType)->toBe('text/csv');

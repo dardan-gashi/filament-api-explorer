@@ -39,12 +39,31 @@ final readonly class Endpoint
 	 * A stable identifier, safe to put in a URL query string. Every run of
 	 * punctuation becomes a single dash, so the separators of a path survive
 	 * into the key and `/a/bc` cannot collide with `/ab/c`.
+	 *
+	 * This is the fallback. An operation that names itself is addressed by that
+	 * name instead — see {@see keyForOperationId()}.
 	 */
 	public static function keyFor(HttpMethod $method, string $path): string
 	{
 		$slug = strtolower(trim((string) preg_replace('/[^A-Za-z0-9]+/', '-', $path), '-'));
 
 		return $method->value.'-'.$slug;
+	}
+
+	/**
+	 * The key of an operation that carries an `operationId`.
+	 *
+	 * An id is unique across a document by specification and reads as what it
+	 * names — `v1.orders.show` rather than `get-v1-orders-order` — so it is the
+	 * better address, and the one another tool reading the same document already
+	 * uses. Only the characters a query string carries unescaped survive; an id
+	 * that is nothing but punctuation is no key at all.
+	 */
+	public static function keyForOperationId(string $operationId): ?string
+	{
+		$slug = trim((string) preg_replace('/[^A-Za-z0-9._-]+/', '-', $operationId), '-._');
+
+		return $slug === '' ? null : $slug;
 	}
 
 	/**

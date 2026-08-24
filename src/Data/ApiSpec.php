@@ -51,6 +51,15 @@ final readonly class ApiSpec
 			}
 		}
 
+		// A link written before the document named its operations, or before it
+		// named this one: the address was the method and the path, which is still
+		// what an operation without an id is keyed by.
+		foreach ($this->endpoints as $endpoint) {
+			if (Endpoint::keyFor($endpoint->method, $endpoint->path) === $key) {
+				return $endpoint;
+			}
+		}
+
 		return null;
 	}
 

@@ -48,6 +48,7 @@
         "tags": [
           "Books"
         ],
+        "operationId": "v2.books.index",
         "summary": "Lists books.",
         "description": "Cursor-paginated, filtered by `q` and `status`, and sorted by `sort`. The catalogue is public data, so this is the endpoint to try first.",
         "x-handler": "BookController@index",
@@ -226,6 +227,7 @@
         "tags": [
           "Books"
         ],
+        "operationId": "v2.books.store",
         "summary": "Adds a book to the catalogue.",
         "description": "The author is created along with the book where the name is new.",
         "x-handler": "BookController@store",
@@ -329,6 +331,7 @@
         "tags": [
           "Books"
         ],
+        "operationId": "v2.books.show",
         "summary": "Reads one book.",
         "description": "Every edition of the title comes with it.",
         "x-handler": "BookController@show",
@@ -393,6 +396,7 @@
         "tags": [
           "Books"
         ],
+        "operationId": "v2.books.update",
         "summary": "Updates a book.",
         "description": "Superseded by `PUT /v1/books/{isbn}`, which replaces the whole record.",
         "deprecated": true,
@@ -483,6 +487,7 @@
         "tags": [
           "Books"
         ],
+        "operationId": "v2.books.destroy",
         "summary": "Removes a book from the catalogue.",
         "description": "The orders that reference it keep their own snapshot of the title.",
         "responses": {
@@ -503,6 +508,7 @@
         "tags": [
           "Orders"
         ],
+        "operationId": "v2.orders.index",
         "summary": "Lists orders.",
         "description": "Newest first, filtered by status and date.",
         "x-handler": "OrderController@index",
@@ -604,6 +610,7 @@
         "tags": [
           "Orders"
         ],
+        "operationId": "v2.orders.store",
         "summary": "Places an order.",
         "description": "Reserves stock for every line and charges the customer’s stored method.",
         "responses": {
@@ -675,6 +682,7 @@
         "tags": [
           "Orders"
         ],
+        "operationId": "v2.orders.show",
         "responses": {
           "200": {
             "description": "The order.",
@@ -734,6 +742,7 @@
         "tags": [
           "Customers"
         ],
+        "operationId": "v2.customers.index",
         "summary": "Lists customers.",
         "description": "Cursor-paginated, searchable by name and email.",
         "parameters": [
@@ -827,6 +836,7 @@
         "tags": [
           "Customers"
         ],
+        "operationId": "v2.customers.show",
         "summary": "Reads one customer.",
         "description": "Addresses come with it; orders do not.",
         "responses": {
@@ -868,6 +878,7 @@
         "tags": [
           "Exports"
         ],
+        "operationId": "v2.exports.orders",
         "summary": "Exports orders as XML.",
         "description": "The format the warehouse reads. Authenticated with an API key rather than a personal token, because it runs unattended.",
         "security": [
@@ -967,6 +978,7 @@
         "tags": [
           "Exports"
         ],
+        "operationId": "v2.exports.orders-csv",
         "summary": "Exports orders as CSV.",
         "description": "One row per order line, for a spreadsheet.",
         "security": [
@@ -997,6 +1009,7 @@
         "tags": [
           "System"
         ],
+        "operationId": "v2.health",
         "summary": "Reports whether the API is up.",
         "description": "The one endpoint that needs no credential.",
         "security": [],
@@ -1042,6 +1055,7 @@
         "tags": [
           "System"
         ],
+        "operationId": "v2.stock",
         "summary": "Reports stock levels per warehouse.",
         "description": "Answers a body this document does not describe — which is what the coverage figure is about.",
         "responses": {

@@ -48,7 +48,7 @@ Scramble is the one generator this package follows through their releases. It st
 - 🗂️ **Several documents at once** - a version picker, `file`, `array` and `scramble` drivers, and a hook for your own
 - 🏷️ **Vendor extensions** - any scalar `x-*` field on an operation becomes a caption under the endpoint title
 - 🎨 **Filament-native** - field metrics read off Filament's own input CSS, the panel's primary colour, dark mode, and the page width the panel hands out
-- 🔗 **Deep links** - the endpoint, the search term and the gap filter live in the query string, so a page travels to a colleague as it stands
+- 🔗 **Deep links** - the endpoint, the search term and the gap filter live in the query string, and an endpoint is addressed by its `operationId` — `?endpoint=v1.orders.show`, the same name every other reader of the document uses
 - 🌍 **English and German** ship with it, resolved through Laravel's locale and fallback
 
 ## 📸 Screenshots
@@ -284,6 +284,16 @@ it the window instead, and nothing else changes: the two columns are laid out
 from the room they are actually given — a container query, not the window size —
 so an open sidebar or a panel of its own width does not leave them squeezed at
 the moment a viewport breakpoint says there is space.
+
+## 🔗 The address of an endpoint
+
+An endpoint is addressed by its `operationId`, which Scramble writes from the
+route name — so the page for `GET /v1/orders/{order}` is at
+`?endpoint=v1.orders.show`, and a document read by another tool addresses the same
+operation the same way. An operation without an id falls back to its method and
+path (`?endpoint=get-v1-orders-order`), and so does the second of two operations
+claiming one id, since an address that answers twice answers for neither. A link
+carrying the old method-and-path form keeps working either way.
 
 ## 🌳 Schema depth
 

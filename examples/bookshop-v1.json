@@ -36,6 +36,7 @@
         "tags": [
           "Books"
         ],
+        "operationId": "v1.books.index",
         "summary": "Lists books.",
         "description": "Cursor-paginated, filtered by `q` and `status`, and sorted by `sort`. The catalogue is public data, so this is the endpoint to try first.",
         "x-handler": "BookController@index",
@@ -223,6 +224,7 @@
         "tags": [
           "Books"
         ],
+        "operationId": "v1.books.show",
         "summary": "Reads one book.",
         "description": "Every edition of the title comes with it.",
         "x-handler": "BookController@show",
@@ -289,6 +291,7 @@
         "tags": [
           "Orders"
         ],
+        "operationId": "v1.orders.index",
         "summary": "Lists orders.",
         "description": "Newest first, filtered by status and date.",
         "x-handler": "OrderController@index",
@@ -405,6 +408,7 @@
         "tags": [
           "Orders"
         ],
+        "operationId": "v1.orders.show",
         "responses": {
           "200": {
             "description": "The order.",
@@ -466,6 +470,7 @@
         "tags": [
           "System"
         ],
+        "operationId": "v1.health",
         "summary": "Reports whether the API is up.",
         "description": "The one endpoint that needs no credential.",
         "security": [],

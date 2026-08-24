@@ -19,6 +19,40 @@ use DardanGashi\FilamentApiExplorer\Enums\ParameterLocation;
 
 describe('SpecParser - parseDocument', function () {
 
+	test('keys an endpoint by the operationId the document gives it', function () {
+		// Scramble writes the route name — `v1.orders.show` — and Stoplight, which
+		// reads the same documents, addresses an operation by it too.
+		$spec = parser()->parseDocument('v1', ['paths' => [
+			'/v1/orders/{order}' => ['get' => ['operationId' => 'v1.orders.show', 'responses' => []]],
+			'/v1/orders' => ['get' => ['responses' => []]],
+		]]);
+
+		expect($spec->endpoints[0]->key)->toBe('v1.orders.show')
+			->and($spec->endpoints[1]->key)->toBe('get-v1-orders');
+	});
+
+	test('keeps only what a query string carries unescaped', function () {
+		$spec = parser()->parseDocument('v1', ['paths' => [
+			'/orders' => ['get' => ['operationId' => 'Orders index (v1)', 'responses' => []]],
+			'/books' => ['get' => ['operationId' => '///', 'responses' => []]],
+		]]);
+
+		expect($spec->endpoints[0]->key)->toBe('Orders-index-v1')
+			->and($spec->endpoints[1]->key)->toBe('get-books');
+	});
+
+	test('falls back where two operations claim one id', function () {
+		// Unique by specification, not by enforcement — and two endpoints on one
+		// address leave the second unreachable from a link.
+		$spec = parser()->parseDocument('v1', ['paths' => [
+			'/orders' => ['get' => ['operationId' => 'orders', 'responses' => []]],
+			'/orders/{order}' => ['get' => ['operationId' => 'orders', 'responses' => []]],
+		]]);
+
+		expect($spec->endpoints[0]->key)->toBe('orders')
+			->and($spec->endpoints[1]->key)->toBe('get-orders-order');
+	});
+
 	test('parses every media type a response is offered in', function () {
 		// The second entry is a body of its own: its own schema, its own example, and
 		// an example encoded the way that media type is written.

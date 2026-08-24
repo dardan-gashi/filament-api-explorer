@@ -112,6 +112,7 @@ final class SpecParser
 		$documentSecurity = $this->securityNames($document);
 
 		$endpoints = [];
+		$taken = [];
 
 		foreach (Documents::entries($paths) as [$path, $pathItem]) {
 			$operations = Documents::toMap($pathItem);
@@ -124,15 +125,20 @@ final class SpecParser
 					continue;
 				}
 
+				$definition = Documents::toMap($operation);
+
 				$endpoints[] = $this->endpoint(
+					key: $this->endpointKey($definition, $method, $path, $taken),
 					method: $method,
 					path: $path,
-					operation: Documents::toMap($operation),
+					operation: $definition,
 					sharedParameters: $sharedParameters,
 					documentSecurity: $documentSecurity,
 					schemes: $schemes,
 					references: $references,
 				);
+
+				$taken[] = $endpoints[count($endpoints) - 1]->key;
 			}
 		}
 
@@ -146,6 +152,7 @@ final class SpecParser
 	 * @param  array<string, mixed>  $schemes
 	 */
 	private function endpoint(
+		string $key,
 		HttpMethod $method,
 		string $path,
 		array $operation,
@@ -164,7 +171,7 @@ final class SpecParser
 		);
 
 		return new Endpoint(
-			key: Endpoint::keyFor($method, $path),
+			key: $key,
 			method: $method,
 			path: $path,
 			summary: Documents::string($operation, 'summary'),
@@ -177,6 +184,27 @@ final class SpecParser
 			deprecated: Documents::isTrue($operation, 'deprecated'),
 			meta: $this->meta($operation),
 		);
+	}
+
+	/**
+	 * The address of an endpoint: its `operationId` where the document gives one,
+	 * else its method and path.
+	 *
+	 * An id is unique by specification and not by enforcement, so a repeated one
+	 * falls back — two endpoints answering to one address would leave the second
+	 * unreachable from a link.
+	 *
+	 * @param  array<string, mixed>  $operation
+	 * @param  list<string>  $taken
+	 */
+	private function endpointKey(array $operation, HttpMethod $method, string $path, array $taken): string
+	{
+		$id = Documents::string($operation, 'operationId');
+		$key = $id === null ? null : Endpoint::keyForOperationId($id);
+
+		return $key === null || in_array($key, $taken, true)
+			? Endpoint::keyFor($method, $path)
+			: $key;
 	}
 
 	/**

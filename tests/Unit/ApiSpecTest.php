@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use DardanGashi\FilamentApiExplorer\Data\ApiSpec;
+use DardanGashi\FilamentApiExplorer\Data\Endpoint;
+use DardanGashi\FilamentApiExplorer\Enums\HttpMethod;
 
 // ----------------------------------------------------------------------------------
 // ApiSpec Test Suite
@@ -47,6 +49,18 @@ describe('ApiSpec - find', function () {
 		$subject = spec([endpoint(path: '/vouchers'), $wanted]);
 
 		expect($subject->find($wanted->key)?->path)->toBe('/courses');
+	});
+
+	test('finds an endpoint by the method and path a link used to carry', function () {
+		// The address of an endpoint became its operationId where the document gives
+		// one, and a link written before that must not break.
+		$subject = spec([new Endpoint(
+			key: 'v2.courses.index',
+			method: HttpMethod::Get,
+			path: '/courses',
+		)]);
+
+		expect($subject->find('get-courses')?->key)->toBe('v2.courses.index');
 	});
 
 	test('returns null for an unknown or blank key', function () {
