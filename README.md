@@ -101,8 +101,9 @@ php artisan vendor:publish --tag=filament-api-explorer-config
 Open the page from the panel navigation. It arrives on the first endpoint of the document, and from there:
 
 - ⌨️ **`⌘K`** (or `Ctrl+K`) opens the palette. Type to match a method, path, summary or resource, `↑`/`↓` to move, `↵` to select, `Esc` to close. `→` opens a resource and `←` leaves it again — while the search box is empty, so typing still moves the cursor.
+- 🏷️ **The toolbar says what you are reading**: the source picker (a key of `sources`), how many endpoints the document has, when it was last generated, the version the API calls itself — `info.version`, in an outlined badge — and the documented share. Two versions in one row are two different things: the source is your name for a document, the badge is the document's name for the API.
 - 📖 **The left column** is the documentation: parameters, request body, responses, and every schema as a tree you can search and collapse.
-- 🧪 **The right column** is the request: a sample in the language you pick, and the sender underneath it.
+- 🧪 **The right column** is the request: a sample in the language you pick, and the sender underneath it. The headers a response promises — `Location`, `X-RateLimit-Remaining` — are listed under the example they belong to.
 - 📨 **Fill in the path parameters and your credential, then Send.** The response arrives beside the documented one and stays as this endpoint's example. A credential you type follows you to the next endpoint that asks for the same header.
 - 🕳️ **`Gaps`** narrows the palette to the endpoints that are missing documentation, and the badge beside it is the documented share of the whole API.
 
@@ -165,6 +166,20 @@ reads JSON and YAML, so an l5-swagger or swagger-php setup is a path.
 ```php
 'sources' => [
     'v1' => ['driver' => 'file', 'path' => storage_path('api-docs/api-docs.json')],
+],
+```
+
+A document small enough to live in configuration needs no file at all — the
+`array` driver takes it inline, which is what a handful of hand-written endpoints
+and most tests want:
+
+```php
+'sources' => [
+    'internal' => ['driver' => 'array', 'document' => [
+        'openapi' => '3.1.0',
+        'info' => ['title' => 'Internal endpoints', 'version' => '1.0.0'],
+        'paths' => [/* … */],
+    ]],
 ],
 ```
 
@@ -270,6 +285,18 @@ from the room they are actually given — a container query, not the window size
 so an open sidebar or a panel of its own width does not leave them squeezed at
 the moment a viewport breakpoint says there is space.
 
+## 🌳 Schema depth
+
+A schema tree is expanded to `schema.max_depth` levels and stops there. Six is
+the default, and the reason it exists is recursion: a category with a parent that
+is a category describes an infinitely deep tree, and something has to decide when
+to stop drawing it. The limit applies to the examples too, since they are built
+from the same tree.
+
+```php
+'schema' => ['max_depth' => 6],
+```
+
 ## 🕳️ Documentation gaps
 
 Coverage here is not "does the endpoint appear in the document" — every route
@@ -373,6 +400,10 @@ which `Highlighter` turns into the same colours every other language uses. See
 
 ## 📡 Sending requests
 
+Where the document lists more than one server, the sender opens with a picker for
+them and every sample follows the choice, so a request is copied against the host
+you were reading it for.
+
 The request panel prefills each documented query parameter with its example,
 default or first allowed value. Header inputs stay empty on purpose: a documented
 header example is a placeholder, not a credential, so nothing is sent until you
@@ -395,6 +426,11 @@ Sending runs server-side, and it is restricted on purpose:
 - credentials never reach the code samples: a header that carries one is rendered
   as the placeholder of its language — `$TOKEN`, `{{token}}`, `$token`,
   `${token}`, `f'…{token}'` — in the sample you copy
+- an `Accept` header is always sent, and the sample carries the same one: the
+  media type the endpoint documents, else `application/json`. Without it a Laravel
+  API answers an unauthenticated request with a redirect to a login page rather
+  than a `401`, and where no such page exists it fails while building the redirect
+  and answers `500`. A document that declares its own `Accept` keeps it
 
 ```php
 'execution' => [
