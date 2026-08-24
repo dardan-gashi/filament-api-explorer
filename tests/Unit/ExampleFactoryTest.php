@@ -76,6 +76,38 @@ describe('ExampleFactory - forMediaType', function () {
 			->and($example)->not->toContain('"string"');
 	});
 
+	test('writes the example in the format the media type was declared under', function () {
+		$example = (new ExampleFactory)->forMediaType([
+			'schema' => [
+				'title' => 'Thing',
+				'type' => 'object',
+				'properties' => [
+					'sku' => ['type' => 'string', 'examples' => ['1005444106']],
+					'tags' => ['type' => 'array', 'items' => ['type' => 'string', 'examples' => ['neu']]],
+				],
+			],
+		], references(), 'application/xml');
+
+		expect($example)->toBe(implode("\n", [
+			'<?xml version="1.0" encoding="UTF-8"?>',
+			'<Thing>',
+			'  <sku>1005444106</sku>',
+			'  <tags>neu</tags>',
+			'</Thing>',
+		]));
+	});
+
+	test('leaves an example the document wrote itself alone', function () {
+		// A document that declares its own example wrote it in its own format, and
+		// re-encoding it would be us overruling the document.
+		$example = (new ExampleFactory)->forMediaType([
+			'schema' => ['type' => 'object'],
+			'example' => '<Thing><sku>1005444106</sku></Thing>',
+		], references(), 'application/xml');
+
+		expect($example)->toBe('<Thing><sku>1005444106</sku></Thing>');
+	});
+
 	test('returns null for a media type with no schema and no example', function () {
 		expect((new ExampleFactory)->forMediaType([], references()))->toBeNull();
 	});

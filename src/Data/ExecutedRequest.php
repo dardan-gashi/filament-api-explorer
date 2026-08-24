@@ -6,6 +6,9 @@ namespace DardanGashi\FilamentApiExplorer\Data;
 
 use DardanGashi\FilamentApiExplorer\Support\Documents;
 use DardanGashi\FilamentApiExplorer\Support\HttpStatus;
+use DardanGashi\FilamentApiExplorer\Support\MediaType;
+use DardanGashi\FilamentApiExplorer\Support\Xml;
+use Illuminate\Support\Str;
 use Livewire\Wireable;
 
 /**
@@ -79,10 +82,29 @@ final readonly class ExecutedRequest implements Wireable
 	/**
 	 * The body indented when it is JSON, and untouched otherwise.
 	 */
+	/**
+	 * What the server said it sent, without the charset it may have appended.
+	 * The response decides how it is read, not what the document promised.
+	 */
+	public function contentType(): ?string
+	{
+		foreach ($this->headers as $name => $value) {
+			if (strcasecmp($name, 'Content-Type') === 0) {
+				return trim(Str::before($value, ';'));
+			}
+		}
+
+		return null;
+	}
+
 	public function prettyBody(): string
 	{
 		if ($this->body === '') {
 			return '';
+		}
+
+		if (MediaType::isXml($this->contentType())) {
+			return Xml::format($this->body) ?? $this->body;
 		}
 
 		try {

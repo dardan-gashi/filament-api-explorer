@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use DardanGashi\FilamentApiExplorer\Enums\SnippetLanguage;
+use DardanGashi\FilamentApiExplorer\Highlighting\BodyHighlighter;
 use DardanGashi\FilamentApiExplorer\Highlighting\Highlighter;
 use DardanGashi\FilamentApiExplorer\Highlighting\HttpHighlighter;
 use DardanGashi\FilamentApiExplorer\Highlighting\JavaScriptHighlighter;
@@ -11,13 +12,15 @@ use DardanGashi\FilamentApiExplorer\Highlighting\PhpHighlighter;
 use DardanGashi\FilamentApiExplorer\Highlighting\PythonHighlighter;
 use DardanGashi\FilamentApiExplorer\Highlighting\ShellHighlighter;
 use DardanGashi\FilamentApiExplorer\Highlighting\SnippetHighlighter;
+use DardanGashi\FilamentApiExplorer\Highlighting\XmlHighlighter;
 
 // ----------------------------------------------------------------------------------
 // Highlighter Test Suite
 // Sections: Highlighter::markUp, Highlighter::lines, JsonHighlighter::highlight,
 //           ShellHighlighter::highlight, HttpHighlighter::highlight,
 //           PhpHighlighter::highlight, JavaScriptHighlighter::highlight,
-//           PythonHighlighter::highlight, SnippetHighlighter::highlight
+//           PythonHighlighter::highlight, XmlHighlighter::highlight,
+//           SnippetHighlighter::highlight, BodyHighlighter::highlight
 // ----------------------------------------------------------------------------------
 
 // ------------------------------------------------------------
@@ -314,6 +317,73 @@ describe('PythonHighlighter - highlight', function () {
 	test('marks up a comment', function () {
 		expect(PythonHighlighter::highlight('# the token is yours'))
 			->toContain('<span class="fae-code-comment"># the token is yours</span>');
+	});
+});
+
+// ------------------------------------------------------------
+// XmlHighlighter - highlight
+// ------------------------------------------------------------
+
+describe('XmlHighlighter - highlight', function () {
+
+	test('colours a tag, and the attribute inside it', function () {
+		$html = XmlHighlighter::highlight('<person id="7">Fit</person>');
+
+		expect($html)->toContain('<span class="fae-code-keyword">&lt;person ')
+			->toContain('<span class="fae-code-property">id</span>')
+			->toContain('<span class="fae-code-string">&quot;7&quot;</span>')
+			->toContain('<span class="fae-code-keyword">&lt;/person&gt;</span>')
+			// Text between the tags is the document's, and stays the body colour.
+			->toContain('>Fit<');
+	});
+
+	test('marks a comment as one, across the lines it spans', function () {
+		expect(XmlHighlighter::highlight('<!-- a note
+over two lines -->'))
+			->toStartWith('<span class="fae-code-comment">&lt;!-- a note')
+			->toEndWith('over two lines --&gt;</span>');
+	});
+
+	test('escapes the declaration instead of reading it as a tag to close', function () {
+		expect(XmlHighlighter::highlight('<?xml version="1.0"?>'))
+			->toContain('&lt;?xml')
+			->toContain('<span class="fae-code-string">&quot;1.0&quot;</span>');
+	});
+});
+
+// ------------------------------------------------------------
+// BodyHighlighter - highlight
+// ------------------------------------------------------------
+
+describe('BodyHighlighter - highlight', function () {
+
+	test('reads a body as the media type it was declared under', function () {
+		expect(BodyHighlighter::highlight('<a>1</a>', 'application/xml'))
+			->toContain('fae-code-keyword')
+			->and(BodyHighlighter::highlight('{"a": 1}', 'application/json'))
+			->toContain('fae-code-property');
+	});
+
+	test('treats a vendor type by its suffix', function () {
+		// `application/vnd.api+json` is JSON, and a type is not an unknown format
+		// merely for having a name of its own.
+		expect(BodyHighlighter::highlight('{"a": 1}', 'application/vnd.api+json'))
+			->toContain('fae-code-property')
+			->and(BodyHighlighter::highlight('<a/>', 'application/atom+xml'))
+			->toContain('fae-code-keyword');
+	});
+
+	test('shows a format it cannot read plainly rather than through other rules', function () {
+		// JSON colours over CSV invent a structure that is not there, and a reader
+		// trusts colour.
+		$html = BodyHighlighter::highlight('code,name'."\n".'1,"a"', 'text/csv');
+
+		expect($html)->not->toContain('fae-code-')
+			->and($html)->toContain('&quot;a&quot;');
+	});
+
+	test('falls back to JSON when nothing said what the body is', function () {
+		expect(BodyHighlighter::highlight('{"a": 1}'))->toContain('fae-code-property');
 	});
 });
 

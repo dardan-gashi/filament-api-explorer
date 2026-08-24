@@ -629,6 +629,34 @@ describe('ApiExplorerPage - Examples', function () {
 		expect($page->call('send')->html())->toContain('Real response');
 	});
 
+	test('renders an xml body as xml, all the way to the page', function () {
+		// The wiring is the point: a body declared as XML has to reach the XML
+		// highlighter, not the JSON one that happens to be the default.
+		config()->set('filament-api-explorer.sources', ['v1' => ['driver' => 'array', 'document' => [
+			'openapi' => '3.1.0',
+			'info' => ['title' => 'xml api'],
+			'paths' => ['/things' => ['get' => [
+				'summary' => 'Lists things.',
+				'responses' => ['200' => [
+					'description' => 'OK',
+					'content' => ['application/xml' => ['schema' => [
+						'title' => 'Thing',
+						'type' => 'object',
+						'properties' => ['sku' => ['type' => 'string', 'examples' => ['1005444106']]],
+					]]],
+				]],
+			]]],
+		]]]);
+
+		$html = livewire(ApiExplorerPage::class)->assertSee('application/xml')->html();
+
+		// The element name carries the keyword colour; the JSON highlighter would
+		// have made a property of it, or nothing at all.
+		expect($html)->toContain('<span class="fae-code-keyword">&lt;sku&gt;</span>')
+			->and($html)->toContain('<span class="fae-code-keyword">&lt;Thing&gt;</span>')
+			->and($html)->toContain('1005444106');
+	});
+
 	test('scrolls a payload in itself rather than moving the page', function () {
 		// Both bodies: the example rendered on arrival and the live response next to
 		// it. A payload without a scroll of its own takes the sender off the screen.

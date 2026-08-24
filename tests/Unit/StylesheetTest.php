@@ -8,6 +8,7 @@ use DardanGashi\FilamentApiExplorer\Highlighting\JsonHighlighter;
 use DardanGashi\FilamentApiExplorer\Highlighting\PhpHighlighter;
 use DardanGashi\FilamentApiExplorer\Highlighting\PythonHighlighter;
 use DardanGashi\FilamentApiExplorer\Highlighting\ShellHighlighter;
+use DardanGashi\FilamentApiExplorer\Highlighting\XmlHighlighter;
 use Illuminate\Support\Facades\File;
 use Symfony\Component\Finder\SplFileInfo;
 
@@ -81,6 +82,7 @@ function tokenClassesEmitted(): array
 		JavaScriptHighlighter::highlight('const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })'),
 		HttpHighlighter::highlight("GET /api/v1/orders HTTP/1.1\nAuthorization: Bearer {{token}}"),
 		PythonHighlighter::highlight("# the token is yours\nimport requests\n\nrequests.get('https://example.test', headers={'Authorization': f'Bearer {token}'})"),
+		XmlHighlighter::highlight('<!-- a note --><person id="7">Fit</person>'),
 	];
 
 	preg_match_all('/class="(fae-code-[a-z-]+)"/', implode('', $samples), $matches);

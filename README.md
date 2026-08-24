@@ -40,6 +40,7 @@ Scramble is the one generator this package follows through their releases. It st
 
 - 🎹 **Command palette** - `⌘K` opens a two-level browser, resource then endpoint, driven by the arrow keys and searched in the browser rather than over the wire
 - 🌳 **Schemas as a tree** - request and response bodies with types, nullability and descriptions, and a field search that narrows them
+- 🧾 **JSON and XML** - a body is written, highlighted and indented in the format its media type declares, and a format nobody here can read is shown plainly rather than through another language's rules
 - 📋 **Five request samples** - `curl`, raw HTTP, PHP, JavaScript `fetch` and Python `requests`, highlighted on the server with no highlighter in the browser
 - 📡 **Live `GET` requests** - sent from inside the panel, behind a policy you configure: safe methods, your schemes, your hosts, no redirects, a timeout
 - 💾 **Real responses as examples** - what the API answers replaces the skeleton built from the schema, one sample per status
@@ -434,6 +435,9 @@ picked up without anybody clearing a cache:
 
 ## 🚧 Not yet included
 
+- **One media type per body.** A response offered as both JSON and XML is shown
+  as JSON — the schema is almost always the same one, but the second entry is
+  not rendered and gets no picker of its own.
 - **Cookies** are documented but get no input in the request panel.
 - **Sending a body.** A request body is documented and rendered for every
   method, but only safe methods are ever sent, so there is nothing to fill in.

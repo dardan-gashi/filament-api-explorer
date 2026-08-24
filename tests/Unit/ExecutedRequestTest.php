@@ -6,7 +6,8 @@ use DardanGashi\FilamentApiExplorer\Data\ExecutedRequest;
 
 // ----------------------------------------------------------------------------------
 // ExecutedRequest Test Suite
-// Sections: failed, isSuccessful, color, prettyBody, toLivewire, fromLivewire
+// Sections: failed, isSuccessful, color, contentType, prettyBody, toLivewire,
+//           fromLivewire
 // ----------------------------------------------------------------------------------
 
 // ------------------------------------------------------------
@@ -61,6 +62,33 @@ describe('ExecutedRequest - color', function () {
 // ExecutedRequest - prettyBody
 // ------------------------------------------------------------
 
+describe('ExecutedRequest - contentType', function () {
+
+	test('reads the type the server sent, without its charset', function () {
+		$result = new ExecutedRequest(
+			status: 200,
+			headers: ['Content-Type' => 'application/xml; charset=UTF-8'],
+		);
+
+		expect($result->contentType())->toBe('application/xml');
+	});
+
+	test('finds the header whatever case it arrived in', function () {
+		// A header name is case-insensitive on the wire, and clients differ.
+		$result = new ExecutedRequest(status: 200, headers: ['content-type' => 'application/json']);
+
+		expect($result->contentType())->toBe('application/json');
+	});
+
+	test('says nothing when the response did not', function () {
+		expect((new ExecutedRequest(status: 204))->contentType())->toBeNull();
+	});
+});
+
+// ------------------------------------------------------------
+// ExecutedRequest - prettyBody
+// ------------------------------------------------------------
+
 describe('ExecutedRequest - prettyBody', function () {
 
 	test('indents a json body', function () {
@@ -75,6 +103,33 @@ describe('ExecutedRequest - prettyBody', function () {
 
 	test('leaves a body that is not json untouched', function () {
 		expect((new ExecutedRequest(status: 200, body: 'plain text'))->prettyBody())->toBe('plain text');
+	});
+
+	test('indents an xml body the response declared as one', function () {
+		$result = new ExecutedRequest(
+			status: 200,
+			body: '<Thing><sku>1005444106</sku><art/></Thing>',
+			headers: ['Content-Type' => 'application/xml'],
+		);
+
+		expect($result->prettyBody())->toContain(implode("\n", [
+			'<Thing>',
+			'  <sku>1005444106</sku>',
+			'  <art/>',
+			'</Thing>',
+		]));
+	});
+
+	test('shows xml that does not parse exactly as it arrived', function () {
+		// A malformed body is the interesting one: a parser's complaint would hide
+		// the very thing the reader is looking at.
+		$result = new ExecutedRequest(
+			status: 500,
+			body: '<Thing><sku>1005',
+			headers: ['Content-Type' => 'application/xml'],
+		);
+
+		expect($result->prettyBody())->toBe('<Thing><sku>1005');
 	});
 
 	test('leaves an empty body empty', function () {

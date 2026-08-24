@@ -340,7 +340,7 @@ final class SpecParser
 				schemaName: $schemaName,
 				fields: $schema === [] ? [] : $this->fields->rootFields($schema, $references),
 				headers: $this->responseHeaders(Documents::map($response, 'headers'), $references),
-				example: $content === [] ? null : $this->examples->forMediaType($content, $references),
+				example: $content === [] ? null : $this->examples->forMediaType($content, $references, $mediaType),
 				exampleSynthesised: $content !== [] && !$this->examples->hasDocumentedExample($content, $references),
 			);
 		}
@@ -371,7 +371,7 @@ final class SpecParser
 			fields: $schema === [] ? [] : $this->fields->rootFields($schema, $references),
 			required: Documents::isTrue($body, 'required'),
 			description: Documents::string($body, 'description'),
-			example: $content === [] ? null : $this->examples->forMediaType($content, $references),
+			example: $content === [] ? null : $this->examples->forMediaType($content, $references, $mediaType),
 			exampleSynthesised: $content !== [] && !$this->examples->hasDocumentedExample($content, $references),
 		);
 	}

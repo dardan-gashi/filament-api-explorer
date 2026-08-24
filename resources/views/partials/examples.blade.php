@@ -54,7 +54,7 @@
 
 		<div x-show="open">
 			@include('filament-api-explorer::partials.code', [
-				'html' => \DardanGashi\FilamentApiExplorer\Highlighting\JsonHighlighter::highlight($section['body']),
+				'html' => \DardanGashi\FilamentApiExplorer\Highlighting\BodyHighlighter::highlight($section['body'], $section['mediaType']),
 				'class' => 'fae-response-body',
 			])
 		</div>

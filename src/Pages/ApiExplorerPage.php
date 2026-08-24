@@ -475,7 +475,7 @@ class ApiExplorerPage extends Page
 	 * having as a shape reference and worth nothing as an example, so it arrives
 	 * collapsed.
 	 *
-	 * @return list<array{key: string, status: string|null, color: string, origin: string, body: string, captured: bool, collapsed: bool, headers: list<Parameter>}>
+	 * @return list<array{key: string, status: string|null, color: string, origin: string, body: string, mediaType: string|null, captured: bool, collapsed: bool, headers: list<Parameter>}>
 	 */
 	private function exampleSections(Endpoint $endpoint): array
 	{
@@ -495,6 +495,7 @@ class ApiExplorerPage extends Page
 				'color' => 'gray',
 				'origin' => (string) __('filament-api-explorer::explorer.examples.request'),
 				'body' => $body->example,
+				'mediaType' => $body->mediaType,
 				'captured' => false,
 				'collapsed' => $body->exampleSynthesised,
 				'headers' => [],
@@ -513,6 +514,7 @@ class ApiExplorerPage extends Page
 						'time' => $sample->capturedAt->diffForHumans(),
 					]),
 					'body' => $sample->body,
+					'mediaType' => $response->mediaType,
 					'captured' => true,
 					'collapsed' => false,
 					'headers' => $response->headers,
@@ -533,6 +535,7 @@ class ApiExplorerPage extends Page
 					? 'filament-api-explorer::explorer.examples.synthesised'
 					: 'filament-api-explorer::explorer.examples.documented'),
 				'body' => $response->example,
+				'mediaType' => $response->mediaType,
 				'captured' => false,
 				'collapsed' => $response->exampleSynthesised,
 				'headers' => $response->headers,

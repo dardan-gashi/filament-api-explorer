@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace DardanGashi\FilamentApiExplorer\Services;
 
 use DardanGashi\FilamentApiExplorer\Support\Documents;
+use DardanGashi\FilamentApiExplorer\Support\MediaType;
 use DardanGashi\FilamentApiExplorer\Support\ReferenceResolver;
+use DardanGashi\FilamentApiExplorer\Support\Xml;
 
 /**
  * Builds the example payload shown beside a response.
@@ -30,20 +32,22 @@ final class ExampleFactory
 	public function __construct(private readonly int $maxDepth = 6) {}
 
 	/**
-	 * The example for one media type entry of a request or response body.
+	 * The example for one media type entry of a request or password body, written
+	 * in the format that media type was declared under.
 	 *
 	 * @param  array<string, mixed>  $mediaType
+	 * @param  string|null  $name  The media type itself, e.g. `application/xml`.
 	 */
-	public function forMediaType(array $mediaType, ReferenceResolver $references): ?string
+	public function forMediaType(array $mediaType, ReferenceResolver $references, ?string $name = null): ?string
 	{
 		if (array_key_exists('example', $mediaType)) {
-			return $this->encode($mediaType['example']);
+			return $this->encode($mediaType['example'], $name);
 		}
 
 		$first = Documents::first(Documents::map($mediaType, 'examples'));
 
 		if (is_array($first) && array_key_exists('value', $first)) {
-			return $this->encode($first['value']);
+			return $this->encode($first['value'], $name);
 		}
 
 		$schema = Documents::map($mediaType, 'schema');
@@ -52,7 +56,11 @@ final class ExampleFactory
 			return null;
 		}
 
-		return $this->encode($this->forSchema($schema, $references));
+		return $this->encode(
+			$this->forSchema($schema, $references),
+			$name,
+			$references->resolve($schema),
+		);
 	}
 
 	/**
@@ -235,13 +243,36 @@ final class ExampleFactory
 		return 'string';
 	}
 
-	private function encode(mixed $value): string
+	/**
+	 * @param  array<string, mixed>  $schema  The schema behind the value, read for
+	 *                                        the name its root element should take.
+	 */
+	private function encode(mixed $value, ?string $mediaType = null, array $schema = []): string
 	{
+		// A document that wrote its own example wrote it in its own format, and
+		// re-encoding it would be us overruling the document.
 		if (is_string($value)) {
 			return $value;
 		}
 
+		if (MediaType::isXml($mediaType)) {
+			return Xml::encode($value, $this->rootName($schema));
+		}
+
 		return json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
 			?: '';
+	}
+
+	/**
+	 * What the root element is called: what the document says under `xml`, else
+	 * the schema's own title, else a word that says what it is.
+	 *
+	 * @param  array<string, mixed>  $schema
+	 */
+	private function rootName(array $schema): string
+	{
+		return Documents::string(Documents::map($schema, 'xml'), 'name')
+			?? Documents::string($schema, 'title')
+			?? 'response';
 	}
 }

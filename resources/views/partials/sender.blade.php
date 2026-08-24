@@ -111,7 +111,7 @@
 			@endforeach
 
 			@include('filament-api-explorer::partials.code', [
-				'html' => \DardanGashi\FilamentApiExplorer\Highlighting\JsonHighlighter::highlight($result->prettyBody()),
+				'html' => \DardanGashi\FilamentApiExplorer\Highlighting\BodyHighlighter::highlight($result->prettyBody(), $result->contentType()),
 				'class' => 'fae-response-body',
 			])
 		@endif
