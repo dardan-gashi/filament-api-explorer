@@ -56,13 +56,18 @@ final class ExampleFactory
 	}
 
 	/**
-	 * Whether the document declares an example itself, as opposed to leaving the
-	 * factory to build one from the schema. A synthesised example describes a
-	 * shape and nothing more, so the page says which kind it is showing.
+	 * Whether the values in the example came out of the document, as opposed to
+	 * being invented to satisfy a type. The page says which of the two it is
+	 * showing, and "no real values" beside real values is the worse of the two
+	 * mistakes it can make.
+	 *
+	 * A media type can declare the whole payload, and a schema can carry the
+	 * values leaf by leaf — the shape is ours in that case, but every value in it
+	 * is the document's, which is not a made-up example.
 	 *
 	 * @param  array<string, mixed>  $mediaType
 	 */
-	public function hasDocumentedExample(array $mediaType): bool
+	public function hasDocumentedExample(array $mediaType, ReferenceResolver $references): bool
 	{
 		if (array_key_exists('example', $mediaType)) {
 			return true;
@@ -70,7 +75,43 @@ final class ExampleFactory
 
 		$first = Documents::first(Documents::map($mediaType, 'examples'));
 
-		return is_array($first) && array_key_exists('value', $first);
+		if (is_array($first) && array_key_exists('value', $first)) {
+			return true;
+		}
+
+		return $this->schemaSuppliesValues(Documents::map($mediaType, 'schema'), $references);
+	}
+
+	/**
+	 * @param  array<string, mixed>  $schema
+	 */
+	private function schemaSuppliesValues(array $schema, ReferenceResolver $references, int $depth = 1): bool
+	{
+		if ($schema === [] || $depth > $this->maxDepth) {
+			return false;
+		}
+
+		$schema = $references->resolve($schema);
+
+		if (array_key_exists('example', $schema) || Documents::listFirst($schema, 'examples') !== null) {
+			return true;
+		}
+
+		foreach (['allOf', 'oneOf', 'anyOf'] as $keyword) {
+			foreach (Documents::list($schema, $keyword) as $branch) {
+				if ($this->schemaSuppliesValues(Documents::toMap($branch), $references, $depth + 1)) {
+					return true;
+				}
+			}
+		}
+
+		foreach (Documents::map($schema, 'properties') as $property) {
+			if ($this->schemaSuppliesValues(Documents::toMap($property), $references, $depth + 1)) {
+				return true;
+			}
+		}
+
+		return $this->schemaSuppliesValues(Documents::map($schema, 'items'), $references, $depth + 1);
 	}
 
 	/**
@@ -92,6 +133,12 @@ final class ExampleFactory
 
 		if (array_key_exists('example', $schema)) {
 			return $schema['example'];
+		}
+
+		$documented = Documents::listFirst($schema, 'examples');
+
+		if ($documented !== null) {
+			return $documented;
 		}
 
 		if (array_key_exists('default', $schema)) {

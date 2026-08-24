@@ -6,7 +6,7 @@ use DardanGashi\FilamentApiExplorer\Services\ExampleFactory;
 
 // ----------------------------------------------------------------------------------
 // ExampleFactory Test Suite
-// Sections: forMediaType, forSchema
+// Sections: forMediaType, forSchema, hasDocumentedExample
 // ----------------------------------------------------------------------------------
 
 // ------------------------------------------------------------
@@ -57,8 +57,75 @@ describe('ExampleFactory - forMediaType', function () {
 			->and($example)->toContain('"active": true');
 	});
 
+	test('takes the values a 3.1 schema carries leaf by leaf', function () {
+		// OpenAPI 3.1 replaced a schema's `example` with an `examples` array, and a
+		// generator that writes 3.1 puts its values there. Reading only the older
+		// spelling is how a document full of real values renders as "string".
+		$example = (new ExampleFactory)->forMediaType([
+			'schema' => [
+				'type' => 'object',
+				'properties' => [
+					'sku' => ['type' => 'string', 'examples' => ['1005444106']],
+					'price' => ['type' => 'integer', 'examples' => [199]],
+				],
+			],
+		], references());
+
+		expect($example)->toContain('"sku": "1005444106"')
+			->and($example)->toContain('"price": 199')
+			->and($example)->not->toContain('"string"');
+	});
+
 	test('returns null for a media type with no schema and no example', function () {
 		expect((new ExampleFactory)->forMediaType([], references()))->toBeNull();
+	});
+});
+
+// ------------------------------------------------------------
+// ExampleFactory - hasDocumentedExample
+// ------------------------------------------------------------
+
+describe('ExampleFactory - hasDocumentedExample', function () {
+
+	test('counts values the schema carries as the document\'s own', function () {
+		// The shape is ours, every value in it is the document's — and the page
+		// labels this as an example from the specification, because "no real
+		// values" printed beside real values is the worse of the two mistakes.
+		$documented = (new ExampleFactory)->hasDocumentedExample([
+			'schema' => [
+				'type' => 'object',
+				'properties' => ['sku' => ['type' => 'string', 'examples' => ['1005444106']]],
+			],
+		], references());
+
+		expect($documented)->toBeTrue();
+	});
+
+	test('reaches a value nested behind a property, an array and a branch', function () {
+		$documented = (new ExampleFactory)->hasDocumentedExample([
+			'schema' => [
+				'type' => 'object',
+				'properties' => [
+					'data' => [
+						'type' => 'array',
+						'items' => ['allOf' => [['type' => 'string', 'examples' => ['WM01']]]],
+					],
+				],
+			],
+		], references());
+
+		expect($documented)->toBeTrue();
+	});
+
+	test('says no when every value would have to be invented', function () {
+		$documented = (new ExampleFactory)->hasDocumentedExample([
+			'schema' => [
+				'type' => 'object',
+				'properties' => ['sku' => ['type' => 'string'], 'price' => ['type' => 'integer']],
+			],
+		], references());
+
+		expect($documented)->toBeFalse();
 	});
 });
 

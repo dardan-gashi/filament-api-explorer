@@ -165,6 +165,32 @@ describe('SpecParser - parseDocument', function () {
 			->and($path?->example)->toBe('SUMMER10');
 	});
 
+	test('prefills a parameter from the 3.1 spelling of its example', function () {
+		// Scramble writes 3.1: a parameter's example lives in an `examples` array,
+		// not in `example`, and the sender's input stays empty when only the older
+		// spelling is read.
+		$document = [
+			'openapi' => '3.1.0',
+			'paths' => [
+				'/things' => [
+					'get' => [
+						'parameters' => [[
+							'name' => 'sku',
+							'in' => 'query',
+							'schema' => ['type' => 'string', 'examples' => ['1005444106']],
+						]],
+					],
+				],
+			],
+		];
+
+		$parameter = parser()->parseDocument('v2', $document)
+			->find(Endpoint::keyFor(HttpMethod::Get, '/things'))
+			?->parametersIn(ParameterLocation::Query)[0];
+
+		expect($parameter?->example)->toBe('1005444106');
+	});
+
 	test('reads the type, default and allowed values of a query parameter', function () {
 		$parameters = parser()->parseDocument('v2', fixtureDocument())
 			->find(Endpoint::keyFor(HttpMethod::Get, '/vouchers'))

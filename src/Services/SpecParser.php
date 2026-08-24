@@ -244,7 +244,7 @@ final class SpecParser
 				enum: $field->enum,
 				default: Documents::scalar($schema, 'default'),
 				deprecated: Documents::isTrue($parameter, 'deprecated') || $field->deprecated,
-				example: Documents::scalar($parameter, 'example') ?? Documents::scalar($schema, 'example'),
+				example: self::exampleValue($parameter) ?? self::exampleValue($schema),
 			);
 		}
 
@@ -341,7 +341,7 @@ final class SpecParser
 				fields: $schema === [] ? [] : $this->fields->rootFields($schema, $references),
 				headers: $this->responseHeaders(Documents::map($response, 'headers'), $references),
 				example: $content === [] ? null : $this->examples->forMediaType($content, $references),
-				exampleSynthesised: $content !== [] && !$this->examples->hasDocumentedExample($content),
+				exampleSynthesised: $content !== [] && !$this->examples->hasDocumentedExample($content, $references),
 			);
 		}
 
@@ -372,7 +372,7 @@ final class SpecParser
 			required: Documents::isTrue($body, 'required'),
 			description: Documents::string($body, 'description'),
 			example: $content === [] ? null : $this->examples->forMediaType($content, $references),
-			exampleSynthesised: $content !== [] && !$this->examples->hasDocumentedExample($content),
+			exampleSynthesised: $content !== [] && !$this->examples->hasDocumentedExample($content, $references),
 		);
 	}
 
@@ -401,6 +401,26 @@ final class SpecParser
 		}
 
 		return $labels;
+	}
+
+	/**
+	 * The example a parameter or header declares, in either spelling: `example`
+	 * where the document is 3.0, the first entry of `examples` where it is 3.1.
+	 * Only a scalar is taken — an input holds one value.
+	 *
+	 * @param  array<string, mixed>  $source
+	 */
+	private static function exampleValue(array $source): string|int|float|bool|null
+	{
+		$scalar = Documents::scalar($source, 'example');
+
+		if ($scalar !== null) {
+			return $scalar;
+		}
+
+		$first = Documents::listFirst($source, 'examples');
+
+		return is_scalar($first) ? $first : null;
 	}
 
 	/**
@@ -448,7 +468,7 @@ final class SpecParser
 				description: Documents::string($header, 'description') ?? $field->description,
 				enum: $field->enum,
 				deprecated: Documents::isTrue($header, 'deprecated'),
-				example: Documents::scalar($header, 'example') ?? Documents::scalar($schema, 'example'),
+				example: self::exampleValue($header) ?? self::exampleValue($schema),
 			);
 		}
 

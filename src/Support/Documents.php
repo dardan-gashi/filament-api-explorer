@@ -87,6 +87,28 @@ final class Documents
 	}
 
 	/**
+	 * The first entry of a JSON *array* under this key, or null when the key holds
+	 * anything else.
+	 *
+	 * OpenAPI 3.1 replaced a schema's single `example` with an `examples` array,
+	 * and a generator that writes 3.1 — Scramble does — puts its values there. The
+	 * same word means something else one level up: a media type's `examples` is a
+	 * map of Example Objects, so the list check is what tells the two apart.
+	 *
+	 * @param  array<string, mixed>  $source
+	 */
+	public static function listFirst(array $source, string $key): mixed
+	{
+		$value = $source[$key] ?? null;
+
+		if (!is_array($value) || $value === [] || !array_is_list($value)) {
+			return null;
+		}
+
+		return $value[0];
+	}
+
+	/**
 	 * @param  array<string, mixed>  $source
 	 */
 	public static function isTrue(array $source, string $key): bool
