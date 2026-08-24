@@ -26,12 +26,13 @@ final class RequestBlueprintFactory
 		array $pathParameters = [],
 		array $queryParameters = [],
 		array $headers = [],
+		?string $accept = null,
 	): RequestBlueprint {
 		return new RequestBlueprint(
 			method: $endpoint->method,
 			url: $this->url($endpoint, $server, $pathParameters),
 			query: $this->only($queryParameters, $endpoint, ParameterLocation::Query),
-			headers: $this->withAccept($this->headers($headers, $endpoint), $endpoint),
+			headers: $this->withAccept($this->headers($headers, $endpoint), $endpoint, $accept),
 		);
 	}
 
@@ -46,9 +47,10 @@ final class RequestBlueprintFactory
 	 * live request both do it — unless the document declares its own `Accept`.
 	 *
 	 * @param  array<string, string>  $headers
+	 * @param  string|null  $accept  The format the reader chose, where the endpoint documents more than one.
 	 * @return array<string, string>
 	 */
-	private function withAccept(array $headers, Endpoint $endpoint): array
+	private function withAccept(array $headers, Endpoint $endpoint, ?string $accept = null): array
 	{
 		foreach (array_keys($headers) as $name) {
 			if (strcasecmp($name, 'Accept') === 0) {
@@ -56,7 +58,26 @@ final class RequestBlueprintFactory
 			}
 		}
 
-		return ['Accept' => $endpoint->primaryResponse()->mediaType ?? 'application/json', ...$headers];
+		return ['Accept' => $this->acceptable($endpoint, $accept) ?? 'application/json', ...$headers];
+	}
+
+	/**
+	 * A chosen format is asked for only where a response is documented in it.
+	 * The media types of an endpoint include the ones its request body is sent
+	 * as — `multipart/form-data` is a way to send and no way to be answered, and
+	 * asking for it would earn a 406 from a correct server.
+	 */
+	private function acceptable(Endpoint $endpoint, ?string $accept): ?string
+	{
+		if ($accept !== null) {
+			foreach ($endpoint->responses as $response) {
+				if (in_array($accept, $response->mediaTypes(), true)) {
+					return $accept;
+				}
+			}
+		}
+
+		return $endpoint->primaryResponse()->mediaType ?? null;
 	}
 
 	/**

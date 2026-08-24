@@ -1,6 +1,7 @@
 @forelse ($endpoint->responses as $response)
 	@php
-		$visibleFields = $response->filteredFields($this->fieldSearch);
+		$rendering = $response->renderedAs($format);
+		$visibleFields = $rendering->filteredFields($this->fieldSearch);
 	@endphp
 
 	<div class="fae-response">
@@ -8,8 +9,8 @@
 			<div class="fae-response-title">
 				<span class="fae-badge fae-badge-{{ $response->color() }}">{{ $response->status }}</span>
 
-				@if ($response->schemaName)
-					<span class="fae-response-name">{{ $response->schemaName }}</span>
+				@if ($rendering->schemaName)
+					<span class="fae-response-name">{{ $rendering->schemaName }}</span>
 				@endif
 
 				@if ($response->description)
@@ -17,18 +18,18 @@
 				@endif
 			</div>
 
-			@if ($response->mediaType)
-				<span class="fae-media-type">{{ $response->mediaType }}</span>
+			@if ($rendering->mediaType)
+				<span class="fae-media-type">{{ $rendering->mediaType }}</span>
 			@endif
 		</div>
 
-		@if ($response->hasFields())
+		@if ($rendering->hasFields())
 			@if ($visibleFields === [])
 				<p class="fae-empty">{{ __('filament-api-explorer::explorer.empty.field_match') }}</p>
 			@else
 				@include('filament-api-explorer::partials.schema-tree', ['fields' => $visibleFields])
 			@endif
-		@elseif ($response->mediaType)
+		@elseif ($rendering->mediaType)
 			<p class="fae-empty">{{ __('filament-api-explorer::explorer.empty.fields') }}</p>
 		@endif
 	</div>

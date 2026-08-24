@@ -61,6 +61,12 @@ class ApiExplorerPage extends Page
 
 	public string $snippetLanguage = SnippetLanguage::Curl->value;
 
+	/**
+	 * The media type the selected endpoint is read in, where its document offers
+	 * more than one. Null means each body's preferred one.
+	 */
+	public ?string $format = null;
+
 	public string $server = '';
 
 	/**
@@ -221,6 +227,22 @@ class ApiExplorerPage extends Page
 		}
 	}
 
+	/**
+	 * Read the endpoint in one of the media types it documents. The choice
+	 * carries the whole endpoint: the schema trees, the examples, the code
+	 * sample's `Accept` header and what the live request asks for.
+	 */
+	public function setFormat(?string $mediaType): void
+	{
+		$endpoint = $this->currentEndpoint();
+
+		$this->format = $endpoint !== null
+			&& $mediaType !== null
+			&& in_array($mediaType, $endpoint->mediaTypes(), true)
+				? $mediaType
+				: null;
+	}
+
 	public function resetRequest(): void
 	{
 		$this->prefillRequest();
@@ -333,6 +355,8 @@ class ApiExplorerPage extends Page
 			'senderSections' => $endpoint === null ? [] : $this->senderSections($endpoint),
 			'snippet' => $endpoint === null ? '' : $this->snippet($endpoint),
 			'snippetLanguages' => app(SnippetRenderer::class)->languages(),
+			'format' => $this->format,
+			'formatOptions' => $endpoint?->offersSeveralMediaTypes() === true ? $endpoint->mediaTypes() : [],
 			'snippetSyntax' => $this->snippetSyntax(),
 			'exampleSections' => $endpoint === null ? [] : $this->exampleSections($endpoint),
 			'emptyRequiredHeaders' => $endpoint === null ? [] : $this->emptyRequiredHeaders($endpoint),
@@ -403,6 +427,7 @@ class ApiExplorerPage extends Page
 			pathParameters: $this->valuesFor($endpoint, ParameterLocation::Path),
 			queryParameters: $this->valuesFor($endpoint, ParameterLocation::Query),
 			headers: $headers,
+			accept: $this->format,
 		);
 	}
 
@@ -414,6 +439,7 @@ class ApiExplorerPage extends Page
 			pathParameters: $this->valuesFor($endpoint, ParameterLocation::Path),
 			queryParameters: $this->valuesFor($endpoint, ParameterLocation::Query),
 			headers: $this->valuesFor($endpoint, ParameterLocation::Header),
+			accept: $this->format,
 		);
 	}
 
@@ -486,7 +512,7 @@ class ApiExplorerPage extends Page
 		);
 
 		$sections = [];
-		$body = $endpoint->requestBody;
+		$body = $endpoint->requestBody?->renderedAs($this->format);
 
 		if ($body !== null && $body->example !== null) {
 			$sections[] = [
@@ -503,6 +529,7 @@ class ApiExplorerPage extends Page
 		}
 
 		foreach ($endpoint->responses as $response) {
+			$rendering = $response->renderedAs($this->format);
 			$sample = $samples[$response->status] ?? null;
 
 			if ($sample !== null) {
@@ -514,7 +541,7 @@ class ApiExplorerPage extends Page
 						'time' => $sample->capturedAt->diffForHumans(),
 					]),
 					'body' => $sample->body,
-					'mediaType' => $response->mediaType,
+					'mediaType' => $sample->mediaType ?? $rendering->mediaType,
 					'captured' => true,
 					'collapsed' => false,
 					'headers' => $response->headers,
@@ -523,7 +550,7 @@ class ApiExplorerPage extends Page
 				continue;
 			}
 
-			if ($response->example === null) {
+			if ($rendering->example === null) {
 				continue;
 			}
 
@@ -531,13 +558,13 @@ class ApiExplorerPage extends Page
 				'key' => $response->status,
 				'status' => $response->status,
 				'color' => $response->color(),
-				'origin' => (string) __($response->exampleSynthesised
+				'origin' => (string) __($rendering->exampleSynthesised
 					? 'filament-api-explorer::explorer.examples.synthesised'
 					: 'filament-api-explorer::explorer.examples.documented'),
-				'body' => $response->example,
-				'mediaType' => $response->mediaType,
+				'body' => $rendering->example,
+				'mediaType' => $rendering->mediaType,
 				'captured' => false,
-				'collapsed' => $response->exampleSynthesised,
+				'collapsed' => $rendering->exampleSynthesised,
 				'headers' => $response->headers,
 			];
 		}
@@ -754,6 +781,7 @@ class ApiExplorerPage extends Page
 	{
 		$endpoint = $this->currentEndpoint();
 		$this->result = null;
+		$this->format = null;
 
 		if ($endpoint === null) {
 			$this->pathValues = $this->queryValues = $this->headerValues = [];

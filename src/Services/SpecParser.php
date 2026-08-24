@@ -7,6 +7,7 @@ namespace DardanGashi\FilamentApiExplorer\Services;
 use Carbon\CarbonImmutable;
 use DardanGashi\FilamentApiExplorer\Contracts\SpecSource;
 use DardanGashi\FilamentApiExplorer\Data\ApiSpec;
+use DardanGashi\FilamentApiExplorer\Data\BodyRendering;
 use DardanGashi\FilamentApiExplorer\Data\Endpoint;
 use DardanGashi\FilamentApiExplorer\Data\Parameter;
 use DardanGashi\FilamentApiExplorer\Data\RequestBodyDefinition;
@@ -318,7 +319,8 @@ final class SpecParser
 
 		foreach (Documents::entries($responses) as [$status, $entry]) {
 			$response = $references->resolve(Documents::toMap($entry));
-			[$mediaType, $content] = $this->preferredContent(Documents::map($response, 'content'));
+			$bodies = Documents::map($response, 'content');
+			[$mediaType, $content] = $this->preferredContent($bodies);
 			$schema = Documents::map($content, 'schema');
 
 			$schemaName = ReferenceResolver::nameOf($schema);
@@ -342,6 +344,7 @@ final class SpecParser
 				headers: $this->responseHeaders(Documents::map($response, 'headers'), $references),
 				example: $content === [] ? null : $this->examples->forMediaType($content, $references, $mediaType),
 				exampleSynthesised: $content !== [] && !$this->examples->hasDocumentedExample($content, $references),
+				alternates: $this->alternateRenderings($bodies, $mediaType, $references),
 			);
 		}
 
@@ -362,7 +365,8 @@ final class SpecParser
 		}
 
 		$body = $references->resolve($requestBody);
-		[$mediaType, $content] = $this->preferredContent(Documents::map($body, 'content'));
+		$bodies = Documents::map($body, 'content');
+		[$mediaType, $content] = $this->preferredContent($bodies);
 		$schema = Documents::map($content, 'schema');
 
 		return new RequestBodyDefinition(
@@ -373,6 +377,7 @@ final class SpecParser
 			description: Documents::string($body, 'description'),
 			example: $content === [] ? null : $this->examples->forMediaType($content, $references, $mediaType),
 			exampleSynthesised: $content !== [] && !$this->examples->hasDocumentedExample($content, $references),
+			alternates: $this->alternateRenderings($bodies, $mediaType, $references),
 		);
 	}
 
@@ -424,8 +429,42 @@ final class SpecParser
 	}
 
 	/**
+	 * Every media type of a body except the preferred one, each parsed in full:
+	 * its own schema, its own example, encoded the way that type is written. XML
+	 * documented beside JSON is a different body to read, not a second label on
+	 * the same one.
+	 *
+	 * @param  array<string, mixed>  $content
+	 * @return list<BodyRendering>
+	 */
+	private function alternateRenderings(array $content, ?string $preferred, ReferenceResolver $references): array
+	{
+		$renderings = [];
+
+		foreach (Documents::entries($content) as [$mediaType, $entry]) {
+			if ($mediaType === $preferred) {
+				continue;
+			}
+
+			$definition = Documents::toMap($entry);
+			$schema = Documents::map($definition, 'schema');
+
+			$renderings[] = new BodyRendering(
+				mediaType: $mediaType,
+				schemaName: ReferenceResolver::nameOf($schema),
+				fields: $schema === [] ? [] : $this->fields->rootFields($schema, $references),
+				example: $this->examples->forMediaType($definition, $references, $mediaType),
+				exampleSynthesised: !$this->examples->hasDocumentedExample($definition, $references),
+			);
+		}
+
+		return $renderings;
+	}
+
+	/**
 	 * JSON is preferred when a response is offered in several media types,
-	 * because that is what the rest of the page is shaped for.
+	 * because that is the format a reader is most likely after — and where the
+	 * document offers more, the others are kept as alternates rather than lost.
 	 *
 	 * @param  array<string, mixed>  $content
 	 * @return array{0: string|null, 1: array<string, mixed>}

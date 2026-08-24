@@ -49,6 +49,7 @@ return [
 		'nullable' => 'nullable',
 		'deprecated' => 'deprecated',
 		'default' => 'Default :value',
+		'format' => 'Format',
 		'field_search' => 'Find field',
 		'copy_link' => 'Copy link',
 		'copy' => 'Copy',

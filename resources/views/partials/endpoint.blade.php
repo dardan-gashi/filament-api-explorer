@@ -63,7 +63,13 @@
 			</span>
 		@endif
 
-		@include('filament-api-explorer::partials.permalink-button')
+		<div class="fae-endpoint-actions">
+			@if ($formatOptions !== [])
+				@include('filament-api-explorer::partials.format-tabs')
+			@endif
+
+			@include('filament-api-explorer::partials.permalink-button')
+		</div>
 	</div>
 
 	@if ($endpoint->summary)
@@ -109,6 +115,10 @@
 @endforeach
 
 @if ($endpoint->requestBody)
+	@php
+		$requestRendering = $endpoint->requestBody->renderedAs($format);
+	@endphp
+
 	<section class="fae-section">
 		<div class="fae-section-head">
 			<h3 class="fae-section-title">
@@ -121,8 +131,8 @@
 				@endif
 			</h3>
 
-			@if ($endpoint->requestBody->mediaType)
-				<span class="fae-media-type">{{ $endpoint->requestBody->mediaType }}</span>
+			@if ($requestRendering->mediaType)
+				<span class="fae-media-type">{{ $requestRendering->mediaType }}</span>
 			@endif
 		</div>
 
@@ -131,10 +141,10 @@
 		@endif
 
 		@php
-			$bodyFields = $endpoint->requestBody->filteredFields($this->fieldSearch);
+			$bodyFields = $requestRendering->filteredFields($this->fieldSearch);
 		@endphp
 
-		@if (! $endpoint->requestBody->hasFields())
+		@if (! $requestRendering->hasFields())
 			<p class="fae-empty">{{ __('filament-api-explorer::explorer.empty.fields') }}</p>
 		@elseif ($bodyFields === [])
 			<p class="fae-empty">{{ __('filament-api-explorer::explorer.empty.field_match') }}</p>

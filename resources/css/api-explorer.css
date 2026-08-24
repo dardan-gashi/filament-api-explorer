@@ -626,6 +626,9 @@ select.fae-input {
 }
 
 .fae-endpoint-actions {
+	align-items: center;
+	display: flex;
+	gap: 0.5rem;
 	margin-left: auto;
 }
 

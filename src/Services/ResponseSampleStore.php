@@ -54,6 +54,7 @@ final class ResponseSampleStore
 			status: $result->status,
 			body: $result->prettyBody(),
 			capturedAt: CarbonImmutable::now(),
+			mediaType: $result->contentType(),
 		);
 
 		$this->cache->store($this->store)->put(

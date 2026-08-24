@@ -49,6 +49,21 @@ describe('ResponseSampleStore - remember', function () {
 			->toBe("{\n    \"code\": \"SUMMER10\"\n}");
 	});
 
+	test('keeps the media type the response arrived as', function () {
+		// The endpoint may be read in another format tomorrow, and a body captured as
+		// XML stays XML: without this the page would highlight it as whatever it is
+		// currently reading.
+		$sample = sampleStore()->remember('v2', 'get-vouchers', new ExecutedRequest(
+			status: 200,
+			body: '<order><id>7</id></order>',
+			durationMs: 12,
+			headers: ['Content-Type' => 'application/xml; charset=UTF-8'],
+		));
+
+		expect($sample?->mediaType)->toBe('application/xml')
+			->and(sampleStore()->find('v2', 'get-vouchers', '200')?->mediaType)->toBe('application/xml');
+	});
+
 	test('keeps an error response too, since its shape is worth documenting', function () {
 		sampleStore()->remember('v2', 'get-vouchers', executed(status: 422, body: '{"message":"nope"}'));
 

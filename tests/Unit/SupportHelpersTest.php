@@ -8,6 +8,7 @@ use DardanGashi\FilamentApiExplorer\Support\GroupLabel;
 use DardanGashi\FilamentApiExplorer\Support\HttpStatus;
 use DardanGashi\FilamentApiExplorer\Support\InlineMarkdown;
 use DardanGashi\FilamentApiExplorer\Support\InputKey;
+use DardanGashi\FilamentApiExplorer\Support\MediaType;
 use DardanGashi\FilamentApiExplorer\Support\PathParts;
 use DardanGashi\FilamentApiExplorer\Support\SecretHeaders;
 
@@ -16,7 +17,7 @@ use DardanGashi\FilamentApiExplorer\Support\SecretHeaders;
 // Sections: Documents::entries, Documents::string, GroupLabel::for, HttpStatus::color,
 //           InputKey::for, EndpointMeta::caption, EndpointMeta::icon,
 //           PathParts::sharedPrefix, PathParts::within, InlineMarkdown::toHtml,
-//           SecretHeaders::isSecret, SecretHeaders::redact
+//           SecretHeaders::isSecret, SecretHeaders::redact, MediaType::label
 // ----------------------------------------------------------------------------------
 
 // ------------------------------------------------------------
@@ -311,5 +312,25 @@ describe('SecretHeaders - redact', function () {
 			'Authorization' => 'Bearer $TOKEN',
 			'Accept-Language' => 'de',
 		]);
+	});
+});
+
+// ------------------------------------------------------------
+// MediaType - label
+// ------------------------------------------------------------
+
+describe('MediaType - label', function () {
+
+	test('drops the prefix every api type carries', function () {
+		expect(MediaType::label('application/json'))->toBe('json')
+			->and(MediaType::label('application/xml'))->toBe('xml')
+			->and(MediaType::label('application/vnd.api+json'))->toBe('vnd.api+json');
+	});
+
+	test('leaves a type whose first half is the distinguishing one', function () {
+		// `text/csv` and `image/png` are told apart by exactly the part a shortening
+		// would drop.
+		expect(MediaType::label('text/csv'))->toBe('text/csv')
+			->and(MediaType::label(null))->toBe('');
 	});
 });

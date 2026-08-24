@@ -14,6 +14,9 @@ use DardanGashi\FilamentApiExplorer\Support\Documents;
  * says `"status": "string"` where the API says `"status": "paid"`. A recorded
  * response is the real thing, which is why it outranks both the synthesised
  * example and the one the document declares.
+ *
+ * It carries the media type it arrived as, so a captured payload is highlighted
+ * as what it is and not as whatever format the page is currently reading.
  */
 final readonly class ResponseSample
 {
@@ -21,6 +24,7 @@ final readonly class ResponseSample
 		public int $status,
 		public string $body,
 		public CarbonImmutable $capturedAt,
+		public ?string $mediaType = null,
 	) {}
 
 	/**
@@ -32,6 +36,7 @@ final readonly class ResponseSample
 			'status' => $this->status,
 			'body' => $this->body,
 			'captured_at' => $this->capturedAt->toIso8601String(),
+			'media_type' => $this->mediaType,
 		];
 	}
 
@@ -51,6 +56,7 @@ final readonly class ResponseSample
 			status: (int) (Documents::scalar($state, 'status') ?? 0),
 			body: $body,
 			capturedAt: CarbonImmutable::parse($capturedAt),
+			mediaType: Documents::string($state, 'media_type'),
 		);
 	}
 }

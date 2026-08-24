@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use DardanGashi\FilamentApiExplorer\Data\BodyRendering;
 use DardanGashi\FilamentApiExplorer\Data\Endpoint;
 use DardanGashi\FilamentApiExplorer\Data\Parameter;
+use DardanGashi\FilamentApiExplorer\Data\RequestBodyDefinition;
 use DardanGashi\FilamentApiExplorer\Data\ResponseDefinition;
 use DardanGashi\FilamentApiExplorer\Data\SchemaField;
 use DardanGashi\FilamentApiExplorer\Enums\DocumentationGap;
@@ -12,7 +14,8 @@ use DardanGashi\FilamentApiExplorer\Enums\ParameterLocation;
 
 // ----------------------------------------------------------------------------------
 // Endpoint Test Suite
-// Sections: keyFor, label, parametersIn, response, primaryResponse, gaps, isExecutable, matches
+// Sections: keyFor, label, parametersIn, response, primaryResponse, mediaTypes,
+//           offersSeveralMediaTypes, gaps, isExecutable, matches
 // ----------------------------------------------------------------------------------
 
 function documentedResponse(string $status = '200'): ResponseDefinition
@@ -123,6 +126,53 @@ describe('Endpoint - primaryResponse', function () {
 
 	test('returns null when nothing is documented', function () {
 		expect(endpoint()->primaryResponse())->toBeNull();
+	});
+});
+
+// ------------------------------------------------------------
+// Endpoint - mediaTypes
+// ------------------------------------------------------------
+
+describe('Endpoint - mediaTypes', function () {
+
+	test('names what the request body and the responses are written in, once each', function () {
+		$endpoint = endpoint(
+			requestBody: new RequestBodyDefinition(mediaType: 'application/json'),
+			responses: [
+				new ResponseDefinition(
+					status: '200',
+					mediaType: 'application/json',
+					alternates: [new BodyRendering(mediaType: 'application/xml')],
+				),
+				new ResponseDefinition(status: '401', mediaType: 'application/json'),
+			],
+		);
+
+		expect($endpoint->mediaTypes())->toBe(['application/json', 'application/xml']);
+	});
+});
+
+// ------------------------------------------------------------
+// Endpoint - offersSeveralMediaTypes
+// ------------------------------------------------------------
+
+describe('Endpoint - offersSeveralMediaTypes', function () {
+
+	test('is true where one body is documented in more than one media type', function () {
+		expect(endpoint(responses: [new ResponseDefinition(
+			status: '200',
+			mediaType: 'application/json',
+			alternates: [new BodyRendering(mediaType: 'application/xml')],
+		)])->offersSeveralMediaTypes())->toBeTrue();
+	});
+
+	test('is false where two bodies each have one format of their own', function () {
+		// An XML payload with a JSON error is no choice the reader has: offering one
+		// would claim the endpoint answers 200 as JSON, which it does not.
+		expect(endpoint(responses: [
+			new ResponseDefinition(status: '200', mediaType: 'application/xml'),
+			new ResponseDefinition(status: '401', mediaType: 'application/json'),
+		])->offersSeveralMediaTypes())->toBeFalse();
 	});
 });
 

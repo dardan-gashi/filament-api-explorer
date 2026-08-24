@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use DardanGashi\FilamentApiExplorer\Data\BodyRendering;
 use DardanGashi\FilamentApiExplorer\Data\Parameter;
+use DardanGashi\FilamentApiExplorer\Data\RequestBodyDefinition;
 use DardanGashi\FilamentApiExplorer\Data\ResponseDefinition;
 use DardanGashi\FilamentApiExplorer\Enums\ParameterLocation;
 use DardanGashi\FilamentApiExplorer\Services\RequestBlueprintFactory;
@@ -191,6 +193,36 @@ describe('RequestBlueprintFactory - accept header', function () {
 		$blueprint = (new RequestBlueprintFactory)->make(
 			endpoint: endpoint(),
 			server: 'https://api.bookshop.test/api',
+		);
+
+		expect($blueprint->headers)->toBe(['Accept' => 'application/json']);
+	});
+
+	test('asks for the format the reader chose', function () {
+		$blueprint = (new RequestBlueprintFactory)->make(
+			endpoint: endpoint(responses: [new ResponseDefinition(
+				status: '200',
+				mediaType: 'application/json',
+				alternates: [new BodyRendering(mediaType: 'application/xml')],
+			)]),
+			server: 'https://api.bookshop.test/api',
+			accept: 'application/xml',
+		);
+
+		expect($blueprint->headers)->toBe(['Accept' => 'application/xml']);
+	});
+
+	test('ignores a chosen format no response is documented in', function () {
+		// The formats of an endpoint include the ones its request body is sent as,
+		// and `multipart/form-data` is a way to send and no way to be answered — a
+		// correct server replies 406 to anybody who asks for it.
+		$blueprint = (new RequestBlueprintFactory)->make(
+			endpoint: endpoint(
+				requestBody: new RequestBodyDefinition(mediaType: 'multipart/form-data'),
+				responses: [new ResponseDefinition(status: '200', mediaType: 'application/json')],
+			),
+			server: 'https://api.bookshop.test/api',
+			accept: 'multipart/form-data',
 		);
 
 		expect($blueprint->headers)->toBe(['Accept' => 'application/json']);

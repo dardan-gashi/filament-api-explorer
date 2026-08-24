@@ -40,7 +40,7 @@ Scramble is the one generator this package follows through their releases. It st
 
 - 🎹 **Command palette** - `⌘K` opens a two-level browser, resource then endpoint, driven by the arrow keys and searched in the browser rather than over the wire
 - 🌳 **Schemas as a tree** - request and response bodies with types, nullability and descriptions, and a field search that narrows them
-- 🧾 **JSON and XML** - a body is written, coloured and indented in the format its media type declares, and a live response in the format the server actually sent
+- 🧾 **JSON and XML** - a body is written, coloured and indented in the format its media type declares, a body offered in both is a switch between them, and a live response is read as the format the server actually sent
 - 📋 **Five request samples** - `curl`, raw HTTP, PHP, JavaScript `fetch` and Python `requests`, highlighted on the server with no highlighter in the browser
 - 📡 **Live `GET` requests** - sent from inside the panel, behind a policy you configure: safe methods, your schemes, your hosts, no redirects, a timeout
 - 💾 **Real responses as examples** - what the API answers replaces the skeleton built from the schema, one sample per status
@@ -449,8 +449,31 @@ shows an XML example beside a JSON response — which is the truth about both. X
 that does not parse is shown exactly as it arrived, because a parser's complaint
 would hide the very thing you are looking at.
 
-One body still shows one media type; see [Not yet
-included](#-not-yet-included).
+**A body offered in several media types is offered as a choice.** A response
+whose `content` names both `application/json` and `application/xml` carries two
+bodies in OpenAPI — two schemas, two examples — and the endpoint head grows a
+switch between them:
+
+```yaml
+responses:
+  '200':
+    content:
+      application/json:
+        schema: { $ref: '#/components/schemas/Order' }
+      application/xml:
+        schema: { $ref: '#/components/schemas/OrderXml' }
+```
+
+The choice carries the whole endpoint: the schema trees, the examples, the
+`Accept` header of every code sample and what the live request asks for. A switch
+that changed only the example would show XML and copy a request asking for JSON.
+
+Two things it deliberately does not do. A body documented in one format only —
+the JSON error beside an XML payload — stays in the format it has, labelled as
+such, rather than being redrawn as a format it never comes back as. And a format
+no response is documented in is never asked for: the media types of an endpoint
+include the ones its request body is *sent* as, and `multipart/form-data` earns a
+406 from any correct server that is asked to answer in it.
 
 ## 🏷️ Vendor extensions
 
@@ -480,9 +503,6 @@ picked up without anybody clearing a cache:
 
 ## 🚧 Not yet included
 
-- **One media type per body.** A response offered as both JSON and XML is shown
-  as JSON — the schema is almost always the same one, but the second entry is
-  not rendered and gets no picker of its own.
 - **Cookies** are documented but get no input in the request panel.
 - **Sending a body.** A request body is documented and rendered for every
   method, but only safe methods are ever sent, so there is nothing to fill in.

@@ -19,6 +19,48 @@ use DardanGashi\FilamentApiExplorer\Enums\ParameterLocation;
 
 describe('SpecParser - parseDocument', function () {
 
+	test('parses every media type a response is offered in', function () {
+		// The second entry is a body of its own: its own schema, its own example, and
+		// an example encoded the way that media type is written.
+		$spec = parser()->parseDocument('v1', ['paths' => ['/things' => ['get' => [
+			'responses' => ['200' => ['content' => [
+				'application/json' => ['schema' => [
+					'type' => 'object',
+					'properties' => ['sku' => ['type' => 'string', 'examples' => ['1005444106']]],
+				]],
+				'application/xml' => ['schema' => [
+					'title' => 'Thing',
+					'type' => 'object',
+					'properties' => ['sku' => ['type' => 'string', 'examples' => ['1005444106']]],
+				]],
+			]]],
+		]]]]);
+
+		$response = $spec->endpoints[0]->responses[0];
+
+		expect($response->mediaType)->toBe('application/json')
+			->and($response->mediaTypes())->toBe(['application/json', 'application/xml'])
+			->and($response->alternates[0]->mediaType)->toBe('application/xml')
+			->and($response->alternates[0]->example)->toContain('<Thing>')
+			->and($response->alternates[0]->example)->toContain('<sku>1005444106</sku>')
+			->and($response->example)->toContain('"sku": "1005444106"');
+	});
+
+	test('parses every media type a request body may be sent as', function () {
+		$spec = parser()->parseDocument('v1', ['paths' => ['/things' => ['post' => [
+			'requestBody' => ['content' => [
+				'application/json' => ['schema' => ['type' => 'object', 'properties' => ['sku' => ['type' => 'string']]]],
+				'multipart/form-data' => ['schema' => ['type' => 'object', 'properties' => ['file' => ['type' => 'string']]]],
+			]],
+			'responses' => ['201' => ['description' => 'Created']],
+		]]]]);
+
+		$body = $spec->endpoints[0]->requestBody;
+
+		expect($body?->mediaTypes())->toBe(['application/json', 'multipart/form-data'])
+			->and($body?->renderedAs('multipart/form-data')->fields[0]->name)->toBe('file');
+	});
+
 	test('reads the api identity from the info object', function () {
 		$spec = parser()->parseDocument('v2', fixtureDocument());
 

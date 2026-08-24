@@ -75,7 +75,8 @@ function documentedDocument(): array
 
 // ----------------------------------------------------------------------------------
 // ApiExplorerPage Test Suite
-// Sections: Render, Endpoint Selection, Search, Gap Filter, Snippets, Sending, Examples
+// Sections: Render, Endpoint Selection, Search, Gap Filter, Snippets, Sending, Examples,
+//           Formats
 // ----------------------------------------------------------------------------------
 
 // ------------------------------------------------------------
@@ -730,6 +731,120 @@ describe('ApiExplorerPage - Examples', function () {
 			->assertSee('Send it once')
 			->call('selectEndpoint', Endpoint::keyFor(HttpMethod::Delete, '/participants/{participant}'))
 			->assertDontSee('Send it once');
+	});
+});
+
+// ------------------------------------------------------------
+// ApiExplorerPage - Formats
+// ------------------------------------------------------------
+
+describe('ApiExplorerPage - Formats', function () {
+
+	beforeEach(function () {
+		config()->set('filament-api-explorer.sources', ['v1' => ['driver' => 'array', 'document' => [
+			'openapi' => '3.1.0',
+			'info' => ['title' => 'two formats'],
+			'paths' => ['/things' => ['get' => [
+				'summary' => 'Lists things.',
+				'responses' => [
+					'200' => [
+						'description' => 'OK',
+						'content' => [
+							'application/json' => ['schema' => [
+								'type' => 'object',
+								'properties' => ['sku' => ['type' => 'string', 'examples' => ['1005444106']]],
+							]],
+							'application/xml' => ['schema' => [
+								'title' => 'Thing',
+								'type' => 'object',
+								'properties' => ['sku' => ['type' => 'string', 'examples' => ['1005444106']]],
+							]],
+						],
+					],
+					'401' => [
+						'description' => 'Unauthenticated',
+						'content' => ['application/json' => ['schema' => [
+							'type' => 'object',
+							'properties' => ['message' => ['type' => 'string']],
+						]]],
+					],
+				],
+			]]],
+		]]]);
+	});
+
+	test('offers the media types the endpoint documents, shortened for a tab', function () {
+		// `application/` is the half of a media type that tells none of them apart,
+		// and the full string does not fit a tab beside the path.
+		$html = (string) preg_replace('/\s+/', '', livewire(ApiExplorerPage::class)->html());
+
+		expect($html)->toContain('>json<')
+			->and($html)->toContain('>xml<')
+			->and($html)->toContain("setFormat('application\/xml')");
+	});
+
+	test('reads the whole endpoint in the format it is switched to', function () {
+		$html = livewire(ApiExplorerPage::class)->call('setFormat', 'application/xml')->html();
+
+		// The example, and the Accept header of the sample beside it: a switch that
+		// changed only the example would show XML and copy a request asking for JSON.
+		expect($html)->toContain('<span class="fae-code-keyword">&lt;sku&gt;</span>')
+			->and($html)->toContain('application/xml');
+	});
+
+	test('asks the live request for the format it is reading', function () {
+		Http::fake(['api.bookshop.test/*' => Http::response('<Thing><sku>1005444106</sku></Thing>', 200, [
+			'Content-Type' => 'application/xml',
+		])]);
+
+		livewire(ApiExplorerPage::class)->call('setFormat', 'application/xml')->call('send');
+
+		Http::assertSent(fn ($request): bool => $request->header('Accept') === ['application/xml']);
+	});
+
+	test('keeps a body that has only one format in the one it has', function () {
+		// The 401 is documented as JSON alone. Reading the endpoint as XML must not
+		// claim the error comes back as XML, because it does not — so the two bodies
+		// are highlighted by two different highlighters on one page: an element for
+		// the payload, a quoted property for the error.
+		$html = livewire(ApiExplorerPage::class)->call('setFormat', 'application/xml')->html();
+
+		expect($html)->toContain('<span class="fae-code-keyword">&lt;Thing&gt;</span>')
+			->and($html)->toContain('<span class="fae-code-property">&quot;message&quot;</span>');
+	});
+
+	test('ignores a media type the endpoint does not document', function () {
+		livewire(ApiExplorerPage::class)
+			->call('setFormat', 'text/csv')
+			->assertSet('format', null);
+	});
+
+	test('forgets the format when another endpoint is selected', function () {
+		config()->set('filament-api-explorer.sources', ['v1' => ['driver' => 'array', 'document' => [
+			'openapi' => '3.1.0',
+			'info' => ['title' => 'two formats'],
+			'paths' => [
+				'/things' => ['get' => [
+					'summary' => 'Lists things.',
+					'responses' => ['200' => ['description' => 'OK', 'content' => [
+						'application/json' => ['schema' => ['type' => 'object']],
+						'application/xml' => ['schema' => ['type' => 'object']],
+					]]],
+				]],
+				'/others' => ['get' => [
+					'summary' => 'Lists others.',
+					'responses' => ['200' => ['description' => 'OK', 'content' => [
+						'application/json' => ['schema' => ['type' => 'object']],
+					]]],
+				]],
+			],
+		]]]);
+
+		livewire(ApiExplorerPage::class)
+			->call('setFormat', 'application/xml')
+			->assertSet('format', 'application/xml')
+			->call('selectEndpoint', 'get-others')
+			->assertSet('format', null);
 	});
 });
 
