@@ -14,7 +14,9 @@ An OpenAPI-driven API reference inside a [Filament](https://filamentphp.com) pan
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE.md)
 
 <!-- SCREENSHOT: hero -->
+<div class="filament-hidden">
 <img src="docs/images/banner.png" alt="Filament API Explorer">
+</div>
 
 ## 📥 Installation
 
