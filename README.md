@@ -15,10 +15,6 @@ An OpenAPI-driven API reference inside a [Filament](https://filamentphp.com) pan
 
 <!-- SCREENSHOT: hero -->
 <img src="docs/images/banner.png" alt="Filament API Explorer">
-<!-- <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/images/hero-dark.png">
-  <img src="docs/images/hero-light.png" alt="The API Explorer page: command palette above, endpoint documentation on the left, request samples and the live sender on the right">
-</picture> -->
 
 ## 📥 Installation
 
