@@ -11,7 +11,7 @@ Please do not open a public issue for a vulnerability.
 Use GitHub's [private vulnerability
 reporting](https://github.com/dardan-gashi/filament-api-explorer/security/advisories/new)
 — it opens a private thread with the maintainer and becomes the draft advisory
-if the report holds. If you would rather write an email: REDACTED.
+if the report holds.
 
 Please include the version, what an attacker gains, and the smallest way to
 reproduce it. You will get an answer within a week.
